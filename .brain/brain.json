@@ -33,7 +33,8 @@
     { "path": "Local Call", "desc": "Metadata fetch via Python oEmbed" },
     { "path": "Local Call", "desc": "Transcript fetch via Python with multi-language support (vi/en)" },
     { "path": "Gemini API", "desc": "Summarization via models/gemini-2.5-flash (Thinking enabled)" },
-    { "path": "Gemini Streaming", "desc": "SSE Streaming via streamGenerateContent?alt=sse for jumping text UX" }
+    { "path": "Gemini Streaming", "desc": "SSE Streaming via streamGenerateContent?alt=sse for jumping text UX" },
+    { "path": "Auto-TTS Call", "desc": "Triggered once when full summary finishes to avoid chunk overwriting issues" }
   ],
   "security_rules": [
     "Gemini API Keys must be sent via Headers, NEVER URLs",

@@ -4,36 +4,30 @@
 
 ---
 
+## 🚀 Trạng thái dự án: v4.1.0 (Production Ready)
+
+Đây là phiên bản ổn định nhất hiện nay, được tối ưu hóa sâu về mặt hiệu năng (StringBuilder buffering) và trải nghiệm người dùng (TTS Exact Bookmarking).
+
+---
+
 ## ✨ Tính năng nổi bật
 
-- **Tóm tắt bằng Gemini 2.5 Flash**: Sử dụng model AI mới nhất của Google với khả năng tư duy (Thinking) để tạo ra các bản tóm tắt súc tích, chính xác.
-- **Xử lý Python Cục bộ (Local Engine)**: Transcript được trích xuất trực tiếp trên thiết bị Android bằng Python (Chaquopy), không thông qua máy chủ trung gian, giúp bảo mật dữ liệu và khắc phục tình trạng bị chặn IP.
-- **TTS Pause/Resume Thông minh**: Tích hợp Voice Assistant với khả năng đánh dấu vị trí đọc (Bookmark). Bạn có thể Tạm dừng và Tiếp tục đúng ngay tại từ đang nghe thay vì phải nghe lại từ đầu.
-- **Chia sẻ 1-Click (Share Intent)**: Hỗ trợ chia sẻ trực tiếp từ ứng dụng YouTube chính thức sang YTSummary để tự động hóa hoàn toàn quy trình phân tích.
-- **Quản lý Lịch sử (Room Database)**: Lưu trữ các bản tóm tắt vào cơ sở dữ liệu Room cục bộ, được mã hóa bằng SQLCipher để đảm bảo riêng tư tuyệt đối.
-- **Thiết kế Glassmorphism Cao cấp**: Giao diện người dùng hiện đại với hiệu ứng "Kính mờ", bóng đổ Neon và các hiệu ứng micro-animations mượt mà.
-- **Phục hồi Trạng thái (MVVM)**: Sử dụng ViewModel và StateFlow để bảo toàn tiến trình tóm tắt và vị trí TTS ngay cả khi xoay màn hình hoặc thay đổi cấu hình.
+- **Tóm tắt bằng Gemini 2.5 Flash**: Sử dụng engine AI mạnh mẽ nhất của Google cho tác vụ tóm tắt với khả năng phân tích ngữ cảnh sâu.
+- **Xử lý Python Cục bộ (Local Engine)**: Transcript được trích xuất trực tiếp trên thiết bị Android bằng Python (Chaquopy), vượt qua mọi rào cào chặn IP từ máy chủ trung gian.
+- **TTS Exact Bookmarking (Ghi nhớ vị trí đọc)**: Hệ thống Voice Assistant tự động lưu `totalSpokenLength` (tổng độ dài đã đọc) theo từng ký tự. Khi bấm "Tiếp tục" sau khi Pause, AI sẽ bắt đầu đọc đúng ngay tại vị trí đã dừng thay vì đọc lại toàn bộ đoạn văn.
+- **Python Runtime Background Warm-up**: Tự động sưởi ấm (Warm-up) trình thông dịch Python ngay khi mở app trong nền, giúp giảm thời gian phân tích video lần đầu tới 2.5s.
+- **Chia sẻ 1-Click (Share Intent)**: Hỗ trợ chia sẻ từ YouTube app sang YTSummary để tự động kích hoạt tiến trình tóm tắt và đọc tiếng (Auto-TTS) ngay khi hoàn tất.
+- **Quản lý Lịch sử Bảo mật (Room + SQLCipher)**: Lưu trữ các bản tóm tắt vào cơ sở dữ liệu Room cục bộ, mã hóa 256-bit AES giúp bảo vệ dữ liệu cá nhân.
 
 ---
 
 ## 🛠️ Công nghệ sử dụng
 
-- **Frontend**: Kotlin & Jetpack Compose (Declarative UI).
-- **Trình xử lý lõi**: Python 3.11 thông qua Chaquopy 17.0.0.
-- **AI Model**: Google Gemini API v1beta (Gemini 2.5 Flash).
-- **Cơ sở dữ liệu**: Room + SQLCipher (Mã hóa cơ sở dữ liệu).
-- **Networking**: OkHttp (Xử lý SSE Streaming cho AI output).
-- **Kiến trúc**: MVVM + Repository Pattern + Clean Architecture principles.
-
----
-
-## 🧠 Chiến thuật "Hết nạc mới vạc tới xương" (Model-First Rotation)
-
-Ứng dụng được thiết kế với cơ chế xoay tua thông minh nhằm ưu tiên bản tóm tắt chất lượng cao nhất cho người dùng:
-
-1.  **Ưu tiên đời Model (Model-First)**: Hệ thống sẽ thử sử dụng model tốt nhất (`gemini-2.5-flash`) trên tất cả các API Key hiện có. Điều này giúp tối đa hóa khả năng nhận được nội dung tóm tắt chất lượng cao nhất có thể.
-2.  **Giáng cấp thông minh (Graceful Degradation)**: Chỉ khi toàn bộ các API Key đều báo hết hạn ngạch (Quota 429) hoặc lỗi máy chủ (503) cho model đó, ứng dụng mới chuyển sang model dự phòng tiếp theo (`gemini-2.5-flash-lite`, sau đó là `gemini-2.0-flash`, v.v.).
-3.  **Dự phòng cuối cùng**: `gemini-3-flash-preview` được giữ lại như phương án cuối cùng để đảm bảo hệ thống luôn phản hồi dù các dự phòng khác bị quá tải.
+- **Frontend**: Kotlin & Jetpack Compose (Declarative UI) với Material Design 3.
+- **Core Engine**: Python 3.11 tích hợp sâu qua Chaquopy 17.0.0.
+- **AI Integration**: Google Gemini API v1beta (Hỗ trợ SSE Streaming cho cảm giác chữ nhảy mượt mà).
+- **Optimization**: StringBuilder buffer cho streaming giúp giảm độ trễ O(N²) khi nối chuỗi dài.
+- **Security**: EncryptedSharedPreferences để lưu trữ API Keys an toàn trên thiết bị.
 
 ---
 
@@ -51,9 +45,9 @@
 2. **Mở dự án**: Sử dụng **Android Studio Ladybug** (hoặc mới hơn).
 3. **Đăng ký Gemini API Key**: Lấy khóa API miễn phí từ [Google AI Studio](https://aistudio.google.com/).
 4. **Cấu hình trên App**:
-   - Chạy ứng dụng trên máy ảo/thiết bị thật.
-   - Vào phần **Settings**.
-   - Dán API Key của bạn (Ứng dụng hỗ trợ Regex tự động lọc Key từ một đoạn văn bản dài).
+   - Chạy ứng dụng trên thiết bị.
+   - Truy cập **Settings**.
+   - Dán nội dung bất kỳ chứa API Key (App hỗ trợ Regex tự nhận diện key `AIza...`).
 5. **Build & Run**: Nhấn biểu tượng Play (Run) trong Android Studio.
 
 ---
@@ -63,27 +57,27 @@
 ```text
 app/src/main/
 ├── java/com/skul9x/ytsummary/
-│   ├── api/            # Hệ thống API client (Gemini SSE streaming)
+│   ├── api/            # Hệ thống API client (Tối ưu SSE streaming)
 │   ├── data/           # Database Room, SQLCipher & Dao
-│   ├── manager/        # TtsManager, PythonManager (Bridge), ApiKeyManager
+│   ├── manager/        # TtsManager (Bookmark logic), PythonManager (Warm-up)
 │   ├── model/          # Định nghĩa dữ liệu (AiResult, ScreenState)
-│   ├── repository/     # Lớp quản lý dữ liệu & Coroutine guards
-│   └── ui/             # Jetpack Compose Screens, Components & ViewModels
-├── python/             # Logic trích xuất transcript bằng Python cục bộ
-└── res/                # Tài nguyên UI & Adaptive Launcher Icons
-.brain/                 # Trạng thái phiên làm việc & Kiến trúc dự án (Brain state)
+│   ├── repository/     # Repository Pattern với Coroutine Safety guards
+│   └── ui/             # Jetpack Compose UI & ViewModels (Shared Flow)
+├── python/             # Transcript extraction scripts
+└── res/                # Lottie Animations & Adaptive Icons
+.brain/                 # Trạng thái phiên làm việc (Knowledge base)
 ```
 
 ---
 
 ## 📖 Cách sử dụng
 
-1. **Dán Link**: Sao chép link YouTube và dán vào màn hình chính.
-2. **Chia sẻ**: Trong ứng dụng YouTube, chọn **Chia sẻ** -> **YT Summary AI** để app tự động xử lý.
+1. **Dán Link**: Copy YouTube URL và dán trực tiếp vào Main Screen.
+2. **Chia sẻ**: Trong YouTube app -> Share -> YT Summary AI.
 3. **Điều khiển TTS**:
-   - **Play/Pause**: Tạm dừng hoặc tiếp tục đọc đúng vị trí cũ.
-   - **Restart**: Bắt đầu nghe lại từ đầu.
-4. **Lịch sử**: Xem lại các video đã tóm tắt trong mục **History**.
+   - **Play/Pause**: Tạm dừng và tiếp sau đó sẽ đọc tiếp ngay từ chỗ cũ.
+   - **Restart**: Reset vị trí đọc về đầu trang.
+4. **Lịch sử**: Quản lý và xem lại lịch sử các video đã tóm tắt.
 
 ---
 

@@ -34,10 +34,9 @@ class SummaryViewModel(application: Application) : AndroidViewModel(application)
     private val _thumbnailUrl = MutableStateFlow("")
     val thumbnailUrl: StateFlow<String> = _thumbnailUrl.asStateFlow()
 
-    // Các câu TTS sẵn sàng đọc (producer-consumer qua Flow)
-    // Các câu TTS sẵn sàng đọc (producer-consumer qua Flow)
-    private val _ttsChunks = MutableStateFlow<String?>(null)
-    val ttsChunks: StateFlow<String?> = _ttsChunks.asStateFlow()
+    // Auto-Read Pending state flag
+    private val _autoReadPending = MutableStateFlow(false)
+    val autoReadPending: StateFlow<Boolean> = _autoReadPending.asStateFlow()
     
     // TTS State
     private val _isTtsPlaying = MutableStateFlow(false)
@@ -46,14 +45,12 @@ class SummaryViewModel(application: Application) : AndroidViewModel(application)
     private var ttsPausedIndex = 0
 
     private var summaryJob: Job? = null
-    private var lastReadIndex = 0
 
     fun summarize(url: String) {
         val videoId = extractVideoId(url) ?: return
         
         // Cancel job cũ nếu đang chạy
         summaryJob?.cancel()
-        lastReadIndex = 0
         resetTtsPausedIndex()
         setTtsPlaying(false)
         _screenState.value = ScreenState.Loading("📺 Đang lọc phụ đề...")
@@ -78,17 +75,6 @@ class SummaryViewModel(application: Application) : AndroidViewModel(application)
                     }
                     is AiResult.Success -> {
                         _screenState.value = ScreenState.Summary(result)
-
-                        // Sentence detection for TTS
-                        val newPart = result.text.substring(lastReadIndex)
-                        val lastPunct = newPart.lastIndexOfAny(
-                            charArrayOf('.', '!', '?', ':', '\n')
-                        )
-                        if (lastPunct != -1) {
-                            val toRead = newPart.substring(0, lastPunct + 1)
-                            _ttsChunks.value = toRead
-                            lastReadIndex += lastPunct + 1
-                        }
                     }
                     else -> {
                         _screenState.value = ScreenState.Summary(result)
@@ -96,13 +82,11 @@ class SummaryViewModel(application: Application) : AndroidViewModel(application)
                 }
             }
 
-            // 3. Final cleanup: đọc phần text còn lại
+            // 3. Final cleanup: Auto-read toàn bộ text khi streaming hoàn tất
             val finalState = _screenState.value
             if (finalState is ScreenState.Summary && finalState.result is AiResult.Success) {
-                val remaining = finalState.result.text.substring(lastReadIndex)
-                if (remaining.isNotBlank()) {
-                    _ttsChunks.value = remaining
-                }
+                // Trigger auto-read full text từ đầu
+                _autoReadPending.value = true
 
                 // Save to history (skip nếu từ cache)
                 if (finalState.result.model != "cache") {
@@ -122,8 +106,8 @@ class SummaryViewModel(application: Application) : AndroidViewModel(application)
         _screenState.value = screen
     }
 
-    fun clearTtsChunk() {
-        _ttsChunks.value = null
+    fun clearAutoRead() {
+        _autoReadPending.value = false
     }
 
     fun setTtsPlaying(isPlaying: Boolean) {

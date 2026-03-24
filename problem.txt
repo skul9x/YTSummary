@@ -1,0 +1,41 @@
+Question: khi user paste link rồi ấn nút tóm tắt, sau khi trả tóm tắt về xong thì app đọc luôn phần tóm tắt đó. tuy nhiên lúc này button "Pause/Resume" lại hiển thị sai logic. đáng nhẽ khi app tự động đọc sau khi tóm tắt xong thì button này phải là button Pause, tuy nhiên thì không có logic nào liên kết với button này thì phải nên nó vẫn ở trạng thái Resume, tuy nhiên ấn Resume thì nó đọc từ đầu đoạn tóm tắt. bạn có hiểu không nhỉ? nêu bugs cause vấn đề này trong code tôi gửi, cần hỏi edge info gì thi cứ hỏi nhé.
+
+
+Answer:
+
+Chào bạn, tôi hoàn toàn hiểu vấn đề bạn đang gặp phải. 
+
+### 🐛 Nguyên nhân của bug:
+Vấn đề nằm ở file **`MainActivity.kt`**. Khi bạn nhận được một đoạn text mới từ `viewModel.ttsChunks` (thông qua `LaunchedEffect`), bạn đã gọi lệnh bắt đầu đọc `ttsManager.speakChunk(it)` nhưng lại **quên cập nhật trạng thái `isTtsPlaying` thành `true`**. 
+
+Do `isTtsPlaying` mặc định là `false`, nên giao diện (`SummaryScreen`) vẫn hiểu là TTS đang chưa chạy, dẫn đến việc render ra icon **Play/Resume**. 
+Đến khi bạn bấm vào nút đó, logic trong `onTTSClick` sẽ rơi vào nhánh `else` (do `isTtsPlaying == false`): nó gọi `ttsManager.speak(..., 0)` (vì index tạm dừng đang là 0), làm cho hệ thống dừng các luồng tự động và đọc lại từ đầu toàn bộ text.
+
+### 🛠 CÁCH KHẮC PHỤC:
+Bạn chỉ cần thêm một dòng lệnh cập nhật state `viewModel.setTtsPlaying(true)` vào bên trong block `LaunchedEffect(ttsChunk)` ở file **`MainActivity.kt`**.
+
+Sửa lại đoạn code đó như sau:
+
+```kotlin
+// Trong file MainActivity.kt
+// Tìm đến dòng khoảng thứ 55, phần quan sát ttsChunk
+
+// TTS Chunk Observer
+val ttsChunk by viewModel.ttsChunks.collectAsState()
+LaunchedEffect(ttsChunk) {
+    ttsChunk?.let {
+        ttsManager.speakChunk(it)
+        
+        // Thêm dòng này để báo cho UI biết hệ thống đã bắt đầu đọc tự động
+        viewModel.setTtsPlaying(true) 
+        
+        viewModel.clearTtsChunk()
+    }
+}
+```
+
+### 💡 Giải thích thêm logic sau khi sửa:
+1. Khi có kết quả tóm tắt, `ttsChunk` có dữ liệu -> gọi `speakChunk` và set `isTtsPlaying = true`.
+2. UI sẽ lập tức hiển thị icon **Pause** (Dừng lại).
+3. Nếu user bấm vào icon Pause lúc này, nhánh `if (isTtsPlaying)` sẽ được kích hoạt: hệ thống gọi `ttsManager.stop()`, ghi nhận vị trí đang đọc dở vào `ttsPausedIndex` và set `isTtsPlaying = false`.
+4. Khi user bấm lại lần nữa, máy sẽ đọc tiếp bằng cách nạp toàn bộ text vào và cắt từ `ttsPausedIndex`, chạy một cách hoàn toàn trơn tru.

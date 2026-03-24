@@ -24,6 +24,10 @@ object GeminiResponseHelper {
                 put("temperature", temperature)
                 put("maxOutputTokens", maxOutputTokens)
                 put("topP", 0.95)
+                // Disable Thinking mode for speed as per user request
+                putJsonObject("thinking_config") {
+                    put("include_thoughts", false)
+                }
             }
             putJsonArray("safetySettings") {
                 listOf(

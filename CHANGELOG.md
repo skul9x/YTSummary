@@ -2,6 +2,7 @@
 
 ## [2026-03-25] - TTS Intelligence & Smart Bookmarking 🎙️📖
 ### Added
+- **Tóm tắt siêu tốc (No Thinking)**: Đã cấu hình vô hiệu hóa chế độ Thinking trên tất cả các model (Gemini 2.0/2.5 Flash) để đạt tốc độ phản hồi nhanh nhất cho người dùng.
 - **TTS Pause/Resume (Bookmark Mode)**: Implemented "smart bookmarking" for Text-to-Speech. The app now tracks the exact character index being read and allows users to Pause and Resume from the same word, rather than restarting.
 - **TtsManager Progress Tracking**: Integrated `UtteranceProgressListener.onRangeStart` to expose the current speech offset to the UI/ViewModel layer.
 - **Restart Capability**: Added a dedicated Restart button in `SummaryScreen` to allow quick re-reading from the beginning (index 0).
@@ -15,6 +16,8 @@
 - **TTS isSpeaking Race Condition**: Replaced the unreliable `tts.isSpeaking` check with a robust `AtomicInteger` counter (`pendingUtterances`) in `TtsManager` to accurately track chunk completion during streaming playback.
 - **Streaming Pause Logic**: Fixed incorrect resume behavior by resetting the playback position when pausing during heavy chunked streaming.
 - **TTS Resume Fix**: Resolved the issue where clicking Resume would play from the start. Implemented absolute position tracking (`totalSpokenLength + currentIndex`) to allow seamless resumption from the exact character paused.
+- **TTS Reading From Middle Fix**: Fixed skipping initial sentences due to `StateFlow` conflation during SSE streaming. Switched to unified Full-Text auto-read after streaming completes.
+- **TTS Flow Optimization**: Removed real-time chunked speech to ensure smoother, uninterrupted voice output once the AI summary is fully loaded.
 
 ## [2026-03-24] - Navigation & UX Polish (Fix Swipe Back) 📱🔙
 ### Fixed

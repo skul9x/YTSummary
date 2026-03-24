@@ -1,11 +1,9 @@
-{
-  "updated_at": "2026-03-25T00:50:00Z",
+  "updated_at": "2026-03-25T01:15:00Z",
   "working_on": {
     "feature": "TTS Intelligence & Smart Bookmarking",
-    "task": "Fix TTS Resume Logic (Restarting from zero bug)",
+    "task": "Fix TTS reading from middle of text during Share Intent",
     "status": "DONE",
     "files": [
-      "TtsManager.kt",
       "SummaryViewModel.kt",
       "MainActivity.kt"
     ]
@@ -18,6 +16,15 @@
   ],
   "recent_changes": [
     {
+      "timestamp": "2026-03-25T01:15:00Z",
+      "type": "bugfix",
+      "description": "Fixed TTS skipping initial sentences during streaming due to StateFlow conflation. Switched to single-trigger auto-read once full text is ready.",
+      "files": [
+        "com.skul9x.ytsummary.ui.SummaryViewModel",
+        "com.skul9x.ytsummary.ui.MainActivity"
+      ]
+    },
+    {
       "timestamp": "2026-03-25T00:50:00Z",
       "type": "bugfix",
       "description": "Fixed TTS Resume logic where it would restart from the beginning. Implemented totalSpokenLength tracking in TtsManager to allow absolute position resumption.",
@@ -26,27 +33,19 @@
         "com.skul9x.ytsummary.ui.MainActivity",
         "com.skul9x.ytsummary.ui.SummaryViewModel"
       ]
-    },
-    {
-      "timestamp": "2026-03-25T00:35:00Z",
-      "type": "bugfix",
-      "description": "Fixed TTS Pause/Resume sync issues and race condition in TtsManager using AtomicInteger counter.",
-      "files": [
-        "com.skul9x.ytsummary.manager.TtsManager",
-        "com.skul9x.ytsummary.ui.MainActivity"
-      ]
     }
   ],
   "errors_encountered": [
     {
-      "error": "TTS Resume starts from beginning instead of paused position",
-      "solution": "Implemented totalSpokenLength to accumulate finished chunks and a pause() method to capture exact absolute index.",
+      "error": "TTS starts reading from the middle/end of text during Share Intent",
+      "solution": "Identified StateFlow conflation as the root cause. Removed chunked emission; implemented a single post-streaming Full-Text speak command.",
       "resolved": true,
-      "file": "TtsManager.kt"
+      "file": "SummaryViewModel.kt"
     }
   ],
   "decisions_made": [
-    { "decision": "Track cumulative spoken length in TtsManager", "reason": "Necessary because currentIndex is relative to each chunk in QUEUE_ADD mode." },
-    { "decision": "Explicit pause() method instead of generic stop()", "reason": "Distinguishes between temporary pause (captures state) and hard stop (resets everything)." }
+    { "decision": "Abandon real-time TTS chunking during SSE", "reason": "StateFlow is not a queue; rapid chunks overwrite each other leading to skipped text." },
+    { "decision": "Single Full-Text Trigger via autoReadPending flag", "reason": "Ensures the entire text is available and provided to TTS engine in one go for continuous speech." }
   ]
 }
+```

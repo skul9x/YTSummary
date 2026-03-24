@@ -73,13 +73,19 @@ class MainActivity : ComponentActivity() {
                 val thumbnailUrl by viewModel.thumbnailUrl.collectAsState()
                 val isTtsPlaying by viewModel.isTtsPlaying.collectAsState()
 
-                // TTS Chunk Observer
-                val ttsChunk by viewModel.ttsChunks.collectAsState()
-                LaunchedEffect(ttsChunk) {
-                    ttsChunk?.let {
-                        ttsManager.speakChunk(it)
-                        viewModel.setTtsPlaying(true)
-                        viewModel.clearTtsChunk()
+                // Auto-Read Observer: đọc toàn bộ text từ đầu khi summary hoàn tất
+                val autoRead by viewModel.autoReadPending.collectAsState()
+                LaunchedEffect(autoRead) {
+                    if (autoRead) {
+                        val currentState = viewModel.screenState.value
+                        if (currentState is ScreenState.Summary) {
+                            val result = currentState.result
+                            if (result is AiResult.Success) {
+                                ttsManager.speak(result.text, 0)
+                                viewModel.setTtsPlaying(true)
+                            }
+                        }
+                        viewModel.clearAutoRead()
                     }
                 }
 
