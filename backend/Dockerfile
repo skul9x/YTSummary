@@ -8,13 +8,11 @@ WORKDIR /app
 COPY requirements.txt .
 COPY main.py .
 
-# Cài đặt folder thư viện local (Phải đảm bảo bundle folder này khi gửi lên Railway)
-# Ở đây ta giả định folder youtube-transcript-api-master được copy vào backend/
-COPY youtube-transcript-api-master /app/youtube-transcript-api-master
+# Cài đặt folder thư viện local (Tạm thời bỏ qua để dùng bản official pip cho ổn định)
+# COPY youtube-transcript-api-master /app/youtube-transcript-api-master
 
 # Cài đặt dependencies
 RUN pip install --no-cache-dir -r requirements.txt
-RUN pip install /app/youtube-transcript-api-master
 
 # Port Railway sẽ tự động cung cấp biến môi trường $PORT
 # Chúng ta không cần EXPOSE nữa, Railway sẽ tự quản lý
