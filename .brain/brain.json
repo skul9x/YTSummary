@@ -17,7 +17,7 @@
       "network": "OkHttp + Retrofit (Gemini calls)"
     },
     "core": {
-      "framework": "Chaquopy 17.0.1 (Local Python Backend)",
+      "framework": "Chaquopy 17.0.0 (Local Python Backend)",
       "python_version": "3.11",
       "libs": ["youtube-transcript-api", "requests", "urllib", "defusedxml"],
       "status": "ACTIVE"
@@ -49,7 +49,8 @@
       "Railway 502/IP Blocking: Resolved by moving to Local IP via Chaquopy",
       "YouTube-Transcript-Api v0.6.2+: 'fetch()' is the standard instance method for FetchedTranscript objects",
       "Gemini 2.5 Flash requires v1beta endpoint for advanced features",
-      "Android Studio Sync: MUST be run after any build.gradle or python resource changes"
+      "Android Studio Sync: MUST be run after any build.gradle or python resource changes",
+      "Chaquopy Versioning: 17.0.1 is a DEV version in source but NOT yet published to Maven. Use 17.0.0 for stable production."
     ]
   }
 }

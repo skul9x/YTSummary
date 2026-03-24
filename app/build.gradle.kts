@@ -23,15 +23,10 @@ android {
         buildConfigField("String", "BASE_URL", "\"https://ytsummary-production.up.railway.app/\"")
 
         ndk {
-            abiFilters += listOf("arm64-v8a", "armeabi-v7a", "x86_64")
+            abiFilters += listOf("arm64-v8a", "x86_64")
         }
 
-        python {
-            version = "3.11"
-            pip {
-                install("youtube-transcript-api")
-            }
-        }
+
     }
 
     buildTypes {
@@ -53,6 +48,15 @@ android {
     buildFeatures {
         compose = true
         buildConfig = true
+    }
+}
+
+chaquopy {
+    defaultConfig {
+        version = "3.12"
+        pip {
+            install("youtube-transcript-api")
+        }
     }
 }
 

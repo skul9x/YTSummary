@@ -28,7 +28,7 @@ lifecycle = "2.8.7"
 ksp = "2.0.21-1.0.27"
 # Serialization
 kotlinxSerializationJson = "1.7.3"
-chaquopy = "17.0.1" 
+chaquopy = "17.0.0" 
 
 
 # Firebase

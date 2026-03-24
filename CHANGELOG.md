@@ -8,9 +8,10 @@
 ### Removed
 - **Legacy Cloud Backend**: Deleted `backend/` directory, `Dockerfile`, and `main.py` - the app now runs entirely on-device for transcript fetching.
 
-### Changed
-- **Architecture**: Officially transitioned to "Standalone (Android + Local Python)" to eliminate 502 Bad Gateway and YouTube IP blocking issues.
 - **Transcript Helper**: Updated XML parsing logic for compatibility with `yt-transcript-api` master and local `defusedxml`.
+
+### Fixed
+- **Chaquopy Build Error**: Resolved `UnknownPluginException` by downgrading from `17.0.1` (unreleased dev version) to `17.0.0` (latest stable).
 
 
 ## [2026-03-24] - Standalone Architecture (Chaquopy Integration) 🚀

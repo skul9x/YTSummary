@@ -25,7 +25,7 @@ class PythonManager private constructor(context: Context) {
      */
     fun fetchTranscript(videoId: String): Result<String> {
         return try {
-            val result = ytHelper.callAttr("get_transcript", videoId).toPyObject()
+            val result = ytHelper.callAttr("get_transcript", videoId)
             val status = result.get("status")?.toString() ?: "error"
             
             if (status == "success") {
@@ -46,7 +46,7 @@ class PythonManager private constructor(context: Context) {
      */
     fun fetchMetadata(videoId: String): VideoMetadata? {
         return try {
-            val result = ytHelper.callAttr("get_metadata", videoId).toPyObject()
+            val result = ytHelper.callAttr("get_metadata", videoId)
             
             VideoMetadata(
                 videoId = videoId,

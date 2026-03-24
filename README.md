@@ -1,55 +1,49 @@
-# YTSummary - Trình tóm tắt YouTube AI Standalone (Android)
+# YTSummary - YouTube Video Summarizer
 
-YTSummary là ứng dụng Android hiện đại giúp tóm tắt nội dung video YouTube bằng trí tuệ nhân tạo (AI). Dự án đã chuyển đổi từ kiến trúc Cloud sang kiến trúc **Standalone (Local Python)** để đảm bảo tính ổn định và bảo mật cao nhất.
+YTSummary là một ứng dụng Android thông minh giúp bạn tóm tắt nội dung video YouTube một cách tự động và cực kỳ nhanh chóng. Thay vì mất hàng giờ để xem toàn bộ video, ứng dụng sẽ cung cấp cho bạn một bản tóm tắt nội dung ngắn gọn, chính xác bằng cách kết hợp thông minh giữa khả năng lấy phụ đề (transcript) tự động của YouTube và trí tuệ nhân tạo (AI) Gemini 2.5 Flash mạnh mẽ của Google.
 
-## 🌟 Tính năng chính
+## ✨ Tính Năng Nổi Bật
 
-- **Tóm tắt thông minh:** Sử dụng model **Gemini 2.5 Flash** để tóm tắt nội dung video nhanh chóng, chính xác.
-- **Kiến trúc Standalone (Chaquopy):** Tích hợp Python trực tiếp vào App Android để lấy transcript bằng IP của thiết bị, giúp vượt qua các rào cản chặn IP của YouTube đối với các Cloud Data Center.
-- **Tối ưu hóa cho người lái xe:** Prompt được thiết kế đặc biệt theo phong cách ngắn gọn, súc tích, dễ nghe khi sử dụng tính năng đọc bằng giọng nói (Text-to-Speech).
-- **Bảo mật dữ liệu:** Lịch sử tóm tắt được lưu trữ local và mã hóa bằng **Room Database + SQLCipher**.
-- **Không cần Backend:** Không phụ thuộc vào máy chủ trung gian, giúp giảm chi phí vận hành và tăng tốc độ xử lý.
+- **Tóm tắt bằng AI (Google Gemini 2.5 Flash):** Khả năng phân tích và rút gọn phụ đề tinh tế, cung cấp thông tin cốt lõi nhất.
+- **Hoạt Động Hoàn Toàn Standalone (Local):** Được trang bị engine **Chaquopy** (Python 3.12 tích hợp trực tiếp trên Android), ứng dụng có thể lấy phụ đề YouTube một cách tự động thông qua chính IP thiết bị của bạn, giúp bypass hoàn toàn các hệ thống chống Bot chặn IP của YouTube.
+- **Giao Diện Material 3 Hiện Đại:** Tối giản, thanh lịch, tốc độ phản hồi tính bằng mili-giây.
 
-## 🛠️ Công nghệ sử dụng
+## ⚙️ Hướng Dẫn Cài Đặt
 
-- **Frontend:** Kotlin, Jetpack Compose, Material Design 3.
-- **AI Integration:** Google Gemini API (models/gemini-2.5-flash).
-- **Python Bridge:** Chaquopy 17.0.1 (Python 3.11).
-- **Phụ đề:** `youtube-transcript-api`.
-- **Cơ sở dữ liệu:** Room + SQLCipher (Mã hóa toàn diện).
+### 1. Yêu Cầu Hệ Thống
+- **Android Studio:** Bản Hedgehog hoặc mới nhất.
+- **Gradle:** Phiên bản được định nghĩa trong `wrapper`.
+- **JDK:** Java 11 hoặc Java 17+.
 
-## 📂 Cấu trúc thư mục
-
-- `app/src/main/python/`: Chứa logic Python (`yt_transcript_helper.py`) để lấy transcript và metadata.
-- `app/src/main/java/`: Chứa mã nguồn Kotlin của ứng dụng (UI, Manager, Repository).
-- `.brain/`: Thư mục lưu trữ kiến thức dự án và context của AI (Dùng cho phát triển).
-- `docs/`: Tài liệu mô tả kiến trúc và báo cáo bảo mật.
-
-## 🚀 Hướng dẫn cài đặt
-
-1. **Clone Repository:**
+### 2. Các Bước Cài Đặt
+1. **Clone repository này về máy:**
    ```bash
    git clone https://github.com/skul9x/YTSummary.git
    ```
+2. **Mở dự án trong Android Studio.**
+3. **Đồng bộ hóa (Sync):** Ấn `Sync Project with Gradle Files` và chờ Gradle tự động tải bộ công cụ (kèm Python runtime của Chaquopy).
+4. **Nhập Google Gemini API Key:** Sau khi build chương trình thành công và mở App, hãy nhấn vào **Cài đặt (Settings)** (biểu tượng bánh răng) trên góc màn hình và paste đoạn API Key Gemini của bạn vào ô cung cấp (Dạng: `AIza...`).
 
-2. **Mở dự án:** 
-   Sử dụng Android Studio (phiên bản mới nhất) để mở thư mục dự án.
+## 🚀 Cách Sử Dụng
 
-3. **Đồng bộ Gradle:**
-   Nhấn **"Sync Project with Gradle Files"**. Lưu ý: Quá trình này sẽ tải về Python Runtime và các thư viện cần thiết (`youtube-transcript-api`, `requests`).
+1. Mở ứng dụng YouTube gốc (hoặc thông qua trình duyệt).
+2. Tìm video bạn muốn tóm tắt.
+3. Nhấn nút **Chia sẻ (Share)** và chọn **Share to YTSummary**, hoặc bạn có thể copy link URL video dán vào giao diện chính của ứng dụng.
+4. Chờ 1-3 giây để ứng dụng kéo phụ đề và trả về bản ghi tóm tắt cho bạn!
 
-4. **Cấu hình API Key:**
-   - Lấy API Key tại [Google AI Studio](https://aistudio.google.com/).
-   - Nhập API Key vào phần cài đặt trong ứng dụng.
+## 📂 Cấu Trúc Thư Mục
 
-5. **Build & Run:**
-   Build app và cài đặt lên điện thoại Android hoặc Emulator.
+- `app/src/main/java/` - Chứa toàn bộ logic UI (Jetpack Compose) và kiến trúc chính của App (Kotlin).
+   - `ui/` - Các màn hình giao diện cấu thành ứng dụng (Home, History, Summary, Settings...).
+   - `manager/` - Quản lý Cấu hình và Logic cốt lõi (Giao tiếp với Python Engine, API Key Manager...).
+- `app/src/main/python/` - Chứa mã nguồn Python `yt_transcript_helper.py` đảm nhận vai trò là Backend giả lập để scrap phụ đề tự động bằng thư viện `youtube-transcript-api`.
+- `app/build.gradle.kts` - Manifest file build của dự án (Khai báo module Chaquopy 17.0).
+- `.brain/` - Bộ nhớ AI và lưu trữ ngữ cảnh đặc tả kỹ thuật (Technical Contexts) của hệ thống AWF.
 
-## ⚠️ Lưu ý quan trọng
+## 🤝 Thông Tin Bổ Sung
+- Dự án ưu tiên sử dụng thiết kế clean architecture cơ bản trên điện thoại để loại bỏ hoàn toàn hệ thống Cloud Backend đắt đỏ.
+- Do tích hợp Chaquopy để chạy bộ thư viện Python cục bộ, dung lượng APK build sẽ tăng thêm khoảng chừng ~25MB so với các phiên bản build Android Studio thông thường. Nhưng bù lại ứng dụng của bạn sẽ được an toàn khỏi IP Blocking!
 
-- Dự án đã loại bỏ hoàn toàn backend cũ chạy trên Railway.app. Mọi logic lấy dữ liệu hiện tại đều chạy local trên thiết bị.
-- Đảm bảo thiết bị của bạn có kết nối internet ổn định để lấy transcript từ YouTube và gọi Gemini API.
-
-## 📄 Bản quyền
-
+---
+**Bản quyền:**
 Copyright 2026 Nguyễn Duy Trường
