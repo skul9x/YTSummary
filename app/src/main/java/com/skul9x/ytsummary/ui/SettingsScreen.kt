@@ -7,7 +7,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -54,7 +54,7 @@ fun SettingsScreen(onBack: () -> Unit) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(onClick = onBack) {
-                    Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Back", tint = TextPrimary)
+                    Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = TextPrimary)
                 }
                 Text(
                     "API Configuration",
@@ -67,22 +67,24 @@ fun SettingsScreen(onBack: () -> Unit) {
 
             // Add Key Input Section
             Text(
-                "Add Gemini API Key",
+                "Add Gemini API Keys (Paste mixed text)",
                 style = MaterialTheme.typography.labelMedium,
                 color = TextSecondary,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
             
             GlassCard(modifier = Modifier.fillMaxWidth()) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Column {
                     TextField(
                         value = newKey,
                         onValueChange = { 
                             newKey = it 
                             errorMessage = null
                         },
-                        modifier = Modifier.weight(1f),
-                        placeholder = { Text("AIzaSy...", color = TextSecondary.copy(alpha = 0.5f)) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(min = 100.dp),
+                        placeholder = { Text("Paste text here... App will auto-extract API keys.", color = TextSecondary.copy(alpha = 0.5f)) },
                         colors = TextFieldDefaults.colors(
                             focusedContainerColor = Color.Transparent,
                             unfocusedContainerColor = Color.Transparent,
@@ -92,23 +94,52 @@ fun SettingsScreen(onBack: () -> Unit) {
                             focusedTextColor = TextPrimary,
                             unfocusedTextColor = TextPrimary
                         ),
-                        singleLine = true
+                        singleLine = false,
+                        maxLines = 5
                     )
-                    IconButton(
-                        onClick = {
-                            if (apiKeyManager.addApiKey(newKey)) {
-                                apiKeys = apiKeyManager.getApiKeys()
-                                newKey = ""
-                                errorMessage = null
-                            } else {
-                                errorMessage = "Invalid or duplicate key"
-                            }
-                        },
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(YouTubeRed)
+                    
+                    Spacer(modifier = Modifier.height(8.dp))
+                    
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End
                     ) {
-                        Icon(imageVector = Icons.Default.Add, contentDescription = "Add", tint = Color.White)
+                        Button(
+                            onClick = {
+                                val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                                val clipData = clipboard.primaryClip
+                                if (clipData != null && clipData.itemCount > 0) {
+                                    val text = clipData.getItemAt(0).text?.toString() ?: ""
+                                    newKey += if (newKey.isNotEmpty()) "\n$text" else text
+                                }
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = Color.DarkGray)
+                        ) {
+                            Text("Paste")
+                        }
+                        
+                        Spacer(modifier = Modifier.width(8.dp))
+                        
+                        Button(
+                            onClick = {
+                                val regex = Regex("AIza[a-zA-Z0-9_\\\\-]+")
+                                val matches = regex.findAll(newKey).map { it.value }.toList()
+                                if (matches.isNotEmpty()) {
+                                    var addedCount = 0
+                                    matches.forEach { key ->
+                                        if (apiKeyManager.addApiKey(key)) addedCount++
+                                    }
+                                    apiKeys = apiKeyManager.getApiKeys()
+                                    newKey = ""
+                                    errorMessage = "Saved $addedCount valid API keys!"
+                                } else {
+                                    errorMessage = "No valid API keys found."
+                                }
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = YouTubeRed)
+                        ) {
+                            Text("Save Keys")
+                        }
                     }
                 }
             }

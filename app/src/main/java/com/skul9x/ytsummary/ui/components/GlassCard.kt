@@ -1,6 +1,5 @@
 package com.skul9x.ytsummary.ui.components
 
-import android.os.Build
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
@@ -9,7 +8,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
@@ -23,7 +21,6 @@ import com.skul9x.ytsummary.ui.theme.GlassWhite
 fun GlassCard(
     modifier: Modifier = Modifier,
     cornerRadius: Dp = 24.dp,
-    blurRadius: Dp = 16.dp,
     content: @Composable BoxScope.() -> Unit
 ) {
     Box(
@@ -42,11 +39,6 @@ fun GlassCard(
                         GlassWhite.copy(alpha = 0.05f)
                     )
                 )
-            )
-            .then(
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                    Modifier.blur(blurRadius)
-                } else Modifier
             )
             .border(
                 width = 1.dp,

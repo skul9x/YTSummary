@@ -1,20 +1,26 @@
 {
-  "updated_at": "2026-03-24T15:48:00Z",
+  "updated_at": "2026-03-24T16:15:00Z",
   "working_on": {
-    "feature": "Architecture Cleanup & Final Logic Verification",
-    "task": "Test Standalone application on Local Device",
-    "status": "pending",
+    "feature": "UX/UI Improvements",
+    "task": "Implement all 5 UX tasks requested",
+    "current_plan_path": "plans/260324-1627-ux-improvements/",
+    "status": "completed",
     "files": [
-      "app/src/main/java/com/skul9x/ytsummary/manager/PythonManager.kt",
-      "app/build.gradle.kts"
+      "app/src/main/java/com/skul9x/ytsummary/ui/SettingsScreen.kt",
+      "app/src/main/java/com/skul9x/ytsummary/ui/MainActivity.kt",
+      "app/src/main/java/com/skul9x/ytsummary/ui/SummaryScreen.kt"
     ]
   },
   "pending_tasks": [
-    { "task": "Test APK on real device / emulator", "priority": "high" },
-    { "task": "Optimize Prompt AI for Gemini 2.5 Flash thinking capability", "priority": "medium" },
-    { "task": "Verify APK size & RAM usage (Python bundle check)", "priority": "low" }
+    { "task": "Optimize Prompt AI for Gemini 2.5 Flash thinking capability", "priority": "medium" }
   ],
   "recent_changes": [
+    {
+      "timestamp": "2026-03-24",
+      "type": "fix",
+      "description": "Fixed 'Unknown python error' by explicitly adding requests & defusedxml to Gradle pip block, and using PyObject.asMap() to correctly read Python dict keys in Kotlin.",
+      "files": ["app/build.gradle.kts", "app/src/main/python/yt_transcript_helper.py", "app/src/main/java/com/skul9x/ytsummary/manager/PythonManager.kt"]
+    },
     {
       "timestamp": "2026-03-24",
       "type": "fix",
@@ -34,8 +40,29 @@
       "files": ["ok.txt"]
     }
   ],
+  "errors_encountered": [
+    {
+      "error": "PyObject.get() returns null for Python dict keys",
+      "solution": "Use PyObject.asMap()[PyObject.fromJava('key')] to invoke __getitem__ instead of getattr when reading Python dicts in Kotlin.",
+      "resolved": true,
+      "file": "PythonManager.kt"
+    },
+    {
+      "error": "Chaquopy does not automatically install transitive dependencies for youtube-transcript-api",
+      "solution": "Explicitly added install('requests') and install('defusedxml') inside the chaquopy.pip block in build.gradle.kts.",
+      "resolved": true,
+      "file": "build.gradle.kts"
+    },
+    {
+      "error": "Text and buttons inside GlassCard are blurry and unreadable",
+      "solution": "Jetpack Compose Modifier.blur() blurred the entire component tree. Removed it from GlassCard so only the gradient is used.",
+      "resolved": true,
+      "file": "GlassCard.kt"
+    }
+  ],
   "decisions_made": [
     { "decision": "Remove Legacy Cloud Backend", "reason": "Standalone logic via local IP is now fully verified and bypasses YouTube blocks." },
-    { "decision": "Adopt Gemini 2.5 Flash", "reason": "Superior thinking/reasoning capability for video summarization." }
+    { "decision": "Adopt Gemini 2.5 Flash", "reason": "Superior thinking/reasoning capability for video summarization." },
+    { "decision": "Remove Modifier.blur from GlassCard", "reason": "It blurs content, causing text/icons to be unreadable on Android S+ devices." }
   ]
 }

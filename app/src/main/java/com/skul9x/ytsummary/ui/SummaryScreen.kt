@@ -39,6 +39,8 @@ fun SummaryScreen(
     onTTSClick: () -> Unit,
     isPlaying: Boolean = false
 ) {
+    androidx.activity.compose.BackHandler(onBack = onBack)
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -107,6 +109,22 @@ fun SummaryScreen(
                         style = MaterialTheme.typography.bodyLarge,
                         color = TextPrimary
                     )
+                    
+                    val context = androidx.compose.ui.platform.LocalContext.current
+                    Button(
+                        onClick = {
+                            val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                            val clipData = android.content.ClipData.newPlainText("Summary", summaryText)
+                            clipboard.setPrimaryClip(clipData)
+                            android.widget.Toast.makeText(context, "Đã copy vào bộ nhớ tạm", android.widget.Toast.LENGTH_SHORT).show()
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = GlassWhite.copy(alpha = 0.1f)),
+                        modifier = Modifier
+                            .align(Alignment.End)
+                            .padding(top = 16.dp)
+                    ) {
+                        Text("📋 Sao chép", color = TextPrimary)
+                    }
                 }
             }
 

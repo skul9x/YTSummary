@@ -43,14 +43,17 @@
       "Key Rotation Strategy for Gemini API",
       "Encrypted Room Database with SupportFactory",
       "Standalone Local Python Architecture (Chaquopy integration)",
-      "Thinking-enabled Model Support (Gemini 2.5 Flash)"
+      "Thinking-enabled Model Support (Gemini 2.5 Flash)",
+      "Chaquopy Dict Mapping: PyObject.asMap()[PyObject.fromJava('key')]"
     ],
     "gotchas": [
       "Railway 502/IP Blocking: Resolved by moving to Local IP via Chaquopy",
       "YouTube-Transcript-Api v0.6.2+: 'fetch()' is the standard instance method for FetchedTranscript objects",
       "Gemini 2.5 Flash requires v1beta endpoint for advanced features",
       "Android Studio Sync: MUST be run after any build.gradle or python resource changes",
-      "Chaquopy Versioning: 17.0.1 is a DEV version in source but NOT yet published to Maven. Use 17.0.0 for stable production."
+      "Chaquopy Versioning: 17.0.1 is a DEV version in source but NOT yet published to Maven. Use 17.0.0 for stable production.",
+      "Chaquopy PyObject.get() uses Python getattr(). For dictionaries, use .asMap() instead.",
+      "Chaquopy Pip Dependencies: Transitive dependencies with C-extensions (like requests) often need explicit manual mapping in Gradle."
     ]
   }
 }

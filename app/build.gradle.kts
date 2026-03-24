@@ -56,6 +56,8 @@ chaquopy {
         version = "3.12"
         pip {
             install("youtube-transcript-api")
+            install("requests")
+            install("defusedxml")
         }
     }
 }

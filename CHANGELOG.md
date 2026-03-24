@@ -12,6 +12,8 @@
 
 ### Fixed
 - **Chaquopy Build Error**: Resolved `UnknownPluginException` by downgrading from `17.0.1` (unreleased dev version) to `17.0.0` (latest stable).
+- **Unknown Python Error / Dependencies Crash**: Explicitly installed transitive dependencies (`requests`, `defusedxml`) in Gradle chaquopy pip block to stop initialization crash.
+- **Kotlin Dictionary Mapping Bug**: Replaced `PyObject.get()` (which uses `getattr()`) with `PyObject.asMap()[PyObject.fromJava("key")]` (which invokes python dict `__getitem__`) to successfully extract Python variables.
 
 
 ## [2026-03-24] - Standalone Architecture (Chaquopy Integration) 🚀

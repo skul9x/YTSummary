@@ -90,7 +90,11 @@ class MainActivity : ComponentActivity() {
                     )
                     "settings" -> SettingsScreen(onBack = { currentScreen = "main" })
                     "loading" -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { 
-                        CircularProgressIndicator(color = YouTubeRed) 
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            CircularProgressIndicator(color = YouTubeRed)
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text("Đang tóm tắt...", color = TextPrimary, style = MaterialTheme.typography.titleMedium)
+                        }
                     }
                     "summary" -> {
                         summaryResult?.let { result ->
@@ -236,6 +240,28 @@ fun MainScreen(
                         Icon(imageVector = Icons.Default.PlayArrow, contentDescription = "Go", tint = Color.White)
                     }
                 }
+            }
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            val context = androidx.compose.ui.platform.LocalContext.current
+            Button(
+                onClick = {
+                    val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                    val clipData = clipboard.primaryClip
+                    if (clipData != null && clipData.itemCount > 0) {
+                        val text = clipData.getItemAt(0).text?.toString() ?: ""
+                        if (text.isNotBlank()) {
+                            youtubeLink = text
+                            onSummaryRequest(text)
+                        }
+                    }
+                },
+                modifier = Modifier.fillMaxWidth().height(56.dp),
+                shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = YouTubeRed)
+            ) {
+                Text("📋 Paste & Tóm tắt nhanh", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = Color.White))
             }
             
             Spacer(modifier = Modifier.height(24.dp))
