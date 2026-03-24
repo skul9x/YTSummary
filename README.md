@@ -27,6 +27,16 @@
 
 ---
 
+## 🧠 Chiến thuật "Hết nạc mới vạc tới xương" (Model-First Rotation)
+
+Ứng dụng được thiết kế với cơ chế xoay tua thông minh nhằm ưu tiên bản tóm tắt chất lượng cao nhất cho người dùng:
+
+1.  **Ưu tiên đời Model (Model-First)**: Hệ thống sẽ thử sử dụng model tốt nhất (`gemini-2.5-flash`) trên tất cả các API Key hiện có. Điều này giúp tối đa hóa khả năng nhận được nội dung tóm tắt chất lượng cao nhất có thể.
+2.  **Giáng cấp thông minh (Graceful Degradation)**: Chỉ khi toàn bộ các API Key đều báo hết hạn ngạch (Quota 429) hoặc lỗi máy chủ (503) cho model đó, ứng dụng mới chuyển sang model dự phòng tiếp theo (`gemini-2.5-flash-lite`, sau đó là `gemini-2.0-flash`, v.v.).
+3.  **Dự phòng cuối cùng**: `gemini-3-flash-preview` được giữ lại như phương án cuối cùng để đảm bảo hệ thống luôn phản hồi dù các dự phòng khác bị quá tải.
+
+---
+
 ## 🚀 Hướng dẫn cài đặt
 
 ### Yêu cầu hệ thống
