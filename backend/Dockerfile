@@ -16,8 +16,9 @@ COPY youtube-transcript-api-master /app/youtube-transcript-api-master
 RUN pip install --no-cache-dir -r requirements.txt
 RUN pip install /app/youtube-transcript-api-master
 
-# Port Railway thường dùng là 8080 hoặc động qua biên môi trường
-EXPOSE 8000
+# Port Railway sẽ tự động cung cấp biến môi trường $PORT
+# Chúng ta không cần EXPOSE nữa, Railway sẽ tự quản lý
+# ENV PORT=8000 - Bạn có thể set default nếu chạy local
 
-# Lệnh chạy server
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Lệnh chạy server: Dùng sh -c để nội suy biến môi trường PORT
+CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}"]

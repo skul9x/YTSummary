@@ -23,15 +23,17 @@ app = FastAPI(
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
-# Cấu hình CORS chặt chẽ: Chỉ cho phép các domain tin cậy
-# Mặc định chỉ cho phép chính server này nếu không cấu hình ALLOWED_ORIGINS
-ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "http://localhost:8000,http://127.0.0.1:8000").split(",")
+# Cấu hình CORS chặt chẽ cho Production
+# Khuyến nghị: Set ALLOWED_ORIGINS trong Dashboard Railway (ví dụ: https://your-frontend.railway.app,*)
+raw_origins = os.getenv("ALLOWED_ORIGINS", "*") 
+ALLOWED_ORIGINS = [origin.strip() for origin in raw_origins.split(",")]
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
-    allow_methods=["GET"], 
-    allow_headers=["Content-Type"],
+    allow_methods=["GET", "POST", "OPTIONS"], # Mở rộng methods nếu cần
+    allow_headers=["*"], # Cho phép tất cả header trong production hoặc chỉnh sửa cụ thể
 )
 
 def clean_transcript(transcript_data: list) -> str:
