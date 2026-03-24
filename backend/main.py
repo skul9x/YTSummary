@@ -133,4 +133,4 @@ if __name__ == "__main__":
     # Lấy port từ env (ưu tiên Railway PORT), mặc định 8000 khi chạy local
     port = int(os.environ.get("PORT", 8000))
     logger.info(f"YTSummary Server running locally on port {port}")
-    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=False)
+    uvicorn.run(app, host="0.0.0.0", port=port)
