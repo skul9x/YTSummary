@@ -1,10 +1,18 @@
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
-from youtube_transcript_api import YouTubeTranscriptApi, TranscriptsDisabled, NoTranscriptFound, VideoUnavailable
+from youtube_transcript_api import (
+    YouTubeTranscriptApi,
+    TranscriptsDisabled,
+    NoTranscriptFound,
+    VideoUnavailable,
+    CouldNotRetrieveTranscript,
+)
 import uvicorn
 import logging
 import httpx
 import os
+from requests import Session
+import xml.etree.ElementTree as ET
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
@@ -48,6 +56,55 @@ def clean_transcript(transcript_data: list) -> str:
     """
     text_list = [item['text'] for item in transcript_data]
     return " ".join(text_list).replace('\n', ' ').strip()
+
+def get_proxy_config() -> dict | None:
+    """
+    Lấy cấu hình proxy từ biến môi trường.
+    Hỗ trợ 2 cách:
+    - YOUTUBE_PROXY_URL: dùng chung cho HTTP/HTTPS
+    - YOUTUBE_HTTP_PROXY + YOUTUBE_HTTPS_PROXY
+    """
+    proxy_url = os.getenv("YOUTUBE_PROXY_URL", "").strip()
+    http_proxy = os.getenv("YOUTUBE_HTTP_PROXY", "").strip()
+    https_proxy = os.getenv("YOUTUBE_HTTPS_PROXY", "").strip()
+
+    if proxy_url:
+        http_proxy = http_proxy or proxy_url
+        https_proxy = https_proxy or proxy_url
+
+    if not http_proxy and not https_proxy:
+        return None
+
+    return {
+        "http": http_proxy or https_proxy,
+        "https": https_proxy or http_proxy,
+    }
+
+def fetch_transcript_compatible(video_id: str, languages: list[str]) -> list:
+    """
+    Tương thích cả API cũ (get_transcript) và mới (instance.fetch).
+    """
+    proxy_config = get_proxy_config()
+
+    if hasattr(YouTubeTranscriptApi, "get_transcript"):
+        kwargs = {"languages": languages}
+        if proxy_config:
+            kwargs["proxies"] = proxy_config
+        return YouTubeTranscriptApi.get_transcript(video_id, **kwargs)
+
+    if proxy_config:
+        http_client = Session()
+        http_client.proxies.update(proxy_config)
+        ytt_api = YouTubeTranscriptApi(http_client=http_client)
+    else:
+        ytt_api = YouTubeTranscriptApi()
+
+    fetched_transcript = ytt_api.fetch(video_id, languages=languages)
+
+    if hasattr(fetched_transcript, "to_raw_data"):
+        return fetched_transcript.to_raw_data()
+
+    return fetched_transcript
 
 @app.get("/")
 async def read_root(request: Request):
@@ -110,10 +167,7 @@ async def get_transcript(
     logger.info(f"Fetching transcript for video: {video_id}")
     
     try:
-        # Sử dụng API v1.2.4: instance method fetch()
-        ytt_api = YouTubeTranscriptApi()
-        fetched_transcript = ytt_api.fetch(video_id, languages=['vi', 'en'])
-        transcript_list = fetched_transcript.to_raw_data()
+        transcript_list = fetch_transcript_compatible(video_id, ['vi', 'en'])
         plain_text = clean_transcript(transcript_list)
         
         return {
@@ -129,6 +183,17 @@ async def get_transcript(
         raise HTTPException(status_code=404, detail="Không tìm thấy phụ đề phù hợp.")
     except VideoUnavailable:
         raise HTTPException(status_code=404, detail="Video không tồn tại.")
+    except CouldNotRetrieveTranscript as e:
+        message = str(e)
+        if "blocking requests from your IP" in message:
+            raise HTTPException(
+                status_code=503,
+                detail="YouTube đang chặn IP backend. Hãy cấu hình proxy quay vòng để lấy transcript ổn định trên cloud."
+            )
+        logger.error(f"Transcript retrieve error: {message}")
+        raise HTTPException(status_code=502, detail="Không thể lấy phụ đề từ YouTube ở thời điểm hiện tại.")
+    except ET.ParseError:
+        raise HTTPException(status_code=502, detail="Dữ liệu phụ đề YouTube không hợp lệ, vui lòng thử lại sau.")
     except Exception as e:
         logger.error(f"System Error: {str(e)}")
         # Che giấu chi tiết lỗi backend để bảo mật

@@ -70,6 +70,15 @@ curl "http://127.0.0.1:8000/api/transcript?video_id=dQw4w9WgXcQ"
 - Start command dùng trong container: `python main.py`.
 - Domain production ví dụ: `https://ytsummary-production.up.railway.app`.
 
+### Biến môi trường quan trọng (Production)
+
+- `PORT`: Railway tự cấp, không cần set thủ công trong đa số trường hợp.
+- `ALLOWED_ORIGINS`: Danh sách domain frontend được phép gọi API (phân tách bằng dấu phẩy).
+- `YOUTUBE_PROXY_URL` (khuyến nghị khi chạy cloud): proxy URL dùng chung cho HTTP/HTTPS, ví dụ `http://user:pass@host:port`.
+- Hoặc dùng cặp `YOUTUBE_HTTP_PROXY` + `YOUTUBE_HTTPS_PROXY` nếu bạn muốn tách riêng.
+
+Lưu ý: YouTube thường chặn IP thuộc cloud provider, nên `/api/transcript` có thể lỗi nếu không có proxy quay vòng (residential/rotating proxy).
+
 ## Ghi chú vận hành
 
 - Nếu gặp lỗi 502 trên Railway nhưng local chạy ổn, cần kiểm tra:
