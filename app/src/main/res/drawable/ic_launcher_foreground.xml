@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Document Shadow -->
+    <path
+        android:fillColor="#33000000"
+        android:pathData="M37,24 L64,24 L79,39 L79,90 C79,92.2 77.2,94 75,94 L37,94 C34.8,94 33,92.2 33,90 L33,28 C33,25.8 34.8,24 37,24 Z" />
+
+    <!-- Page -->
+    <path
+        android:fillColor="#FAFAFA"
+        android:pathData="M35,20 L62,20 L77,35 L77,86 C77,88.2 75.2,90 73,90 L35,90 C32.8,90 31,88.2 31,86 L31,24 C31,21.8 32.8,20 35,20 Z" />
+        
+    <!-- Folded corner -->
+    <path
+        android:fillColor="#E0E0E0"
+        android:pathData="M77,35 L62,35 L62,20 Z" />
+
+    <!-- YouTube Red Play Button inside Document -->
+    <path
+        android:fillColor="#FF0000"
+        android:pathData="M65.5,45 C65.5,45 42.5,45 42.5,45 C39.5,45 38,46.5 38,49.5 L38,58.5 C38,61.5 39.5,63 42.5,63 C42.5,63 65.5,63 65.5,63 C68.5,63 70,61.5 70,58.5 L70,49.5 C70,46.5 68.5,45 65.5,45 Z" />
+        
+    <!-- Inner triangle -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M49,50 L59,54 L49,58 Z" />
+
+    <!-- Lines of text below the play button -->
+    <path
+        android:fillColor="#BDBDBD"
+        android:pathData="M40,69 L68,69 L68,72 L40,72 Z M40,76 L60,76 L60,79 L40,79 Z M40,83 L50,83 L50,86 L40,86 Z" />
+
+    <!-- AI Sparkles floating outside the document -->
+    <path
+        android:fillColor="#00E5FF"
+        android:pathData="M80,25 Q80,31 86,31 Q80,31 80,37 Q80,31 74,31 Q80,31 80,25 Z" />
+        
+    <path
+        android:fillColor="#FFD700"
+        android:pathData="M24,40 Q24,44 28,44 Q24,44 24,48 Q24,44 20,44 Q24,44 24,40 Z" />
+
+</vector>

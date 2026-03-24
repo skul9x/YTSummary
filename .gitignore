@@ -1,0 +1,74 @@
+# Android
+.gradle/
+build/
+app/build/
+*.iml
+.idea/
+local.properties
+.externalNativeBuild/
+.cxx/
+captures/
+.navigation/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+backend/venv/
+backend/test_venv/
+backend/.env
+
+# Logs
+*.log
+pip-log.txt
+pip-delete-this-directory.txt
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Other
+ok.txt
+plan.txt
+.antigravity/
+.env
+*.bak
+*.tmp
+venv/
+node_modules/
+dist/
+build/
+
+# Keystore files
+*.jks
+*.keystore
+
+# Internal testing text files
+ok.txt
+plan.txt
+
+# Downloaded tools
+youtube-transcript-api-master/
