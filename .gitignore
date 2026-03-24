@@ -52,3 +52,11 @@ Thumbs.db
 # Other
 ok.txt
 plan.txt
+.antigravity/
+.env
+*.bak
+*.tmp
+venv/
+node_modules/
+dist/
+build/

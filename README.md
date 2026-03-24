@@ -1,73 +1,58 @@
-# 💡 YouTube AI Summarizer (YTSummary)
+# 🤖 YTSummary AI - Tóm tắt Video YouTube bằng Trí tuệ Nhân tạo
 
-[![FastAPI](https://img.shields.io/badge/Backend-FastAPI-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
-[![Kotlin](https://img.shields.io/badge/Android-Kotlin-7F52FF?logo=kotlin&logoColor=white)](https://kotlinlang.org/)
-[![Jetpack Compose](https://img.shields.io/badge/UI-Jetpack_Compose-4285F4?logo=jetpackcompose&logoColor=white)](https://developer.android.com/compose)
-[![AI](https://img.shields.io/badge/AI-Gemini_1.5_Flash-green?logo=google-gemini&logoColor=white)](https://deepmind.google/technologies/gemini/)
-
-**YTSummary** là một giải pháp tóm tắt video YouTube thông minh sử dụng trí tuệ nhân tạo (AI). Dự án kết hợp sức mạnh của **FastAPI** (Python) để xử lý dữ liệu video và **Android** (Kotlin) để mang lại trải nghiệm người dùng mượt mà, bảo mật và linh hoạt.
+**YTSummary AI** là một ứng dụng Android hiện đại, mạnh mẽ, được thiết kế để giúp bạn tiết kiệm thời gian bằng cách tóm tắt nội dung video YouTube một cách nhanh chóng và chính xác thông qua công nghệ Gemini AI của Google. 
 
 ---
 
-## 🚀 Tính Năng Nổi Bật
+## ✨ Tính năng nổi bật
 
-- **Tóm tắt thông minh**: Sử dụng model **Gemini 1.5 Flash** mới nhất để trích xuất ý chính từ video YouTube dài chỉ trong vài giây.
-- **Xoay tua API Key (Rotation)**: Cơ chế "Model-First" cho phép thêm nhiều API Key cùng lúc, tự động đổi Key khi hết quota, giúp ứng dụng hoạt động không giới hạn.
-- **Bảo mật tối đa**: Lưu trữ API Key bằng `EncryptedSharedPreferences` và mã hóa cơ sở dữ liệu Room bằng **SQLCipher**.
-- **Giao diện hiện đại**: Thiết kế **Glassmorphism** (kính mờ) sang trọng, hỗ trợ hiệu ứng chuyển cảnh mượt mà.
-- **Hỗ trợ đa ngôn ngữ**: Tự động lấy transcript tiếng Việt (ưu tiên) hoặc tiếng Anh.
-- **Tích hợp Audio (TTS)**: Tính năng đọc bản tóm tắt thành tiếng với khả năng làm sạch văn bản thông minh.
-- **Quản lý lịch sử**: Lưu lại các bản tóm tắt cũ để xem lại mọi lúc, ngay cả khi ngoại tuyến.
-
----
-
-## 🏗️ Cấu Trúc Dự Án
-
-Dự án sử dụng kiến trúc **Hybrid**:
-- **`/backend`**: Server proxy viết bằng Python FastAPI, chịu trách nhiệm lấy và làm sạch Transcript từ YouTube (đã deploy trên Railway).
-- **`/app`**: Ứng dụng Android viết bằng Kotlin Jetpack Compose, chịu trách nhiệm gọi Gemini AI và quản lý trải nghiệm người dùng.
-- **`/.brain`**: Hệ thống lưu trữ kiến thức và tiến độ của AI hỗ trợ phát triển (AWF Framework).
-- **`/docs`**: Các tài liệu thiết kế chi tiết, brief dự án và báo cáo audit bảo mật.
+- 📝 **Tóm tắt AI thông minh**: Sử dụng các mô hình Gemini mới nhất (Flash, Pro) để tạo ra các bản tóm tắt súc tích, dễ hiểu.
+- 🔄 **Cơ chế Model Rotation**: Tự động xoay vòng giữa danh sách các API Key và Model để tối ưu hóa quota và độ tin cậy.
+- 🔊 **Hỗ trợ TTS (Text-to-Speech)**: Đọc to nội dung tóm tắt để bạn có thể lắng nghe khi đang di chuyển.
+- 🎨 **Giao diện Glassmorphism**: Thiết kế hiện đại theo phong cách "Vibe Coding" với hiệu ứng kính mờ và Neon bắt mắt.
+- 🔒 **Bảo mật tuyệt đối**: API Key được mã hóa và lưu trữ an toàn bằng `EncryptedSharedPreferences`.
+- 📂 **Quản lý lịch sử**: Tự động lưu trữ các bản tóm tắt trước đó trong cơ sở dữ liệu nội bộ (Room).
 
 ---
 
-## 🛠️ Hướng Dẫn Cài Đặt
+## 🛠 Cấu trúc dự án
 
-### 1. Backend (Nếu muốn chạy local)
-```bash
-cd backend
-python -m venv venv
-source venv/bin/activate  # Hoặc venv\Scripts\activate trên Windows
-pip install -r requirements.txt
-python main.py
-```
+Dự án bao gồm 3 phần chính:
+
+1.  **`app/`**: Mã nguồn ứng dụng Android (Kotlin, Jetpack Compose, Material 3).
+2.  **`backend/`**: Backend xử lý trung gian dựa trên FastAPI (Python).
+3.  **`youtube-transcript-api-master/`**: Thư viện xử lý trích xuất phụ đề YouTube được tinh chỉnh cục bộ.
+
+---
+
+## 🚀 Hướng dẫn cài đặt & Sử dụng
+
+### 1. Backend (FastAPI)
+- Yêu cầu: Python 3.9+
+- Cài đặt dependency: `pip install -r backend/requirements.txt`
+- Chạy server: `uvicorn backend.main:app --reload`
 
 ### 2. Frontend (Android)
-- Mở thư mục dự án bằng **Android Studio (Ladybug hoặc mới hơn)**.
-- Đảm bảo bạn đã cài đặt Android SDK level 35.
-- Android app mặc định sẽ gọi lên URL Production trên Railway. Nếu muốn thay đổi, hãy chỉnh sửa trong `app/src/main/java/com/skul9x/ytsummary/utils/Constants.kt`.
-- Build và cài đặt APK lên thiết bị của bạn.
+- Mở thư mục `app/` bằng Android Studio.
+- Cấu hình API Key trong mục **Settings (Cài đặt)** ngay trên ứng dụng.
+- Nhập link video YouTube và nhấn biểu tượng "Play" để nhận kết quả.
 
 ---
 
-## 📝 Cách Sử Dụng
+## 🏗 Công nghệ sử dụng
 
-1.  **Nhập API Keys**: Vào mục Settings, dán danh sách các Gemini API Keys từ Google AI Studio (mỗi dòng một key).
-2.  **Tóm tắt**: Copy link video YouTube bất kỳ, dán vào màn hình chính và nhấn "Tóm tắt".
-3.  **Nghe tóm tắt**: Nhấn vào icon loa để kích hoạt tính năng đọc âm thanh (TTS).
-4.  **Xem lịch sử**: Các video đã tóm tắt sẽ tự động lưu trong tab "Lịch sử".
-
----
-
-## 🔒 Bảo Mật & Quy Tắc
-- Không bao giờ push API Key thật lên repository này.
-- Mọi dữ liệu nhạy cảm được mã hóa local bằng chuẩn quân đội (SQLCipher).
-- Hệ thống hỗ trợ xoay tua model tự động để tối ưu hóa chi phí và hiệu suất.
+- **Mobile**: Kotlin, Jetpack Compose, Retrofit, Room, Dagger Hilt.
+- **AI**: Google Gemini API (Vertex AI / Google AI Studio).
+- **Backend**: Python, FastAPI, YouTube Transcript API.
+- **Design**: Figma Design System (Glassmorphism & Neon styles).
 
 ---
 
-## 📄 License & Copyright
+## 📜 Bản quyền & Liên hệ
 
-Copyright 2026 Nguyễn Duy Trường
+**Copyright 2026 Nguyễn Duy Trường**
 
-*Dự án này được phát triển bởi Nguyễn Duy Trường. Mọi hành vi sao chép hoặc phát hành lại cần có sự cho phép của tác giả.*
+Dự án được phát triển với mục đích học tập và chia sẻ kiến thức. Vui lòng ghi rõ nguồn nếu bạn có ý định sử dụng lại mã nguồn.
+
+---
+> *Tự động được cập nhật và làm sạch mã nguồn bởi Antigravity AI.*
