@@ -28,6 +28,7 @@
     }
   },
   "api_endpoints": [
+    { "path": "Android Share Intent", "desc": "Intercept ACTION_SEND intent text/plain directly from OS to extract Youtube URI" },
     { "path": "Local Call", "desc": "Metadata fetch via Python oEmbed" },
     { "path": "Local Call", "desc": "Transcript fetch via Python with multi-language support (vi/en)" },
     { "path": "Gemini API", "desc": "Summarization via models/gemini-2.5-flash (Thinking enabled)" }
@@ -40,10 +41,10 @@
     "Main thread strictly protected from Python JNI/IO using Coroutine Dispatchers"
   ],
   "features": [
+    "Tích hợp Share Intent (Chia sẻ YouTube sang YTSummary 1-click & Auto-TTS)",
     "Trích xuất Subtitle Cục bộ (Local Fetch bằng Chaquopy)",
     "Tóm tắt thông minh bằng Gemini 2.5 Flash (Có tư duy sâu)",
     "Quản lý Khóa API (Tự quét Regex từ bộ nhớ tạm)",
-    "Thao tác nhúng 1-click (Paste & Tóm tắt nhanh liên mạch)",
     "Lưu trữ đám mây an toàn bằng Room + SQLCipher",
     "Tối ưu hóa chạy song song cho Metadata và Summary"
   ],
@@ -53,15 +54,16 @@
       "Encrypted Room Database with SupportFactory",
       "Standalone Local Python Architecture (Chaquopy integration)",
       "Double-Checked Locking Singleton Pattern in Kotlin Managers",
-      "Kotlin Coroutines Async/Await for parallel Data Fetching"
+      "Kotlin Coroutines Async/Await for parallel Data Fetching",
+      "Activity onNewIntent Lifecycle Intercepts with MutableStateFlow"
     ],
     "gotchas": [
+      "Share Intent Background Resumé: Must use launchMode=singleTop to prevent instantiating new processes.",
       "Railway 502/IP Blocking: Resolved by moving to Local IP via Chaquopy",
       "YouTube-Transcript-Api v0.6.2+: 'fetch()' is the standard instance method for FetchedTranscript objects",
       "Gemini 2.5 Flash requires v1beta endpoint for advanced features",
       "Chaquopy JNI calls (Python blocks) must trigger on background thread (Dispatchers.IO) to avert ANR freezes.",
       "Chaquopy Versioning: 17.0.1 is a DEV version in source but NOT yet published to Maven. Use 17.0.0 for stable production.",
-      "Chaquopy PyObject.get() uses Python getattr(). For dictionaries, use .asMap() instead.",
       "Chaquopy Pip Dependencies: Transitive dependencies with C-extensions (like requests) often need explicit manual mapping in Gradle."
     ]
   }

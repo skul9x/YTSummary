@@ -1,6 +1,7 @@
 package com.skul9x.ytsummary.ui
 
 import android.os.Bundle
+import android.content.Intent
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
@@ -13,6 +14,7 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import kotlinx.coroutines.flow.MutableStateFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -33,9 +35,12 @@ import kotlinx.coroutines.flow.firstOrNull
 class MainActivity : ComponentActivity() {
     private lateinit var ttsManager: TtsManager
     private lateinit var repository: SummarizationRepository
+    private val incomingUrl = MutableStateFlow<String?>(null)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        handleIntent(intent)
         
         // Task 4.1: Initialize TTS and Set Volume to 80% on startup
         ttsManager = TtsManager(this) {
@@ -54,50 +59,65 @@ class MainActivity : ComponentActivity() {
                 
                 val scope = rememberCoroutineScope()
 
+
+                val performSummarization: (String) -> Unit = { url ->
+                    val videoId = extractVideoId(url)
+                    if (videoId != null) {
+                        videoTitle = "Fetching info..."
+                        currentScreen = "loading"
+                        scope.launch {
+                            // Step 1: Chạy song song cả 2 (Fix C2)
+                            val metadataJob = async {
+                                repository.getVideoMetadata(videoId).firstOrNull()
+                            }
+                            // Cập nhật UI ngay khi Metadata load xong
+                            launch {
+                                val metadata = metadataJob.await()
+                                if (metadata != null) {
+                                    videoTitle = metadata.title
+                                    thumbnailUrl = metadata.thumbnailUrl
+                                }
+                            }
+                            
+                            // Chờ Summary xong mới redirect
+                            repository.getSummary(videoId).collect { result ->
+                                if (result is AiResult.Loading) {
+                                    loadingMessage = result.message
+                                } else {
+                                    if (result is AiResult.Success) {
+                                        // Chắc chắn đã có Metadata để lưu DB
+                                        val metadata = metadataJob.await()
+                                        repository.saveToHistory(
+                                            videoId = videoId,
+                                            title = metadata?.title ?: videoId,
+                                            thumbnailUrl = metadata?.thumbnailUrl ?: "",
+                                            summaryText = result.text
+                                        )
+                                        // Bước 5: Tự động đọc Audio (Auto-TTS)
+                                        ttsManager.speak(result.text)
+                                        isTtsPlaying = true
+                                    }
+                                    summaryResult = result
+                                    currentScreen = "summary"
+                                }
+                            }
+                        }
+                    }
+                }
+
+                val sharedUrl by incomingUrl.collectAsState()
+                LaunchedEffect(sharedUrl) {
+                    sharedUrl?.let { url ->
+                        incomingUrl.value = null // reset after trigger
+                        // currentScreen = "main" // optionally reset first, but performSummarization handles it
+                        performSummarization(url)
+                    }
+                }
+
                 when (currentScreen) {
                     "main" -> MainScreen(
                         onSettingsClick = { currentScreen = "settings" },
-                        onSummaryRequest = { url ->
-                            val videoId = extractVideoId(url)
-                            if (videoId != null) {
-                                videoTitle = "Fetching info..."
-                                currentScreen = "loading"
-                                scope.launch {
-                                    // Step 1: Chạy song song cả 2 (Fix C2)
-                                    val metadataJob = async {
-                                        repository.getVideoMetadata(videoId).firstOrNull()
-                                    }
-                                    // Cập nhật UI ngay khi Metadata load xong
-                                    launch {
-                                        val metadata = metadataJob.await()
-                                        if (metadata != null) {
-                                            videoTitle = metadata.title
-                                            thumbnailUrl = metadata.thumbnailUrl
-                                        }
-                                    }
-                                    
-                                    // Chờ Summary xong mới redirect
-                                    repository.getSummary(videoId).collect { result ->
-                                        if (result is AiResult.Loading) {
-                                            loadingMessage = result.message
-                                        } else {
-                                            if (result is AiResult.Success) {
-                                                // Chắc chắn đã có Metadata để lưu DB
-                                                val metadata = metadataJob.await()
-                                                repository.saveToHistory(
-                                                    videoId = videoId,
-                                                    title = metadata?.title ?: videoId,
-                                                    thumbnailUrl = metadata?.thumbnailUrl ?: "",
-                                                    summaryText = result.text
-                                                )
-                                            }
-                                            summaryResult = result
-                                            currentScreen = "summary"
-                                        }
-                                    }
-                                }
-                            }
-                        },
+                        onSummaryRequest = performSummarization,
                         onHistoryClick = { currentScreen = "history" }
                     )
                     "history" -> HistoryScreen(
@@ -163,6 +183,32 @@ class MainActivity : ComponentActivity() {
     private fun extractVideoId(url: String): String? {
         val pattern = "^(?:https?:\\/\\/)?(?:www\\.|m\\.)?(?:youtube\\.com\\/(?:(?:v|e(?:mbed)?)\\/|.*[?&]v=)|youtu\\.be\\/)([a-zA-Z0-9_-]{11})"
         return Regex(pattern).find(url)?.groupValues?.get(1)
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleIntent(intent)
+    }
+
+    private fun handleIntent(intent: Intent) {
+        if (intent.action == Intent.ACTION_SEND && intent.type == "text/plain") {
+            val sharedText = intent.getStringExtra(Intent.EXTRA_TEXT)
+            if (sharedText != null) {
+                // Find URL in text
+                val urlRegex = "(https?://(?:www\\.|m\\.)?(?:youtube\\.com/|youtu\\.be/)[^\\s]+)".toRegex()
+                val match = urlRegex.find(sharedText)
+                if (match != null) {
+                    incomingUrl.value = match.value
+                } else {
+                    // Fallback to extractVideoId to see if there's an ID
+                    val extracted = extractVideoId(sharedText)
+                    if (extracted != null) {
+                        incomingUrl.value = sharedText
+                    }
+                }
+            }
+        }
     }
 }
 

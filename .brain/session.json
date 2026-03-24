@@ -1,25 +1,41 @@
 {
-  "updated_at": "2026-03-24T19:39:00Z",
+  "updated_at": "2026-03-24T19:54:00Z",
   "working_on": {
-    "feature": "UX & Architecture Overhaul",
-    "task": "Planning Dynamic Loading Indicators and Stream Processing",
-    "status": "planning",
+    "feature": "Share Intent & UX Flow Automation",
+    "task": "Extracting YouTube URL from Share menu and chaining Auto-TTS",
+    "status": "completed",
     "files": [
-      "fix_loading_indicator.md",
-      "per_audit.txt"
+      "app/src/main/AndroidManifest.xml",
+      "app/src/main/java/com/skul9x/ytsummary/ui/MainActivity.kt",
+      "todo_1.md"
     ]
   },
   "pending_tasks": [
-    { "task": "Feature: Add AiResult.Loading state to AiResult.kt", "priority": "high" },
-    { "task": "Feature: Emit dynamic loading messages in SummarizationRepository.kt", "priority": "high" },
-    { "task": "Feature: Update MainActivity.kt to render dynamic loading UI states", "priority": "high" },
-    { "task": "Architecture: Shift Gemini generation to use Server-Sent Events (streamGenerateContent)", "priority": "medium" },
-    { "task": "Architecture: Migrate off Chaquopy for Transcript parsing to native Kotlin/OkHttp to drop 2.5s overhead", "priority": "medium" },
+    { "task": "Architecture: Shift Gemini generation to use Server-Sent Events (streamGenerateContent)", "priority": "high" },
+    { "task": "Architecture: Migrate off Chaquopy for Transcript parsing to native Kotlin/OkHttp to drop 2.5s overhead", "priority": "high" },
+    { "task": "Feature: Emit dynamic loading messages in SummarizationRepository.kt", "priority": "medium" },
     { "task": "🟢 LOW: Add usesCleartextTraffic=false to AndroidManifest", "priority": "low" },
     { "task": "🟢 LOW: Remove hardcoded '32 Summaries' in MainActivity", "priority": "low" },
     { "task": "🟢 LOW: Add Strict VideoID Regex validation before passing to backend", "priority": "low" }
   ],
   "recent_changes": [
+    {
+      "timestamp": "2026-03-24T19:52:00Z",
+      "type": "feature",
+      "description": "Implemented Android OS Share intent injection: modified launchMode to singleTop, hooked onNewIntent and string regex parser from ACTION_SEND text payload.",
+      "files": [
+        "app/src/main/AndroidManifest.xml",
+        "app/src/main/java/com/skul9x/ytsummary/ui/MainActivity.kt"
+      ]
+    },
+    {
+      "timestamp": "2026-03-24T19:50:00Z",
+      "type": "feature",
+      "description": "Chain Summarization with TTS so the user receives audio reading of summarization hands-free right after sharing url.",
+      "files": [
+        "app/src/main/java/com/skul9x/ytsummary/ui/MainActivity.kt"
+      ]
+    },
     {
       "timestamp": "2026-03-24T19:39:00Z",
       "type": "feature_planning",
@@ -39,60 +55,18 @@
         "app/src/main/java/com/skul9x/ytsummary/manager/TtsManager.kt",
         "CHANGELOG.md"
       ]
-    },
-    {
-      "timestamp": "2026-03-24T19:15:00Z",
-      "type": "audit",
-      "description": "Fact-checked bugs.txt (Performance) and secu_bugs.txt (Security) against actual source code. Found 50% of issues were already fixed. Discovered a new Critical Vulnerability (Safety Settings deactivated). Generated consolidated bugs_reports.md with actionable items.",
-      "files": [
-        "bugs_reports.md"
-      ]
-    },
-    {
-      "timestamp": "2026-03-24T18:38:00Z",
-      "type": "fix",
-      "description": "Fixed W2 (Cached SHA-256 for ModelQuotaManager) and W3 (Removed legacy Retrofit/Backend code, cleaned up NetworkModule and build specs).",
-      "files": [
-        "app/src/main/java/com/skul9x/ytsummary/manager/ModelQuotaManager.kt",
-        "app/src/main/java/com/skul9x/ytsummary/di/NetworkModule.kt",
-        "app/build.gradle.kts"
-      ]
-    },
-    {
-      "timestamp": "2026-03-24T18:28:00Z",
-      "type": "fix",
-      "description": "Fixed Performance Issues C1, C2, C3: Applied Singleton pattern to avoid re-creation of Repository and Managers; parallelized metadata and transcript fetching in MainActivity to save 500ms+; moved Chaquopy calls to Dispatchers.IO to prevent ANR.",
-      "files": [
-        "app/src/main/java/com/skul9x/ytsummary/ui/MainActivity.kt",
-        "app/src/main/java/com/skul9x/ytsummary/repository/SummarizationRepository.kt",
-        "app/src/main/java/com/skul9x/ytsummary/manager/ModelQuotaManager.kt"
-      ]
-    },
-    {
-      "timestamp": "2026-03-24T16:50:00Z",
-      "type": "audit",
-      "description": "Executed Performance Audit. Found 3 critical issues (blocking I/O, synchronous remote fetching, non-singleton manager creations) that severely impacts Android UX.",
-      "files": ["docs/reports/audit_perf_20260324.md"]
     }
   ],
   "errors_encountered": [
     {
-      "error": "Chaquopy block main thread causing ANR",
-      "solution": "Wrap pythonManager object calls inside Flow using .flowOn(Dispatchers.IO)",
+      "error": "Bracket misalignment leading to incorrect Kotlin closure mapping during file replace",
+      "solution": "Track nested braces of ComponentActivity deeply instead of blind replace. Verified fix via .gradlew assembleDebug",
       "resolved": true,
-      "file": "SummarizationRepository.kt"
-    },
-    {
-      "error": "Memory and Resource Overhead from repeated Object creations",
-      "solution": "Apply double-checked locking Singleton pattern to ModelQuotaManager and SummarizationRepository",
-      "resolved": true,
-      "file": "ModelQuotaManager.kt"
+      "file": "MainActivity.kt"
     }
   ],
   "decisions_made": [
-    { "decision": "Fact-check Old Audits", "reason": "Many old performance/security issues were already fixed in previous sessions. Re-evaluating saved time and highlighted real priorities." },
-    { "decision": "Parallel API Calls UI Binding", "reason": "Wait for metadata via async before fetching summary to update UI instantly and guarantee history data consistency." },
-    { "decision": "Remove Legacy Cloud Backend", "reason": "Standalone logic via local IP is now fully verified and bypasses YouTube blocks." },
-    { "decision": "Remove Retrofit & Legacy API Files", "reason": "Gemini API uses OkHttp directly, Retrofit and its converters were bloating the APK unused." }
+    { "decision": "Override onNewIntent with singleTop", "reason": "Allow backgrounded App to accept new YouTube shares without instantiating extra processes on Android." },
+    { "decision": "Automate TTS immediately on result success", "reason": "The intention of bypassing copy-paste through Share is to be hands-free. Adding Auto-TTS ensures zero extra clicks." }
   ]
 }
