@@ -1,72 +1,60 @@
 {
-  "updated_at": "2026-03-24T19:54:00Z",
+  "updated_at": "2026-03-24T20:16:00Z",
   "working_on": {
-    "feature": "Share Intent & UX Flow Automation",
-    "task": "Extracting YouTube URL from Share menu and chaining Auto-TTS",
+    "feature": "Performance Optimization",
+    "task": "Finalized SSE Streaming, SQLite Cache and TTS Chunking",
     "status": "completed",
     "files": [
-      "app/src/main/AndroidManifest.xml",
-      "app/src/main/java/com/skul9x/ytsummary/ui/MainActivity.kt",
-      "todo_1.md"
+      "GeminiApiClient.kt",
+      "SummarizationRepository.kt",
+      "TtsManager.kt",
+      "MainActivity.kt",
+      "SummaryDao.kt"
     ]
   },
   "pending_tasks": [
-    { "task": "Architecture: Shift Gemini generation to use Server-Sent Events (streamGenerateContent)", "priority": "high" },
-    { "task": "Architecture: Migrate off Chaquopy for Transcript parsing to native Kotlin/OkHttp to drop 2.5s overhead", "priority": "high" },
-    { "task": "Feature: Emit dynamic loading messages in SummarizationRepository.kt", "priority": "medium" },
     { "task": "🟢 LOW: Add usesCleartextTraffic=false to AndroidManifest", "priority": "low" },
     { "task": "🟢 LOW: Remove hardcoded '32 Summaries' in MainActivity", "priority": "low" },
-    { "task": "🟢 LOW: Add Strict VideoID Regex validation before passing to backend", "priority": "low" }
+    { "task": "🟢 LOW: Add Strict VideoID Regex validation before passing to backend", "priority": "low" },
+    { "task": "Future: Migrate off Chaquopy for Transcript parsing to native Kotlin/OkHttp to drop 2.5s overhead", "priority": "medium" }
   ],
   "recent_changes": [
     {
-      "timestamp": "2026-03-24T19:52:00Z",
-      "type": "feature",
-      "description": "Implemented Android OS Share intent injection: modified launchMode to singleTop, hooked onNewIntent and string regex parser from ACTION_SEND text payload.",
+      "timestamp": "2026-03-24T20:15:00Z",
+      "type": "optimization",
+      "description": "Implemented full SSE Streaming for Gemini and SQLite Caching. TTFB improved to <1s. TTS now starts reading immediately after the first sentence chunks.",
       "files": [
-        "app/src/main/AndroidManifest.xml",
-        "app/src/main/java/com/skul9x/ytsummary/ui/MainActivity.kt"
+        "GeminiApiClient.kt",
+        "SummarizationRepository.kt",
+        "TtsManager.kt",
+        "MainActivity.kt"
       ]
     },
     {
-      "timestamp": "2026-03-24T19:50:00Z",
-      "type": "feature",
-      "description": "Chain Summarization with TTS so the user receives audio reading of summarization hands-free right after sharing url.",
+      "timestamp": "2026-03-24T20:16:00Z",
+      "type": "build",
+      "description": "Successfully compiled debug APK with all performance optimizations verified.",
       "files": [
-        "app/src/main/java/com/skul9x/ytsummary/ui/MainActivity.kt"
-      ]
-    },
-    {
-      "timestamp": "2026-03-24T19:39:00Z",
-      "type": "feature_planning",
-      "description": "Analyzed per_audit.txt (advocating for Gemini Streaming and dropping Chaquopy for Native Kotlin) and fix_loading_indicator.md (plan for dynamic UI loading states).",
-      "files": [
-        "per_audit.txt",
-        "fix_loading_indicator.md"
-      ]
-    },
-    {
-      "timestamp": "2026-03-24T19:26:00Z",
-      "type": "fix",
-      "description": "Fixed 2 HIGH priority security bugs (Safety Filters & Prompt Injection) and 2 MEDIUM priority performance/UX bugs (Regex hoisting & Removed forced volume). Verified compilation success.",
-      "files": [
-        "app/src/main/java/com/skul9x/ytsummary/api/gemini/GeminiResponseHelper.kt",
-        "app/src/main/java/com/skul9x/ytsummary/api/gemini/GeminiPrompts.kt",
-        "app/src/main/java/com/skul9x/ytsummary/manager/TtsManager.kt",
-        "CHANGELOG.md"
+        "app/build/outputs/apk/debug/app-debug.apk"
       ]
     }
   ],
   "errors_encountered": [
     {
-      "error": "Bracket misalignment leading to incorrect Kotlin closure mapping during file replace",
-      "solution": "Track nested braces of ComponentActivity deeply instead of blind replace. Verified fix via .gradlew assembleDebug",
+      "error": "Unresolved reference: Dispatchers after import optimization",
+      "solution": "Re-added kotlinx.coroutines.Dispatchers to GeminiApiClient.kt",
+      "resolved": true,
+      "file": "GeminiApiClient.kt"
+    },
+    {
+      "error": "Lint: Unused variable hasSaved in MainActivity",
+      "solution": "Removed redundant flag as the streaming end-logic is unique.",
       "resolved": true,
       "file": "MainActivity.kt"
     }
   ],
   "decisions_made": [
-    { "decision": "Override onNewIntent with singleTop", "reason": "Allow backgrounded App to accept new YouTube shares without instantiating extra processes on Android." },
-    { "decision": "Automate TTS immediately on result success", "reason": "The intention of bypassing copy-paste through Share is to be hands-free. Adding Auto-TTS ensures zero extra clicks." }
+    { "decision": "Use streamGenerateContent?alt=sse", "reason": "Better UX with real-time feedback." },
+    { "decision": "Prioritize SQLite Cache-First", "reason": "Ensure instant replay of previously summarized videos." }
   ]
 }

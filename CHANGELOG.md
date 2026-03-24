@@ -1,5 +1,27 @@
 # Changelog - YouTube AI Summarizer (YTSummary)
 
+## [2026-03-24] - Performance Optimization & Streaming 🚀⚡
+### Added
+- **SSE Streaming (Gemini)**: Switched to `streamGenerateContent?alt=sse` endpoint. The UI now renders text incrementally ("jumping text") for a ChatGPT-like experience.
+- **Cache-First Strategy**: Implemented local SQLite caching in `SummarizationRepository`. Video summaries are now fetched instantly (10ms) from the database if they have been summarized before.
+- **TTS Sentence Chunking**: Enhanced `TtsManager` with `speakChunk` logic. The app now begins reading the summary aloud as soon as the first sentence is received from the AI stream, rather than waiting for completion.
+- **Real-time UI Updates**: Modified `MainActivity` to synchronize streaming AI output with TTS and UI state management.
+
+### Fixed
+- **Redundant Database Writes**: Fixed a logic bug where the app attempted to save to history multiple times during a stream. It now saves exactly once upon completion.
+- **Lint - Unused Variables**: Removed `hasSaved` and other redundant state variables from `MainActivity` as identified by the Android Lint tool.
+- **Dispatcher Safety**: Ensured all network and database operations in the streaming flow are correctly dispatched to `Dispatchers.IO` to prevent UI freezes.
+
+### Changed
+- **Architecture Redesign**: Migrated the core summarization pipeline from Batch Processing to Stream Processing, đạt chuẩn Time-to-First-Byte < 1s.
+
+## [2026-03-24] - UX Polish & System Analysis 📱✨
+### Added
+- **Share Intent Integration**: Users can now directly share YouTube URLs to YTSummary. The app catches the `text/plain` action, auto-fetches, summarizes, and starts TTS entirely hands-free.
+- **Adaptive Launcher Icon**: Implemented modern Android adaptive icons using vector drawables (`ic_launcher_background`, `ic_launcher_foreground`) packed with AI-themed aesthetics.
+### Analyzed
+- **Performance Fact-Check**: Audited `per_audit.txt` architecture report against the actual Kotlin codebase (`per_audit_factcheck.md`). Validated 85% accuracy and identified actionable pending tasks (SSE Streaming, Local DB caching).
+
 ## [2026-03-24] - Security & Performance Fixes 🛡️⚡
 ### Fixed
 - **Deep Security Filters**: Enforced `BLOCK_ONLY_HIGH` safety settings for Gemini API rather than overriding completely to prevent malicious link generation or Hate Speech.

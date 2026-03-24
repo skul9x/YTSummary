@@ -89,6 +89,17 @@ class TtsManager(private val context: Context, private val onInitSuccess: () -> 
         tts?.speak(cleanedText, TextToSpeech.QUEUE_FLUSH, null, "SummaryTTS_ID")
     }
 
+    /**
+     * Add a chunk of text to the speech queue. 
+     * Use this for SSE streaming to start reading as soon as the first sentence is ready.
+     */
+    fun speakChunk(textChunk: String) {
+        if (!isInitialized || textChunk.isBlank()) return
+        val cleaned = cleanMarkdown(textChunk)
+        if (cleaned.isBlank()) return
+        tts?.speak(cleaned, TextToSpeech.QUEUE_ADD, null, UUID.randomUUID().toString())
+    }
+
     fun stop() {
         if (isInitialized) {
             tts?.stop()

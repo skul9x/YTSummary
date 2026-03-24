@@ -31,7 +31,8 @@
     { "path": "Android Share Intent", "desc": "Intercept ACTION_SEND intent text/plain directly from OS to extract Youtube URI" },
     { "path": "Local Call", "desc": "Metadata fetch via Python oEmbed" },
     { "path": "Local Call", "desc": "Transcript fetch via Python with multi-language support (vi/en)" },
-    { "path": "Gemini API", "desc": "Summarization via models/gemini-2.5-flash (Thinking enabled)" }
+    { "path": "Gemini API", "desc": "Summarization via models/gemini-2.5-flash (Thinking enabled)" },
+    { "path": "Gemini Streaming", "desc": "SSE Streaming via streamGenerateContent?alt=sse for jumping text UX" }
   ],
   "security_rules": [
     "Gemini API Keys must be sent via Headers, NEVER URLs",
@@ -46,7 +47,8 @@
     "Tóm tắt thông minh bằng Gemini 2.5 Flash (Có tư duy sâu)",
     "Quản lý Khóa API (Tự quét Regex từ bộ nhớ tạm)",
     "Lưu trữ đám mây an toàn bằng Room + SQLCipher",
-    "Tối ưu hóa chạy song song cho Metadata và Summary"
+    "Tối ưu hóa chạy song song cho Metadata và Summary",
+    "Biểu tượng thích ứng (Adaptive Launcher Icon với Vector Drawable)"
   ],
   "knowledge_items": {
     "patterns": [
@@ -55,7 +57,11 @@
       "Standalone Local Python Architecture (Chaquopy integration)",
       "Double-Checked Locking Singleton Pattern in Kotlin Managers",
       "Kotlin Coroutines Async/Await for parallel Data Fetching",
-      "Activity onNewIntent Lifecycle Intercepts with MutableStateFlow"
+      "Activity onNewIntent Lifecycle Intercepts with MutableStateFlow",
+      "Vector Drawable layering (Background + Foreground) for Adaptive Icons",
+      "Cache-First Strategy (SQLite check before Network/AI triggers)",
+      "SSE Streaming with OkHttp source().readUtf8Line()",
+      "TTS Sentence detection & Queue-Add Chunking for real-time speech"
     ],
     "gotchas": [
       "Share Intent Background Resumé: Must use launchMode=singleTop to prevent instantiating new processes.",

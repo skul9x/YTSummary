@@ -70,6 +70,7 @@ class MainActivity : ComponentActivity() {
                             val metadataJob = async {
                                 repository.getVideoMetadata(videoId).firstOrNull()
                             }
+                            
                             // Cập nhật UI ngay khi Metadata load xong
                             launch {
                                 val metadata = metadataJob.await()
@@ -79,28 +80,52 @@ class MainActivity : ComponentActivity() {
                                 }
                             }
                             
+                            var lastReadIndex = 0
+                            
                             // Chờ Summary xong mới redirect
                             repository.getSummary(videoId).collect { result ->
                                 if (result is AiResult.Loading) {
                                     loadingMessage = result.message
-                                } else {
-                                    if (result is AiResult.Success) {
-                                        // Chắc chắn đã có Metadata để lưu DB
-                                        val metadata = metadataJob.await()
-                                        repository.saveToHistory(
-                                            videoId = videoId,
-                                            title = metadata?.title ?: videoId,
-                                            thumbnailUrl = metadata?.thumbnailUrl ?: "",
-                                            summaryText = result.text
-                                        )
-                                        // Bước 5: Tự động đọc Audio (Auto-TTS)
-                                        ttsManager.speak(result.text)
-                                        isTtsPlaying = true
+                                } else if (result is AiResult.Success) {
+                                    summaryResult = result
+                                    currentScreen = "summary"
+                                    
+                                    // Item 4: TTS Sentence detection logic for speakChunk
+                                    val newTextSoFar = result.text
+                                    val newPart = newTextSoFar.substring(lastReadIndex)
+                                    val lastPunct = newPart.lastIndexOfAny(charArrayOf('.', '!', '?', ':', '\n'))
+                                    
+                                    if (lastPunct != -1) {
+                                        val toRead = newPart.substring(0, lastPunct + 1)
+                                        ttsManager.speakChunk(toRead)
+                                        lastReadIndex += lastPunct + 1
                                     }
+                                } else {
                                     summaryResult = result
                                     currentScreen = "summary"
                                 }
                             }
+                            
+                            // Final cleanup: read remaining and save to history once
+                            val finalResult = summaryResult
+                            if (finalResult is AiResult.Success) {
+                                val remaining = finalResult.text.substring(lastReadIndex)
+                                if (remaining.isNotBlank()) {
+                                    ttsManager.speakChunk(remaining)
+                                }
+                                
+                                // Save to history only once and NOT if it was from cache
+                                if (finalResult.model != "cache") {
+                                    val metadata = metadataJob.await()
+                                    repository.saveToHistory(
+                                        videoId = videoId,
+                                        title = metadata?.title ?: videoId,
+                                        thumbnailUrl = metadata?.thumbnailUrl ?: "",
+                                        summaryText = finalResult.text
+                                    )
+                                }
+                            }
+                            isTtsPlaying = true
                         }
                     }
                 }

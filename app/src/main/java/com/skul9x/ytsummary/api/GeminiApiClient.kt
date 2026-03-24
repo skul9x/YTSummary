@@ -9,18 +9,13 @@ import com.skul9x.ytsummary.manager.ApiKeyManager
 import com.skul9x.ytsummary.manager.ModelQuotaManager
 import com.skul9x.ytsummary.model.AiResult
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.suspendCancellableCoroutine
-import kotlinx.coroutines.withContext
-import okhttp3.Call
-import okhttp3.Callback
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
+import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
-import okhttp3.OkHttpClient
-import okhttp3.Response
 import java.io.IOException
-import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
 
 /**
  * Gemini API client with Model-First key rotation strategy.
@@ -35,90 +30,88 @@ class GeminiApiClient(
     /**
      * Tóm tắt transcript với cơ chế xoay tua Key.
      */
-    suspend fun summarize(transcript: String): AiResult = withContext(Dispatchers.IO) {
+    /**
+     * Tóm tắt transcript với cơ chế xoay tua Key và Streaming (SSE).
+     */
+    fun summarize(transcript: String): Flow<AiResult> = flow {
         val keys = apiKeyManager.getApiKeys()
-        if (keys.isEmpty()) return@withContext AiResult.NoApiKeys
+        if (keys.isEmpty()) {
+            emit(AiResult.NoApiKeys)
+            return@flow
+        }
 
-        // ✅ TỐI ƯU: Build Prompt và JSON Body một lần duy nhất trước khi lặp (O(1) optimization)
         val prompt = GeminiPrompts.buildSummarizationPrompt(transcript)
         val requestBodyJson = GeminiResponseHelper.buildRequestBody(prompt)
-        Log.d(TAG, "Pre-built JSON ready (Size: ${requestBodyJson.length} chars). Starting rotation...")
+        Log.d(TAG, "Starting streaming rotation...")
 
-        // MODEL-FIRST Strategy: Thử cùng 1 model trên tất cả các Key trước khi đổi model
         for (model in MODELS) {
             for (apiKey in keys) {
                 if (!quotaManager.isAvailable(model, apiKey)) continue
 
-                Log.d(TAG, "🔄 Trying Frontier model: $model | Key: ...${apiKey.takeLast(4)}")
-                val result = tryGenerateContent(model, apiKey, requestBodyJson)
+                var accumulatedText = ""
+                var hasStarted = false
+                
+                try {
+                    val request = Request.Builder()
+                        .url("$BASE_URL/$model:streamGenerateContent?alt=sse")
+                        .header("x-goog-api-key", apiKey)
+                        .post(requestBodyJson.toRequestBody("application/json".toMediaType()))
+                        .build()
 
-                when (result) {
-                    is AiResult.Success -> {
-                        Log.i(TAG, "✅ Success! Summarized by $model")
-                        return@withContext result
-                    }
-                    is AiResult.QuotaExceeded -> {
-                        Log.w(TAG, "⚠️ Quota Exceeded for $model (Key: ...${apiKey.takeLast(4)})")
-                        quotaManager.markExhausted(model, apiKey)
-                        continue
-                    }
-                    is AiResult.ServerBusy -> {
-                        Log.w(TAG, "⏳ Server Busy (503) for $model. Cooling down...")
-                        quotaManager.markCooldown(model, apiKey)
-                        continue
-                    }
-                    else -> {
-                        if (result is AiResult.Error) {
-                            Log.e("GeminiApiClient", "Error with $model: ${result.message}")
+                    val response = client.newCall(request).execute()
+                    
+                    if (!response.isSuccessful) {
+                        response.use { resp ->
+                            when (resp.code) {
+                                429 -> {
+                                    quotaManager.markExhausted(model, apiKey)
+                                    throw QuotaExceededException()
+                                }
+                                503 -> {
+                                    quotaManager.markCooldown(model, apiKey)
+                                    throw ServerBusyException()
+                                }
+                                else -> throw Exception("HTTP ${resp.code}")
+                            }
                         }
-                        continue
                     }
+
+                    response.use { resp ->
+                        resp.body?.source()?.let { source ->
+                            while (!source.exhausted()) {
+                                val line = source.readUtf8Line() ?: break
+                                if (line.startsWith("data: ")) {
+                                    val data = line.substring(6)
+                                    val textChunk = GeminiResponseHelper.extractText(data)
+                                    if (textChunk.isNotEmpty()) {
+                                        accumulatedText += textChunk
+                                        emit(AiResult.Success(accumulatedText, model))
+                                        hasStarted = true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    
+                    if (hasStarted) return@flow
+                    
+                } catch (e: QuotaExceededException) {
+                    continue
+                } catch (e: ServerBusyException) {
+                    continue
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error with $model: ${e.message}")
+                    continue
                 }
             }
         }
 
-        AiResult.AllQuotaExhausted
-    }
+        emit(AiResult.AllQuotaExhausted)
+    }.flowOn(Dispatchers.IO)
 
-    private suspend fun tryGenerateContent(model: String, apiKey: String, requestBodyJson: String): AiResult {
-        val request = Request.Builder()
-            .url("$BASE_URL/$model:generateContent")
-            .header("x-goog-api-key", apiKey)
-            .post(requestBodyJson.toRequestBody("application/json".toMediaType()))
-            .build()
+    private class QuotaExceededException : Exception()
+    private class ServerBusyException : Exception()
 
-        return try {
-            val response = executeRequest(request)
-            response.use { resp ->
-                val body = resp.body?.string() ?: ""
-                when (resp.code) {
-                    200 -> {
-                        val text = GeminiResponseHelper.extractText(body)
-                        if (text.isNotBlank()) AiResult.Success(text, model)
-                        else AiResult.Error("Phản hồi rỗng từ Gemini")
-                    }
-                    429 -> AiResult.QuotaExceeded
-                    503 -> AiResult.ServerBusy
-                    else -> AiResult.Error("HTTP ${resp.code}: $body")
-                }
-            }
-        } catch (e: Exception) {
-            AiResult.Error(e.message ?: "Lỗi kết nối")
-        }
-    }
-
-    private suspend fun executeRequest(request: Request): Response = suspendCancellableCoroutine { cont ->
-        val call = client.newCall(request)
-        cont.invokeOnCancellation { call.cancel() }
-        call.enqueue(object : Callback {
-            override fun onFailure(call: Call, e: IOException) {
-                if (!cont.isCompleted) cont.resumeWithException(e)
-            }
-            override fun onResponse(call: Call, response: Response) {
-                if (!cont.isCompleted) cont.resume(response)
-            }
-        })
-    }
 
     companion object {
         private const val TAG = "GeminiApiClient"

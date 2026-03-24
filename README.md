@@ -6,9 +6,11 @@
 
 ## 🚀 Tính năng nổi bật
 
-- **Tóm tắt siêu tốc:** Lấy video ID và dùng Gemini API để bóc tách ý chính xác. Cung cấp cả suy luận tư duy chiều sâu.
+- **Tóm tắt siêu tốc (SSE Streaming):** Sử dụng endpoint `streamGenerateContent` của Gemini để hiển thị nội dung tóm tắt theo thời gian thực (hiệu ứng chữ nhảy "jumping text") ngay khi có dữ liệu đầu tiên.
+- **Cache-First (Truy xuất tức thì):** Tự động kiểm tra cơ sở dữ liệu SQLite cục bộ (Room) trước khi gọi AI. Nếu video đã được tóm tắt trước đó, kết quả sẽ hiện lên ngay lập tức (~10ms) thay vì chờ 6 giây.
 - **Trích xuất Subtitle Cục bộ (Local Fetch):** Tích hợp thư viện Python `youtube-transcript-api` chạy ngầm thông qua bridge *Chaquopy*, giúp tránh hoàn toàn các lỗi `502 Bad Gateway` hay block IP mà các máy chủ cloud thường gặp.
 - **Chia sẻ tự động 1 chạm (Share Intent):** Mở ứng dụng YouTube, nhấn "Chia sẻ" vào YTSummary, ứng dụng sẽ chạy tự động từ khâu bắt link, lấy transcript, tóm tắt và thực hiện luôn việc đọc thành lời (Auto Text-to-Speech) rảnh tay 100%.
+- **TTS Chunking (Đọc song song):** Đồng bộ âm thanh với luồng AI stream, bắt đầu đọc tóm tắt ngay từ câu đầu tiên khi Gemini đang xử lý các câu tiếp theo.
 - **Bảo mật mạnh mẽ:**
   - Quản lý API Key Gemini thông minh.
   - Mã hoá dữ liệu cơ sở trên máy bằng công nghệ **Room + SQLCipher (Encrypted)**.

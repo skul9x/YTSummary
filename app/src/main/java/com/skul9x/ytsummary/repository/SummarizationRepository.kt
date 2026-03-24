@@ -48,6 +48,13 @@ class SummarizationRepository private constructor(context: Context) {
      * Thực hiện tóm tắt video. Trích xuất transcript locally sau đó tóm tắt qua Gemini.
      */
     fun getSummary(videoId: String): Flow<AiResult> = flow {
+        // Check cache first
+        val cached = summaryDao.getSummaryById(videoId)
+        if (cached != null) {
+            emit(AiResult.Success(cached.summaryText, "cache"))
+            return@flow
+        }
+
         emit(AiResult.Loading("📺 Đang lọc phụ đề qua Python..."))
         
         // 1. Lấy Transcript locally via Python (Safe Threading due to flowOn)
@@ -66,10 +73,10 @@ class SummarizationRepository private constructor(context: Context) {
 
         // 2. Tóm tắt bằng Gemini
         emit(AiResult.Loading("🤖 AI Gemini đang đọc và phân tích..."))
-        val result = geminiApi.summarize(transcript)
-        
-        emit(result)
-    }.flowOn(kotlinx.coroutines.Dispatchers.IO) // Fixed C3: Prevent ANR
+        geminiApi.summarize(transcript).collect { result ->
+            emit(result)
+        }
+    }.flowOn(kotlinx.coroutines.Dispatchers.IO) 
 
     /**
      * Lưu lịch sử tóm tắt xuống DB (Gọi từ ViewModel/Activity sau khi đã có cả Metadata và Summary)

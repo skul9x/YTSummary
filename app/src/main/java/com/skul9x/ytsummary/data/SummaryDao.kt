@@ -18,6 +18,9 @@ interface SummaryDao {
     @Query("DELETE FROM summaries WHERE videoId = :videoId")
     suspend fun deleteByVideoId(videoId: String)
 
+    @Query("SELECT * FROM summaries WHERE videoId = :videoId LIMIT 1")
+    suspend fun getSummaryById(videoId: String): SummaryEntity?
+
     @Query("DELETE FROM summaries")
     suspend fun clearHistory()
 }
