@@ -107,9 +107,8 @@ async def get_transcript(
     logger.info(f"Fetching transcript for video: {video_id}")
     
     try:
-        ytt_api = YouTubeTranscriptApi()
-        fetched_transcript = ytt_api.fetch(video_id, languages=['vi', 'en'])
-        transcript_list = fetched_transcript.to_raw_data()
+        # Sử dụng API chuẩn: get_transcript là static method
+        transcript_list = YouTubeTranscriptApi.get_transcript(video_id, languages=['vi', 'en'])
         plain_text = clean_transcript(transcript_list)
         
         return {
