@@ -9,6 +9,7 @@ import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import android.util.Log
 import java.util.*
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * TtsManager handles Text-to-Speech logic and system audio volume management.
@@ -18,7 +19,11 @@ import java.util.*
  * - Manage system music volume (auto-set to 80% on demand).
  * - Filter Markdown syntax to provide clean text for speech.
  */
-class TtsManager(private val context: Context, private val onInitSuccess: () -> Unit = {}) : TextToSpeech.OnInitListener {
+class TtsManager(
+    private val context: Context,
+    private val onInitSuccess: () -> Unit = {},
+    private val onTtsDone: () -> Unit = {}
+) : TextToSpeech.OnInitListener {
     private var tts: TextToSpeech? = null
     private var isInitialized = false
     private val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
@@ -26,6 +31,9 @@ class TtsManager(private val context: Context, private val onInitSuccess: () -> 
 
     var currentIndex = 0
         private set
+    private var totalSpokenLength = 0
+    private var currentChunkLength = 0
+    private val pendingUtterances = AtomicInteger(0)
 
     init {
         tts = TextToSpeech(context, this)
@@ -46,7 +54,16 @@ class TtsManager(private val context: Context, private val onInitSuccess: () -> 
                 override fun onStart(utteranceId: String?) {}
 
                 override fun onDone(utteranceId: String?) {
+                    // Cộng dồn độ dài chunk vừa đọc xong vào tổng
+                    totalSpokenLength += currentChunkLength
                     currentIndex = 0
+                    currentChunkLength = 0
+                    // Giảm counter và chỉ gọi callback khi tất cả chunk đã đọc xong
+                    if (pendingUtterances.decrementAndGet() <= 0) {
+                        pendingUtterances.set(0) // Safety: không cho âm
+                        abandonAudioFocus()
+                        onTtsDone()
+                    }
                 }
 
                 @Deprecated("Deprecated in Java", ReplaceWith("Unit"))
@@ -129,7 +146,11 @@ class TtsManager(private val context: Context, private val onInitSuccess: () -> 
         val cleanedText = cleanMarkdown(text)
         if (cleanedText.isEmpty() || fromIndex >= cleanedText.length) return
         
+        // Reset tracking khi bắt đầu speak mới
+        totalSpokenLength = fromIndex
         val textToSpeak = if (fromIndex > 0) cleanedText.substring(fromIndex) else cleanedText
+        currentChunkLength = textToSpeak.length
+        pendingUtterances.set(1)
         // Use QUEUE_FLUSH to interrupt any ongoing speech
         tts?.speak(textToSpeak, TextToSpeech.QUEUE_FLUSH, null, "SummaryTTS_ID")
     }
@@ -143,12 +164,32 @@ class TtsManager(private val context: Context, private val onInitSuccess: () -> 
         requestAudioFocus()
         val cleaned = cleanMarkdown(textChunk)
         if (cleaned.isBlank()) return
+        currentChunkLength = cleaned.length
+        pendingUtterances.incrementAndGet()
         tts?.speak(cleaned, TextToSpeech.QUEUE_ADD, null, UUID.randomUUID().toString())
+    }
+
+    /**
+     * Pause TTS và trả về vị trí tuyệt đối trong text đã clean.
+     * Vị trí = tổng các chunk đã đọc xong + vị trí hiện tại trong chunk đang đọc.
+     */
+    fun pause(): Int {
+        val absolutePosition = totalSpokenLength + currentIndex
+        if (isInitialized) {
+            tts?.stop()
+            pendingUtterances.set(0)
+            abandonAudioFocus()
+        }
+        return absolutePosition
     }
 
     fun stop() {
         if (isInitialized) {
             tts?.stop()
+            pendingUtterances.set(0) // Clear counter khi user chủ động dừng
+            totalSpokenLength = 0
+            currentIndex = 0
+            currentChunkLength = 0
             abandonAudioFocus()
         }
     }

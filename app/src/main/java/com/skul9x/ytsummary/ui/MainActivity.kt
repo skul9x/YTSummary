@@ -40,6 +40,7 @@ import androidx.activity.compose.BackHandler
 class MainActivity : ComponentActivity() {
     private lateinit var ttsManager: TtsManager
     private val incomingUrl = MutableStateFlow<String?>(null)
+    private var onTtsDoneCallback: (() -> Unit)? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,11 +48,26 @@ class MainActivity : ComponentActivity() {
         PythonManager.warmUp(this)
         handleIntent(intent)
         
-        ttsManager = TtsManager(this) { }
+        ttsManager = TtsManager(
+            context = this,
+            onInitSuccess = { },
+            onTtsDone = {
+                runOnUiThread { onTtsDoneCallback?.invoke() }
+            }
+        )
 
         setContent {
             YTSummaryTheme {
                 val viewModel: SummaryViewModel = viewModel()
+                
+                // Gán callback để TtsManager có thể báo ngược lại ViewModel
+                DisposableEffect(Unit) {
+                    onTtsDoneCallback = {
+                        viewModel.setTtsPlaying(false)
+                        viewModel.resetTtsPausedIndex()
+                    }
+                    onDispose { onTtsDoneCallback = null }
+                }
                 val screenState by viewModel.screenState.collectAsState()
                 val videoTitle by viewModel.videoTitle.collectAsState()
                 val thumbnailUrl by viewModel.thumbnailUrl.collectAsState()
@@ -62,6 +78,7 @@ class MainActivity : ComponentActivity() {
                 LaunchedEffect(ttsChunk) {
                     ttsChunk?.let {
                         ttsManager.speakChunk(it)
+                        viewModel.setTtsPlaying(true)
                         viewModel.clearTtsChunk()
                     }
                 }
@@ -127,8 +144,9 @@ class MainActivity : ComponentActivity() {
                                 },
                                 onTTSClick = {
                                     if (isTtsPlaying) {
-                                        ttsManager.stop()
-                                        viewModel.updateTtsPausedIndex(ttsManager.currentIndex)
+                                        // Pause: lưu vị trí đọc hiện tại để resume đúng chỗ
+                                        val pausedAt = ttsManager.pause()
+                                        viewModel.updateTtsPausedIndex(pausedAt)
                                         viewModel.setTtsPlaying(false)
                                     } else {
                                         ttsManager.speak(result.text, viewModel.getTtsPausedIndex())

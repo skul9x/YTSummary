@@ -10,6 +10,12 @@
 - **MVVM State Management for TTS**: Migrated `isTtsPlaying` and `ttsPausedIndex` to `SummaryViewModel`. TTS progress now survives screen rotation and activity lifecycle events.
 - **Standardized Documentation**: Updated `dev.txt` with a comprehensive MVVM-compliant guide for implementing human-like TTS controls.
 
+### Fixed
+- **TTS Pause/Resume Button Sync**: Resolved the issue where the Play/Pause icon state would desynchronize from the engine when starting auto-read or finishing a full queue.
+- **TTS isSpeaking Race Condition**: Replaced the unreliable `tts.isSpeaking` check with a robust `AtomicInteger` counter (`pendingUtterances`) in `TtsManager` to accurately track chunk completion during streaming playback.
+- **Streaming Pause Logic**: Fixed incorrect resume behavior by resetting the playback position when pausing during heavy chunked streaming.
+- **TTS Resume Fix**: Resolved the issue where clicking Resume would play from the start. Implemented absolute position tracking (`totalSpokenLength + currentIndex`) to allow seamless resumption from the exact character paused.
+
 ## [2026-03-24] - Navigation & UX Polish (Fix Swipe Back) 📱🔙
 ### Fixed
 - **Centralized BackHandler**: Implemented a global `BackHandler` in `MainActivity` to intercept the Android system "Swipe Back" gesture. This prevents the app from accidentally exiting when the user is on child screens (History, Settings, Summary).

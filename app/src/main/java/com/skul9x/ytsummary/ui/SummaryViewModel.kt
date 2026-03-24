@@ -132,8 +132,8 @@ class SummaryViewModel(application: Application) : AndroidViewModel(application)
 
     fun getTtsPausedIndex(): Int = ttsPausedIndex
 
-    fun updateTtsPausedIndex(currentIndex: Int) {
-        ttsPausedIndex += currentIndex
+    fun updateTtsPausedIndex(index: Int) {
+        ttsPausedIndex = index
     }
 
     fun resetTtsPausedIndex() {

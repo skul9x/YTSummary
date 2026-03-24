@@ -1,79 +1,79 @@
-# YT Summary AI 📺🤖
+# YT Summary AI 📺🤖 — Smart Android YouTube Summarizer
 
-**YouTube Summary AI** là một ứng dụng Android hiện đại giúp bạn tóm tắt nội dung video YouTube một cách nhanh chóng và thông minh bằng trí tuệ nhân tạo (Gemini AI). Ứng dụng kết hợp sức mạnh của Python (chạy cục bộ) và Kotlin Jetpack Compose để mang lại trải nghiệm mượt mà, bảo mật và hiệu quả.
+**YT Summary AI** là một ứng dụng Android hiện đại, mạnh mẽ dành cho việc tóm tắt nội dung video YouTube bằng AI (Gemini 2.5 Flash). Dự án kết hợp hiệu quả giữa Kotlin (Jetpack Compose) và Python (chạy cục bộ qua Chaquopy), mang đến giải pháp tóm tắt nhanh, bảo mật và hoàn toàn ngoại tuyến trong khâu trích xuất nội dung.
 
 ---
 
 ## ✨ Tính năng nổi bật
 
-- **Tóm tắt siêu tốc**: Sử dụng model Gemini 2.5 Flash mới nhất để đọc và phân tích video trong vài giây.
-- **Xử lý Python Cục bộ**: Trích xuất phụ đề (transcript) trực tiếp trên thiết bị bằng Chaquopy, không thông qua server trung gian, giúp bảo vệ quyền riêng tư và tránh bị chặn IP.
-- **Hệ thống TTS Pause/Resume thông minh**: Tự động đánh dấu vị trí đang đọc (Bookmark). Hỗ trợ Tạm dừng/Phát tiếp tục ngay tại từ đang đọc hoặc Đọc lại từ đầu.
-- **Hỗ trợ đa ngôn ngữ**: Tóm tắt tốt cả video tiếng Việt và tiếng Anh (Hỗ trợ nhiều ngôn ngữ phụ đề).
-- **Chia sẻ 1-Click**: Tích hợp Android Share Intent - Chia sẻ từ ứng dụng YouTube sang YTSummary để tự động hóa hoàn toàn quy trình.
-- **Quản lý Lịch sử**: Lưu trữ các bản tóm tắt đã thực hiện trong cơ sở dữ liệu Room được mã hóa (SQLCipher).
-- **Giao diện Modern Glassmorphism**: Thiết kế "Kính mờ" sang trọng với hiệu ứng bóng đổ Neon và Micro-animations tinh tế.
-- **Kiến trúc MVVM**: Tiến trình tóm tắt và trạng thái TTS được bảo toàn khi xoay màn hình nhờ ViewModel và StateFlow.
+- **Tóm tắt bằng Gemini 2.5 Flash**: Sử dụng model AI mới nhất của Google với khả năng tư duy (Thinking) để tạo ra các bản tóm tắt súc tích, chính xác.
+- **Xử lý Python Cục bộ (Local Engine)**: Transcript được trích xuất trực tiếp trên thiết bị Android bằng Python (Chaquopy), không thông qua máy chủ trung gian, giúp bảo mật dữ liệu và khắc phục tình trạng bị chặn IP.
+- **TTS Pause/Resume Thông minh**: Tích hợp Voice Assistant với khả năng đánh dấu vị trí đọc (Bookmark). Bạn có thể Tạm dừng và Tiếp tục đúng ngay tại từ đang nghe thay vì phải nghe lại từ đầu.
+- **Chia sẻ 1-Click (Share Intent)**: Hỗ trợ chia sẻ trực tiếp từ ứng dụng YouTube chính thức sang YTSummary để tự động hóa hoàn toàn quy trình phân tích.
+- **Quản lý Lịch sử (Room Database)**: Lưu trữ các bản tóm tắt vào cơ sở dữ liệu Room cục bộ, được mã hóa bằng SQLCipher để đảm bảo riêng tư tuyệt đối.
+- **Thiết kế Glassmorphism Cao cấp**: Giao diện người dùng hiện đại với hiệu ứng "Kính mờ", bóng đổ Neon và các hiệu ứng micro-animations mượt mà.
+- **Phục hồi Trạng thái (MVVM)**: Sử dụng ViewModel và StateFlow để bảo toàn tiến trình tóm tắt và vị trí TTS ngay cả khi xoay màn hình hoặc thay đổi cấu hình.
 
 ---
 
 ## 🛠️ Công nghệ sử dụng
 
-- **Ngôn ngữ**: Kotlin (Frontend) & Python 3.11 (Local Engine).
-- **UI Framework**: Jetpack Compose (Modern Declarative UI).
-- **AI Engine**: Google Gemini API SDK (v1beta for thinking mode).
-- **Python Bridge**: Chaquopy 17.0.0.
-- **Database**: Room Database + SQLCipher (Encrypted per industry standard).
-- **Kiến trúc**: MVVM + Repository Pattern + Clean Architecture logic.
+- **Frontend**: Kotlin & Jetpack Compose (Declarative UI).
+- **Trình xử lý lõi**: Python 3.11 thông qua Chaquopy 17.0.0.
+- **AI Model**: Google Gemini API v1beta (Gemini 2.5 Flash).
+- **Cơ sở dữ liệu**: Room + SQLCipher (Mã hóa cơ sở dữ liệu).
+- **Networking**: OkHttp (Xử lý SSE Streaming cho AI output).
+- **Kiến trúc**: MVVM + Repository Pattern + Clean Architecture principles.
 
 ---
 
 ## 🚀 Hướng dẫn cài đặt
 
 ### Yêu cầu hệ thống
-- Android 8.0 (API 26) trở lên.
-- Kết nối Internet (để gọi Gemini API).
+- Thiết bị Android chạy hệ điều hành version 8.0 (API 26) trở lên.
+- Có cài đặt Python 3.11 trên máy tính phát triển (để build APK với Chaquopy).
 
-### Các bước thực hiện (Dành cho nhà phát triển)
-1. **Clone repository**:
+### Các bước phát triển
+1. **Clone mã nguồn**:
    ```bash
    git clone https://github.com/skul9x/YTSummary.git
    ```
-2. **Mở dự án**: Mở bằng **Android Studio Ladybug** (hoặc phiên bản mới hơn).
-3. **Cài đặt Python**: Đảm bảo máy tính đã cài đặt Python 3.11 để tương thích với Chaquopy.
-4. **Cấu hình API Key**:
-   - Khởi chạy ứng dụng.
-   - Truy cập **Settings**.
-   - Dán một hoặc nhiều Gemini API Key (Ứng dụng hỗ trợ dán một đoạn văn bản dài lộn xộn, Regex sẽ tự lọc ra các Key bắt đầu bằng `AIza`).
-5. **Build & Run**: Nhấn nút **Run** để cài đặt APK lên máy ảo hoặc thiết bị thật.
+2. **Mở dự án**: Sử dụng **Android Studio Ladybug** (hoặc mới hơn).
+3. **Đăng ký Gemini API Key**: Lấy khóa API miễn phí từ [Google AI Studio](https://aistudio.google.com/).
+4. **Cấu hình trên App**:
+   - Chạy ứng dụng trên máy ảo/thiết bị thật.
+   - Vào phần **Settings**.
+   - Dán API Key của bạn (Ứng dụng hỗ trợ Regex tự động lọc Key từ một đoạn văn bản dài).
+5. **Build & Run**: Nhấn biểu tượng Play (Run) trong Android Studio.
+
+---
+
+## 📁 Cấu trúc thư mục dự án
+
+```text
+app/src/main/
+├── java/com/skul9x/ytsummary/
+│   ├── api/            # Hệ thống API client (Gemini SSE streaming)
+│   ├── data/           # Database Room, SQLCipher & Dao
+│   ├── manager/        # TtsManager, PythonManager (Bridge), ApiKeyManager
+│   ├── model/          # Định nghĩa dữ liệu (AiResult, ScreenState)
+│   ├── repository/     # Lớp quản lý dữ liệu & Coroutine guards
+│   └── ui/             # Jetpack Compose Screens, Components & ViewModels
+├── python/             # Logic trích xuất transcript bằng Python cục bộ
+└── res/                # Tài nguyên UI & Adaptive Launcher Icons
+.brain/                 # Trạng thái phiên làm việc & Kiến trúc dự án (Brain state)
+```
 
 ---
 
 ## 📖 Cách sử dụng
 
-1. **Trực tiếp**: Dán URL video vào màn hình chính và nhấn nút **Go**.
-2. **Chia sẻ**: Trong ứng dụng YouTube, nhấn **Chia sẻ** -> **YT Summary AI**. App sẽ tự động trích xuất metadata, transcript và thực hiện tóm tắt.
-3. **TTS Điều khiển**:
-   - Nút **Play/Pause**: Tạm dừng hoặc tiếp tục đọc đúng vị trí cũ.
-   - Nút **Restart**: Đọc lại từ đầu bản tóm tắt.
-
----
-
-## 📁 Cấu trúc thư mục
-
-```text
-app/src/main/
-├── java/com/skul9x/ytsummary/
-│   ├── api/            # Client kết nối Gemini (SSE Support)
-│   ├── data/           # Room Database, SQLCipher & Dao
-│   ├── manager/        # TtsManager, PythonManager, ApiKeyManager
-│   ├── model/          # Data Models (AiResult, ScreenState)
-│   ├── repository/     # Data Layer & Coroutine guards
-│   └── ui/             # Compose Screens & ViewModels
-├── python/             # Local Python Logic (yt-transcript-api integration)
-└── res/                # UI Resources & Adaptive Icons
-.brain/                 # AI Knowledge & Session State (Ghi nhớ ngữ cảnh phát triển)
-```
+1. **Dán Link**: Sao chép link YouTube và dán vào màn hình chính.
+2. **Chia sẻ**: Trong ứng dụng YouTube, chọn **Chia sẻ** -> **YT Summary AI** để app tự động xử lý.
+3. **Điều khiển TTS**:
+   - **Play/Pause**: Tạm dừng hoặc tiếp tục đọc đúng vị trí cũ.
+   - **Restart**: Bắt đầu nghe lại từ đầu.
+4. **Lịch sử**: Xem lại các video đã tóm tắt trong mục **History**.
 
 ---
 
@@ -81,4 +81,4 @@ app/src/main/
 Copyright 2026 Nguyễn Duy Trường
 
 ---
-*Dự án được xây dựng với tư duy Senior Dev và sự hỗ trợ của Antigravity AI Historian.*
+*Dự án được xây dựng với tư duy chất lượng cao và sự hỗ trợ của Antigravity AI Historian.*

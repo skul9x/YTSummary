@@ -1,14 +1,13 @@
 {
-  "updated_at": "2026-03-25T00:10:00Z",
+  "updated_at": "2026-03-25T00:50:00Z",
   "working_on": {
     "feature": "TTS Intelligence & Smart Bookmarking",
-    "task": "Implement TTS Pause/Resume logic with Bookmark Index",
+    "task": "Fix TTS Resume Logic (Restarting from zero bug)",
     "status": "DONE",
     "files": [
       "TtsManager.kt",
       "SummaryViewModel.kt",
-      "MainActivity.kt",
-      "SummaryScreen.kt"
+      "MainActivity.kt"
     ]
   },
   "pending_tasks": [
@@ -19,69 +18,35 @@
   ],
   "recent_changes": [
     {
-      "timestamp": "2026-03-25T00:10:00Z",
-      "type": "feature",
-      "description": "Implemented TTS Pause/Resume logic with Bookmark Index (UtteranceProgressListener) and ViewModel state persistence.",
+      "timestamp": "2026-03-25T00:50:00Z",
+      "type": "bugfix",
+      "description": "Fixed TTS Resume logic where it would restart from the beginning. Implemented totalSpokenLength tracking in TtsManager to allow absolute position resumption.",
       "files": [
         "com.skul9x.ytsummary.manager.TtsManager",
-        "com.skul9x.ytsummary.ui.SummaryViewModel",
         "com.skul9x.ytsummary.ui.MainActivity",
-        "com.skul9x.ytsummary.ui.SummaryScreen"
+        "com.skul9x.ytsummary.ui.SummaryViewModel"
       ]
     },
     {
-      "timestamp": "2026-03-24T23:45:00Z",
-      "type": "ux",
-      "description": "Implemented centralized BackHandler in MainActivity to support Android System Back Gesture for all child screens.",
-      "files": [
-        "com.skul9x.ytsummary.ui.MainActivity",
-        "com.skul9x.ytsummary.ui.SummaryScreen"
-      ]
-    },
-    {
-      "timestamp": "2026-03-24T23:30:00Z",
-      "type": "architectural",
-      "description": "Migrated UI state management from remember { mutableStateOf } to AndroidViewModel (SummaryViewModel) for better lifecycle persistence.",
-      "files": [
-        "com.skul9x.ytsummary.ui.SummaryViewModel",
-        "com.skul9x.ytsummary.ui.MainActivity"
-      ]
-    },
-    {
-      "timestamp": "2026-03-24T23:25:00Z",
+      "timestamp": "2026-03-25T00:35:00Z",
       "type": "bugfix",
-      "description": "Implemented Coroutine ensureActive() guard in SummarizationRepository to prevent processing stale data after cancellation (Fix ISSUE_003).",
-      "files": ["com.skul9x.ytsummary.repository.SummarizationRepository"]
-    },
-    {
-      "timestamp": "2026-03-24T22:20:00Z",
-      "type": "feature",
-      "description": "Implemented auto-check for youtube-transcript-api updates on PyPI with 24h cache and runtime version detection.",
+      "description": "Fixed TTS Pause/Resume sync issues and race condition in TtsManager using AtomicInteger counter.",
       "files": [
-        "com.skul9x.ytsummary.manager.PythonUpdateChecker",
-        "com.skul9x.ytsummary.ui.components.UpdateBanner",
-        "SettingsScreen.kt"
+        "com.skul9x.ytsummary.manager.TtsManager",
+        "com.skul9x.ytsummary.ui.MainActivity"
       ]
     }
   ],
   "errors_encountered": [
     {
-      "error": "Kotlin compilation error: Expecting a top level declaration",
-      "solution": "Fixed duplicate code and misplaced class closing brace in MainActivity.kt during ViewModel refactoring.",
+      "error": "TTS Resume starts from beginning instead of paused position",
+      "solution": "Implemented totalSpokenLength to accumulate finished chunks and a pause() method to capture exact absolute index.",
       "resolved": true,
-      "file": "MainActivity.kt"
-    },
-    {
-      "error": "java.lang.UnsatisfiedLinkError in Unit Tests",
-      "solution": "Added internal 'testVersion' to bypass JNI dependency during JVM tests.",
-      "resolved": true,
-      "file": "PythonUpdateChecker.kt"
+      "file": "TtsManager.kt"
     }
   ],
   "decisions_made": [
-    { "decision": "Use AndroidViewModel and viewModelScope", "reason": "Ensures the summarization pipeline survives Activity destruction during configuration changes (Fix ISSUE_004)." },
-    { "decision": "Add ensureActive() after Python call", "reason": "Chaquopy JNI calls are non-interruptible; this guard ensures processing stops as soon as control returns to Kotlin if the job was cancelled." },
-    { "decision": "Centralized BackHandler in MainActivity", "reason": "Standard pattern for intercepting system back gestures in Single-Activity apps using manual state navigation." },
-    { "decision": "TTS Bookmark Index in ViewModel", "reason": "Allows resuming speech from the exact same word after pause or configuration change (Standardized MVVM pattern)." }
+    { "decision": "Track cumulative spoken length in TtsManager", "reason": "Necessary because currentIndex is relative to each chunk in QUEUE_ADD mode." },
+    { "decision": "Explicit pause() method instead of generic stop()", "reason": "Distinguishes between temporary pause (captures state) and hard stop (resets everything)." }
   ]
 }

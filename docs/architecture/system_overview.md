@@ -1,5 +1,5 @@
 # System Overview - YTSummary
-*Updated: 2026-03-24*
+*Updated: 2026-03-25*
 
 ## 🏛️ Architecture: Standalone Mobile Client
 Dự án đã được chuyển đổi hoàn toàn từ kiến trúc **Client-Server** (sử dụng FastAPI trên Railway) sang **Standalone Client**.
@@ -14,9 +14,10 @@ Dự án đã được chuyển đổi hoàn toàn từ kiến trúc **Client-Se
    - **Gemini API (v1beta)** gọi trực tiếp từ client.
    - Model mặc định: `models/gemini-2.5-flash` được cấu hình để có "Thinking" capability.
    - Tránh giới hạn API (Quota) bằng hệ thống **Key Rotation** (Lưu trữ an toàn tại `EncryptedSharedPreferences`).
-4. **Performance Optimization (Audit v4.1.0):**
+4. **Performance Optimization (Audit v4.2.0):**
    - **Pipeline**: Stream Processing (SSE) -> StringBuilder Buffer -> Sentence Detect -> TSS speakChunk.
    - **Cold Start**: Python Warm-up (Background initialization).
+   - **TTS Synchronization**: Đồng bộ hóa trạng thái engine với UI qua callback và bộ đếm hàng đợi (Atomic counter), khắc phục hiện tượng delay giữa các đoạn văn.
    - **Audio UX**: AudioFocus Ducking (Best practice).
 5. **Data Layer (Storage):**
    - Database: **Room** + **SQLCipher** (Mã hóa toàn bộ file `.db`).

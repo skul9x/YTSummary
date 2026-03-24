@@ -75,7 +75,8 @@
       "Python Runtime Background Warm-up Strategy",
       "StringBuilder for SSE Streaming Buffering (O(N2) minimization)",
       "Coroutine Guard: currentCoroutineContext().ensureActive() after JNI/Blocking calls",
-      "Multi-layered TTS Bookmarking (Manager -> ViewModel -> UI persistency)"
+      "Multi-layered TTS Bookmarking (Manager -> ViewModel -> UI persistency)",
+      "Absolute Character-Based TTS Tracking (totalSpokenLength + relativeIndex)"
     ],
     "gotchas": [
       "Activity Destruction & Re-creation: State managed via remember { } is lost; must use ViewModel for persistence.",
@@ -90,7 +91,9 @@
       "Chaquopy Pip Dependencies: Transitive dependencies with C-extensions (like requests) often need explicit manual mapping in Gradle.",
       "Python urllib.request.urlopen: Yêu cầu timeout=10 để tránh treo thread vĩnh viễn (Thread Leak).",
       "Android setStreamVolume(80): Phương pháp xâm lấn, nên ưu tiên AudioFocus để hòa hợp với volume hệ thống.",
-      "MockK vs OkHttp 4.12+: Mocking 'any<Request>()' trực tiếp có thể gây RuntimeException, nên ưu tiên dùng MockWebServer."
+      "MockK vs OkHttp 4.12+: Mocking 'any<Request>()' trực tiếp có thể gây RuntimeException, nên ưu tiên dùng MockWebServer.",
+      "TTS isSpeaking Race Condition: Khi dùng QUEUE_ADD, 'tts.isSpeaking' có thể trả về false giữa hai utterance do khoảng nghỉ hệ thống. Giải pháp: Dùng bộ đếm AtomicInteger để quản lý số lượng chunk thực tế trong hàng đợi.",
+      "TTS Pause vs Stop: `stop()` trong TTS API xoá sạch hàng đợi và status. Để Resume, phải tự lưu `totalSpokenLength` của các chunk đã xong và cộng với `currentIndex` của chunk hiện tại trước khi gọi `stop()`."
     ]
   }
 }
