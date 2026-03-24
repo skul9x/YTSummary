@@ -48,6 +48,8 @@ class SummarizationRepository private constructor(context: Context) {
      * Thực hiện tóm tắt video. Trích xuất transcript locally sau đó tóm tắt qua Gemini.
      */
     fun getSummary(videoId: String): Flow<AiResult> = flow {
+        emit(AiResult.Loading("📺 Đang lọc phụ đề qua Python..."))
+        
         // 1. Lấy Transcript locally via Python (Safe Threading due to flowOn)
         val transcriptResult = pythonManager.fetchTranscript(videoId)
         
@@ -63,6 +65,7 @@ class SummarizationRepository private constructor(context: Context) {
         }
 
         // 2. Tóm tắt bằng Gemini
+        emit(AiResult.Loading("🤖 AI Gemini đang đọc và phân tích..."))
         val result = geminiApi.summarize(transcript)
         
         emit(result)

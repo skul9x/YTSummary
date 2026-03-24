@@ -1,21 +1,34 @@
 {
-  "updated_at": "2026-03-24T19:26:00Z",
+  "updated_at": "2026-03-24T19:39:00Z",
   "working_on": {
-    "feature": "Code Quality & Security Audit Fixes",
-    "task": "Fixed HIGH and MEDIUM priority issues from bugs_reports.md",
-    "status": "completed",
+    "feature": "UX & Architecture Overhaul",
+    "task": "Planning Dynamic Loading Indicators and Stream Processing",
+    "status": "planning",
     "files": [
-      "app/src/main/java/com/skul9x/ytsummary/api/gemini/GeminiResponseHelper.kt",
-      "app/src/main/java/com/skul9x/ytsummary/api/gemini/GeminiPrompts.kt",
-      "app/src/main/java/com/skul9x/ytsummary/manager/TtsManager.kt"
+      "fix_loading_indicator.md",
+      "per_audit.txt"
     ]
   },
   "pending_tasks": [
+    { "task": "Feature: Add AiResult.Loading state to AiResult.kt", "priority": "high" },
+    { "task": "Feature: Emit dynamic loading messages in SummarizationRepository.kt", "priority": "high" },
+    { "task": "Feature: Update MainActivity.kt to render dynamic loading UI states", "priority": "high" },
+    { "task": "Architecture: Shift Gemini generation to use Server-Sent Events (streamGenerateContent)", "priority": "medium" },
+    { "task": "Architecture: Migrate off Chaquopy for Transcript parsing to native Kotlin/OkHttp to drop 2.5s overhead", "priority": "medium" },
     { "task": "🟢 LOW: Add usesCleartextTraffic=false to AndroidManifest", "priority": "low" },
     { "task": "🟢 LOW: Remove hardcoded '32 Summaries' in MainActivity", "priority": "low" },
-    { "task": "🟢 LOW: Add Strict VideoID Regex validation before passing to Python", "priority": "low" }
+    { "task": "🟢 LOW: Add Strict VideoID Regex validation before passing to backend", "priority": "low" }
   ],
   "recent_changes": [
+    {
+      "timestamp": "2026-03-24T19:39:00Z",
+      "type": "feature_planning",
+      "description": "Analyzed per_audit.txt (advocating for Gemini Streaming and dropping Chaquopy for Native Kotlin) and fix_loading_indicator.md (plan for dynamic UI loading states).",
+      "files": [
+        "per_audit.txt",
+        "fix_loading_indicator.md"
+      ]
+    },
     {
       "timestamp": "2026-03-24T19:26:00Z",
       "type": "fix",

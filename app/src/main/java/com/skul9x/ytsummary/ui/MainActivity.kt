@@ -47,6 +47,7 @@ class MainActivity : ComponentActivity() {
             YTSummaryTheme {
                 var currentScreen by remember { mutableStateOf("main") }
                 var summaryResult by remember { mutableStateOf<AiResult?>(null) }
+                var loadingMessage by remember { mutableStateOf("Đang chuẩn bị...") }
                 var videoTitle by remember { mutableStateOf("Summarizing...") }
                 var thumbnailUrl by remember { mutableStateOf("") }
                 var isTtsPlaying by remember { mutableStateOf(false) }
@@ -66,10 +67,6 @@ class MainActivity : ComponentActivity() {
                                     val metadataJob = async {
                                         repository.getVideoMetadata(videoId).firstOrNull()
                                     }
-                                    val summaryJob = async {
-                                        repository.getSummary(videoId).firstOrNull()
-                                    }
-                                    
                                     // Cập nhật UI ngay khi Metadata load xong
                                     launch {
                                         val metadata = metadataJob.await()
@@ -80,20 +77,23 @@ class MainActivity : ComponentActivity() {
                                     }
                                     
                                     // Chờ Summary xong mới redirect
-                                    val result = summaryJob.await()
-                                    if (result != null) {
-                                        if (result is AiResult.Success) {
-                                            // Chắc chắn đã có Metadata để lưu DB
-                                            val metadata = metadataJob.await()
-                                            repository.saveToHistory(
-                                                videoId = videoId,
-                                                title = metadata?.title ?: videoId,
-                                                thumbnailUrl = metadata?.thumbnailUrl ?: "",
-                                                summaryText = result.text
-                                            )
+                                    repository.getSummary(videoId).collect { result ->
+                                        if (result is AiResult.Loading) {
+                                            loadingMessage = result.message
+                                        } else {
+                                            if (result is AiResult.Success) {
+                                                // Chắc chắn đã có Metadata để lưu DB
+                                                val metadata = metadataJob.await()
+                                                repository.saveToHistory(
+                                                    videoId = videoId,
+                                                    title = metadata?.title ?: videoId,
+                                                    thumbnailUrl = metadata?.thumbnailUrl ?: "",
+                                                    summaryText = result.text
+                                                )
+                                            }
+                                            summaryResult = result
+                                            currentScreen = "summary"
                                         }
-                                        summaryResult = result
-                                        currentScreen = "summary"
                                     }
                                 }
                             }
@@ -115,7 +115,7 @@ class MainActivity : ComponentActivity() {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             CircularProgressIndicator(color = YouTubeRed)
                             Spacer(modifier = Modifier.height(16.dp))
-                            Text("Đang tóm tắt...", color = TextPrimary, style = MaterialTheme.typography.titleMedium)
+                            Text(loadingMessage, color = TextPrimary, style = MaterialTheme.typography.titleMedium)
                         }
                     }
                     "summary" -> {
