@@ -38,6 +38,13 @@
     "Database must be encrypted with SQLCipher",
     "Production error messages sanitized"
   ],
+  "features": [
+    "Trích xuất Subtitle Cục bộ (Local Fetch bằng Chaquopy)",
+    "Tóm tắt thông minh bằng Gemini 2.5 Flash (Có tư duy sâu)",
+    "Quản lý Khóa API (Tự quét Regex từ bộ nhớ tạm)",
+    "Thao tác nhúng 1-click (Paste & Tóm tắt nhanh liên mạch)",
+    "Lưu trữ đám mây an toàn bằng Room + SQLCipher"
+  ],
   "knowledge_items": {
     "patterns": [
       "Key Rotation Strategy for Gemini API",

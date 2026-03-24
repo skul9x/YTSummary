@@ -1,20 +1,27 @@
 {
-  "updated_at": "2026-03-24T16:15:00Z",
+  "updated_at": "2026-03-24T16:55:00Z",
   "working_on": {
-    "feature": "UX/UI Improvements",
-    "task": "Implement all 5 UX tasks requested",
-    "current_plan_path": "plans/260324-1627-ux-improvements/",
-    "status": "completed",
+    "feature": "Performance Audit",
+    "task": "Diagnose app performance and identify bottlenecks",
+    "status": "audited",
     "files": [
-      "app/src/main/java/com/skul9x/ytsummary/ui/SettingsScreen.kt",
-      "app/src/main/java/com/skul9x/ytsummary/ui/MainActivity.kt",
-      "app/src/main/java/com/skul9x/ytsummary/ui/SummaryScreen.kt"
+      "docs/reports/audit_perf_20260324.md"
     ]
   },
   "pending_tasks": [
-    { "task": "Optimize Prompt AI for Gemini 2.5 Flash thinking capability", "priority": "medium" }
+    { "task": "C3: Add dispatchers.IO to python execution logic to prevent ANR", "priority": "high" },
+    { "task": "C2: Execute metadata fetch and transcript fetch in parallel", "priority": "high" },
+    { "task": "C1: Enforce Singleton for Repositories and quota managers", "priority": "medium" },
+    { "task": "Optimize Prompt AI for Gemini 2.5 Flash thinking capability", "priority": "medium" },
+    { "task": "Clean up dead legacy backend code from Android app limits", "priority": "low" }
   ],
   "recent_changes": [
+    {
+      "timestamp": "2026-03-24T16:50:00Z",
+      "type": "audit",
+      "description": "Executed Performance Audit. Found 3 critical issues (blocking I/O, synchronous remote fetching, non-singleton manager creations) that severely impacts Android UX.",
+      "files": ["docs/reports/audit_perf_20260324.md"]
+    },
     {
       "timestamp": "2026-03-24",
       "type": "fix",
@@ -29,15 +36,13 @@
     },
     {
       "timestamp": "2026-03-24",
-      "type": "refactor",
-      "description": "Removed legacy backend files (backend, Dockerfile, main.py)",
-      "files": ["backend/", "Dockerfile", "main.py"]
-    },
-    {
-      "timestamp": "2026-03-24",
-      "type": "testing",
-      "description": "Verified end-to-end Standalone flow with models/gemini-2.5-flash",
-      "files": ["ok.txt"]
+      "type": "feature",
+      "description": "Implemented UX improvements: API Key multi-paste with regex parsing, Quick Paste & Summarize button, Loading Indicator text, Copy Summary button, and fixing Swipe Back interaction.",
+      "files": [
+        "app/src/main/java/com/skul9x/ytsummary/ui/SettingsScreen.kt",
+        "app/src/main/java/com/skul9x/ytsummary/ui/MainActivity.kt",
+        "app/src/main/java/com/skul9x/ytsummary/ui/SummaryScreen.kt"
+      ]
     }
   ],
   "errors_encountered": [
@@ -48,12 +53,6 @@
       "file": "PythonManager.kt"
     },
     {
-      "error": "Chaquopy does not automatically install transitive dependencies for youtube-transcript-api",
-      "solution": "Explicitly added install('requests') and install('defusedxml') inside the chaquopy.pip block in build.gradle.kts.",
-      "resolved": true,
-      "file": "build.gradle.kts"
-    },
-    {
       "error": "Text and buttons inside GlassCard are blurry and unreadable",
       "solution": "Jetpack Compose Modifier.blur() blurred the entire component tree. Removed it from GlassCard so only the gradient is used.",
       "resolved": true,
@@ -62,7 +61,6 @@
   ],
   "decisions_made": [
     { "decision": "Remove Legacy Cloud Backend", "reason": "Standalone logic via local IP is now fully verified and bypasses YouTube blocks." },
-    { "decision": "Adopt Gemini 2.5 Flash", "reason": "Superior thinking/reasoning capability for video summarization." },
-    { "decision": "Remove Modifier.blur from GlassCard", "reason": "It blurs content, causing text/icons to be unreadable on Android S+ devices." }
+    { "decision": "Adopt Gemini 2.5 Flash", "reason": "Superior thinking/reasoning capability for video summarization." }
   ]
 }

@@ -61,3 +61,14 @@ venv/
 node_modules/
 dist/
 build/
+
+# Keystore files
+*.jks
+*.keystore
+
+# Internal testing text files
+ok.txt
+plan.txt
+
+# Downloaded tools
+youtube-transcript-api-master/
