@@ -6,7 +6,9 @@ import com.skul9x.ytsummary.di.NetworkModule
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.Request
-import org.json.JSONObject
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import com.chaquo.python.Python
 
 /**
@@ -97,9 +99,14 @@ object PythonUpdateChecker {
         NetworkModule.okHttpClient.newCall(request).execute().use { response ->
             if (response.isSuccessful) {
                 val body = response.body?.string() ?: return null
-                return JSONObject(body)
-                    .getJSONObject("info")
-                    .getString("version")
+                return try {
+                    Json.parseToJsonElement(body)
+                        .jsonObject["info"]
+                        ?.jsonObject?.get("version")
+                        ?.jsonPrimitive?.content
+                } catch (e: Exception) {
+                    null
+                }
             }
         }
         return null
