@@ -1,19 +1,23 @@
 {
-  "updated_at": "2026-03-24T10:15:30Z",
+  "updated_at": "2026-03-24T12:30:00Z",
   "working_on": {
-    "feature": "Performance Optimization",
-    "task": "Implementing Backend Caching & Android Loop Optimization",
-    "status": "coding",
-    "files": ["backend/main.py", "GeminiApiClient.kt", "backend/requirements.txt"]
+    "feature": "Post-Deployment & Maintenance",
+    "task": "Final URL Sync & Cleanup",
+    "status": "finished",
+    "files": ["app/src/main/java/com/skul9x/ytsummary/utils/Constants.kt", "app/src/main/java/com/skul9x/ytsummary/di/NetworkModule.kt"]
   },
   "pending_tasks": [
     { "task": "Fix Redundant Prompt Building in Android", "priority": "high" },
     { "task": "Implement run_in_threadpool for Backend", "priority": "medium" },
-    { "task": "Deploy backend to Railway", "priority": "high" },
-    { "task": "Build Production APK", "priority": "medium" }
+    { "task": "Build Final Production APK", "priority": "medium" },
+    { "task": "Optimize Prompt AI for Gemini 1.5 Flash", "priority": "low" }
+  ],
+  "recent_changes": [
+    { "timestamp": "2026-03-24", "type": "deployment", "description": "Deployed backend to Railway.app", "files": ["backend/*"] },
+    { "timestamp": "2026-03-24", "type": "config", "description": "Updated Android App to call Production Railway URL via Constants.kt", "files": ["Constants.kt", "NetworkModule.kt"] }
   ],
   "decisions_made": [
-    { "decision": "Use cachetools (TTLCache)", "reason": "Save bandwidth and reduce latency on backend" },
-    { "decision": "Strict Model List", "reason": "Removing 2.5/3 models to avoid unnecessary auth/404 failures" }
+    { "decision": "Dockerized Backend", "reason": "Ensure consistent environment on Railway" },
+    { "decision": "Centralized Constants", "reason": "Better URL management in Android app" }
   ]
 }

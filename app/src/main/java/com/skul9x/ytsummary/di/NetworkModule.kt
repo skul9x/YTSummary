@@ -2,6 +2,7 @@ package com.skul9x.ytsummary.di
 
 import com.skul9x.ytsummary.BuildConfig
 import com.skul9x.ytsummary.api.YouTubeApiClient
+import com.skul9x.ytsummary.utils.Constants
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -32,7 +33,7 @@ object NetworkModule {
 
     private val retrofit: Retrofit by lazy {
         Retrofit.Builder()
-            .baseUrl(BuildConfig.BASE_URL)
+            .baseUrl(Constants.BASE_URL)
             .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create())
             .build()

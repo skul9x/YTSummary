@@ -21,3 +21,5 @@ Status: READY FOR PHASE 05 (DEPLOYMENT).
 [10:15] AUDIT: Identified 2 Critical performance gaps (Caching & Invalid Models).
 [10:15] DONE task: Added cachetools to backend/requirements.txt
 [10:15] UPDATED: docs/reports/audit_20260324.md with Performance findings.
+[12:30] DONE task: Connect Android App to Railway Production URL via Constants.kt
+[12:35] SESSION END: Project fully pointing to production. READY FOR APK BUILD.

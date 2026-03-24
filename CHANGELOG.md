@@ -1,5 +1,18 @@
 # Changelog - YouTube AI Summarizer (YTSummary)
 
+## [2026-03-24] - Post-Deployment (Final URL) ✅
+### Added
+- **Constants.kt**: Created `app/src/main/java/com/skul9x/ytsummary/utils/Constants.kt` for centralized URL management.
+- **Production URL Sync**: Updated Android `NetworkModule` to call Railway Production URL (`https://ytsummary-production.up.railway.app/`).
+
+## [2026-03-24] - Production Deployment ✅
+### Added
+- **Railway Deployment**: Successfully deployed FastAPI backend to Railway.app.
+- **Production URL**: https://ytsummary-production.up.railway.app
+- **Dockerized Backend**: Fixed port binding ($PORT) and local library path for cloud building.
+- **CORS Hardening**: Added environment-based CORS configuration.
+- **Root Directory Config**: Configured `/backend` as the build root in Railway.
+
 ## [2026-03-24] - Phase 04 Finished ✅
 ### Added
 - **Audio Volume Control**: App Startup now automatically sets Music volume to 80% using Android `AudioManager`.
