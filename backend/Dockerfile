@@ -4,6 +4,8 @@ FROM python:3.12-slim
 # Thiết lập thư mục làm việc
 WORKDIR /app
 
+ENV PYTHONUNBUFFERED=1
+
 # Copy các file cần thiết
 COPY requirements.txt .
 COPY main.py .
@@ -17,6 +19,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Port Railway sẽ tự động cung cấp biến môi trường $PORT
 # Chúng ta không cần EXPOSE nữa, Railway sẽ tự quản lý
 # ENV PORT=8000 - Bạn có thể set default nếu chạy local
+EXPOSE 8080
 
-# Lệnh chạy server: Chạy trực tiếp qua script để hỗ trợ port động tốt hơn
-CMD ["python", "main.py"]
+# Lệnh chạy server: dùng uvicorn trực tiếp để tương thích tốt hơn với container runtime
+CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port ${PORT:-8080}"]
