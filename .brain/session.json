@@ -1,0 +1,19 @@
+{
+  "updated_at": "2026-03-24T10:15:30Z",
+  "working_on": {
+    "feature": "Performance Optimization",
+    "task": "Implementing Backend Caching & Android Loop Optimization",
+    "status": "coding",
+    "files": ["backend/main.py", "GeminiApiClient.kt", "backend/requirements.txt"]
+  },
+  "pending_tasks": [
+    { "task": "Fix Redundant Prompt Building in Android", "priority": "high" },
+    { "task": "Implement run_in_threadpool for Backend", "priority": "medium" },
+    { "task": "Deploy backend to Railway", "priority": "high" },
+    { "task": "Build Production APK", "priority": "medium" }
+  ],
+  "decisions_made": [
+    { "decision": "Use cachetools (TTLCache)", "reason": "Save bandwidth and reduce latency on backend" },
+    { "decision": "Strict Model List", "reason": "Removing 2.5/3 models to avoid unnecessary auth/404 failures" }
+  ]
+}

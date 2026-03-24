@@ -1,0 +1,260 @@
+package com.skul9x.ytsummary.ui
+
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.skul9x.ytsummary.manager.TtsManager
+import com.skul9x.ytsummary.model.AiResult
+import com.skul9x.ytsummary.repository.SummarizationRepository
+import com.skul9x.ytsummary.ui.components.GlassCard
+import com.skul9x.ytsummary.ui.components.NeonGlassCard
+import com.skul9x.ytsummary.ui.theme.*
+import kotlinx.coroutines.launch
+
+class MainActivity : ComponentActivity() {
+    private lateinit var ttsManager: TtsManager
+    private lateinit var repository: SummarizationRepository
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        
+        // Task 4.1: Initialize TTS and Set Volume to 80% on startup
+        ttsManager = TtsManager(this) {
+            ttsManager.setVolume(80) 
+        }
+        repository = SummarizationRepository(this)
+
+        setContent {
+            YTSummaryTheme {
+                var currentScreen by remember { mutableStateOf("main") }
+                var summaryResult by remember { mutableStateOf<AiResult?>(null) }
+                var videoTitle by remember { mutableStateOf("Summarizing...") }
+                var thumbnailUrl by remember { mutableStateOf("") }
+                var isTtsPlaying by remember { mutableStateOf(false) }
+                
+                val scope = rememberCoroutineScope()
+
+                when (currentScreen) {
+                    "main" -> MainScreen(
+                        onSettingsClick = { currentScreen = "settings" },
+                        onSummaryRequest = { url ->
+                            val videoId = extractVideoId(url)
+                            if (videoId != null) {
+                                videoTitle = "Fetching info..."
+                                currentScreen = "loading"
+                                scope.launch {
+                                    // Step 1: Fetch Metadata
+                                    repository.getVideoMetadata(videoId).collect { metadata ->
+                                        if (metadata != null) {
+                                            videoTitle = metadata.title
+                                            thumbnailUrl = metadata.thumbnailUrl
+                                        }
+                                    }
+                                    
+                                    // Step 2: Fetch Summary (passing metadata for saving to DB)
+                                    repository.getSummary(videoId, videoTitle, thumbnailUrl).collect { result ->
+                                        summaryResult = result
+                                        currentScreen = "summary"
+                                    }
+                                }
+                            }
+                        },
+                        onHistoryClick = { currentScreen = "history" }
+                    )
+                    "history" -> HistoryScreen(
+                        repository = repository,
+                        onBack = { currentScreen = "main" },
+                        onItemClick = { item ->
+                            videoTitle = item.title
+                            thumbnailUrl = item.thumbnailUrl
+                            summaryResult = AiResult.Success(item.summaryText, "Local / History")
+                            currentScreen = "summary"
+                        }
+                    )
+                    "settings" -> SettingsScreen(onBack = { currentScreen = "main" })
+                    "loading" -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { 
+                        CircularProgressIndicator(color = YouTubeRed) 
+                    }
+                    "summary" -> {
+                        summaryResult?.let { result ->
+                            when (result) {
+                                is AiResult.Success -> SummaryScreen(
+                                    videoTitle = videoTitle,
+                                    thumbnailUrl = thumbnailUrl,
+                                    summaryText = result.text,
+                                    isPlaying = isTtsPlaying,
+                                    onBack = { 
+                                        ttsManager.stop()
+                                        isTtsPlaying = false
+                                        currentScreen = "main" 
+                                    },
+                                    onTTSClick = {
+                                        if (isTtsPlaying) {
+                                            ttsManager.stop()
+                                            isTtsPlaying = false
+                                        } else {
+                                            ttsManager.speak(result.text)
+                                            isTtsPlaying = true
+                                        }
+                                    }
+                                )
+                                is AiResult.Error -> {
+                                    // Handle Error screen or dialog
+                                    Text("Error: ${result.message}\nBấm quay lại để thử lại.")
+                                    // ...
+                                }
+                                else -> Text("Checking status...")
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        ttsManager.shutdown()
+    }
+
+    private fun extractVideoId(url: String): String? {
+        val pattern = "^(?:https?:\\/\\/)?(?:www\\.|m\\.)?(?:youtube\\.com\\/(?:(?:v|e(?:mbed)?)\\/|.*[?&]v=)|youtu\\.be\\/)([a-zA-Z0-9_-]{11})"
+        return Regex(pattern).find(url)?.groupValues?.get(1)
+    }
+}
+
+@Composable
+fun MainScreen(
+    onSettingsClick: () -> Unit,
+    onHistoryClick: () -> Unit,
+    onSummaryRequest: (String) -> Unit
+) {
+    var youtubeLink by remember { mutableStateOf("") }
+    
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(DarkBackground, Color(0xFF1A1A2E), DarkBackground)
+                )
+            )
+    ) {
+        // Bokeh/Ambient Glows
+        Box(
+            modifier = Modifier
+                .size(300.dp)
+                .offset(y = (-50).dp, x = (-50).dp)
+                .background(YouTubeRed.copy(alpha = 0.1f), CircleShape)
+        )
+        
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // Header
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "YT Summary AI",
+                    style = MaterialTheme.typography.displayLarge.copy(
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Black
+                    ),
+                    color = YouTubeRed
+                )
+                
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(
+                        onClick = onHistoryClick,
+                        modifier = Modifier.background(GlassWhite.copy(alpha = 0.1f), CircleShape)
+                    ) {
+                        Icon(imageVector = Icons.Default.History, contentDescription = "History", tint = TextPrimary)
+                    }
+                    
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    IconButton(
+                        onClick = onSettingsClick,
+                        modifier = Modifier.background(GlassWhite.copy(alpha = 0.1f), CircleShape)
+                    ) {
+                        Icon(imageVector = Icons.Default.Settings, contentDescription = "Settings", tint = TextPrimary)
+                    }
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(60.dp))
+            
+            // Hero
+            Text(text = "Summarize fast.", style = MaterialTheme.typography.displayLarge.copy(lineHeight = 40.sp), color = TextPrimary)
+            Text(text = "Understand more.", style = MaterialTheme.typography.displayLarge.copy(lineHeight = 40.sp), color = TextSecondary)
+            
+            Spacer(modifier = Modifier.height(40.dp))
+            
+            // Input Card
+            NeonGlassCard(modifier = Modifier.fillMaxWidth(), glowColor = YouTubeRed) {
+                Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    BasicTextField(
+                        value = youtubeLink,
+                        onValueChange = { youtubeLink = it },
+                        modifier = Modifier.weight(1f).padding(8.dp),
+                        textStyle = MaterialTheme.typography.bodyLarge.copy(color = TextPrimary),
+                        decorationBox = { innerTextField ->
+                            if (youtubeLink.isEmpty()) {
+                                Text("Paste video link...", style = MaterialTheme.typography.bodyLarge, color = TextSecondary.copy(alpha = 0.5f))
+                            }
+                            innerTextField()
+                        }
+                    )
+                    
+                    IconButton(
+                        onClick = { if (youtubeLink.isNotBlank()) onSummaryRequest(youtubeLink) },
+                        modifier = Modifier.background(YouTubeRed, CircleShape).size(40.dp)
+                    ) {
+                        Icon(imageVector = Icons.Default.PlayArrow, contentDescription = "Go", tint = Color.White)
+                    }
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(24.dp))
+            
+            // Info Cards
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                GlassCard(modifier = Modifier.weight(1f)) {
+                    Column {
+                        Text("32", color = YouTubeRed, fontWeight = FontWeight.Bold)
+                        Text("Summaries", style = MaterialTheme.typography.labelMedium, fontSize = 10.sp)
+                    }
+                }
+                GlassCard(modifier = Modifier.weight(1f)) {
+                    Column {
+                        Text("Active", color = Color.Green, fontWeight = FontWeight.Bold)
+                        Text("Rotation", style = MaterialTheme.typography.labelMedium, fontSize = 10.sp)
+                    }
+                }
+            }
+        }
+    }
+}

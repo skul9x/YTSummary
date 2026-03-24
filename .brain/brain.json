@@ -1,0 +1,45 @@
+{
+  "meta": {
+    "schema_version": "1.1.0",
+    "awf_version": "3.3.0",
+    "last_audit": "2026-03-24"
+  },
+  "project": {
+    "name": "YTSummary",
+    "type": "AI Summarizer (Android/Python)",
+    "status": "security_hardened_performance_pending"
+  },
+  "tech_stack": {
+    "frontend": {
+      "language": "Kotlin",
+      "framework": "Jetpack Compose",
+      "database": "Room + SQLCipher (Encrypted)",
+      "network": "OkHttp + Retrofit"
+    },
+    "backend": {
+      "language": "Python",
+      "framework": "FastAPI",
+      "libraries": ["youtube_transcript_api", "slowapi (Rate Limit)", "httpx", "cachetools"]
+    }
+  },
+  "security_rules": [
+    "Gemini API Keys must be sent via Headers, NEVER URLs",
+    "Database must be encrypted with SQLCipher",
+    "Backend must have rate limiting (10 req/min)",
+    "Backend CORS must be restricted to trusted origins",
+    "Error messages must be sanitized for production"
+  ],
+  "knowledge_items": {
+    "patterns": [
+      "Key Rotation Strategy for Gemini API",
+      "Encrypted Room Database with SupportFactory",
+      "In-memory Caching for YouTube Transcripts"
+    ],
+    "gotchas": [
+      "Wait for network sync when using multi-process terminal commands",
+      "Railway credits: Bandwidth is expensive, cleaning transcripts on server saves money",
+      "Avoid non-existent models (Gemini 2.5/3) in rotation loops to reduce latency",
+      "Move prompt building outside of API rotation loops to save CPU"
+    ]
+  }
+}
