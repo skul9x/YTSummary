@@ -1,21 +1,40 @@
 {
-  "updated_at": "2026-03-24T18:55:00Z",
+  "updated_at": "2026-03-24T19:26:00Z",
   "working_on": {
-    "feature": "Performance Issues Resolution",
-    "task": "Fixed W2 and W3 (ModelQuota Caching & Legacy Code Cleanup)",
+    "feature": "Code Quality & Security Audit Fixes",
+    "task": "Fixed HIGH and MEDIUM priority issues from bugs_reports.md",
     "status": "completed",
     "files": [
-      "app/src/main/java/com/skul9x/ytsummary/manager/ModelQuotaManager.kt",
-      "app/src/main/java/com/skul9x/ytsummary/di/NetworkModule.kt",
-      "app/build.gradle.kts"
+      "app/src/main/java/com/skul9x/ytsummary/api/gemini/GeminiResponseHelper.kt",
+      "app/src/main/java/com/skul9x/ytsummary/api/gemini/GeminiPrompts.kt",
+      "app/src/main/java/com/skul9x/ytsummary/manager/TtsManager.kt"
     ]
   },
   "pending_tasks": [
-    { "task": "W1: Remove non-existent models from GeminiApiClient lists", "priority": "medium" },
-    { "task": "W4: Remove redundant setVolume call in TtsManager.speak", "priority": "low" },
-    { "task": "Optimize Prompt AI for Gemini 2.5 Flash thinking capability", "priority": "medium" }
+    { "task": "🟢 LOW: Add usesCleartextTraffic=false to AndroidManifest", "priority": "low" },
+    { "task": "🟢 LOW: Remove hardcoded '32 Summaries' in MainActivity", "priority": "low" },
+    { "task": "🟢 LOW: Add Strict VideoID Regex validation before passing to Python", "priority": "low" }
   ],
   "recent_changes": [
+    {
+      "timestamp": "2026-03-24T19:26:00Z",
+      "type": "fix",
+      "description": "Fixed 2 HIGH priority security bugs (Safety Filters & Prompt Injection) and 2 MEDIUM priority performance/UX bugs (Regex hoisting & Removed forced volume). Verified compilation success.",
+      "files": [
+        "app/src/main/java/com/skul9x/ytsummary/api/gemini/GeminiResponseHelper.kt",
+        "app/src/main/java/com/skul9x/ytsummary/api/gemini/GeminiPrompts.kt",
+        "app/src/main/java/com/skul9x/ytsummary/manager/TtsManager.kt",
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "timestamp": "2026-03-24T19:15:00Z",
+      "type": "audit",
+      "description": "Fact-checked bugs.txt (Performance) and secu_bugs.txt (Security) against actual source code. Found 50% of issues were already fixed. Discovered a new Critical Vulnerability (Safety Settings deactivated). Generated consolidated bugs_reports.md with actionable items.",
+      "files": [
+        "bugs_reports.md"
+      ]
+    },
     {
       "timestamp": "2026-03-24T18:38:00Z",
       "type": "fix",
@@ -58,9 +77,9 @@
     }
   ],
   "decisions_made": [
+    { "decision": "Fact-check Old Audits", "reason": "Many old performance/security issues were already fixed in previous sessions. Re-evaluating saved time and highlighted real priorities." },
     { "decision": "Parallel API Calls UI Binding", "reason": "Wait for metadata via async before fetching summary to update UI instantly and guarantee history data consistency." },
     { "decision": "Remove Legacy Cloud Backend", "reason": "Standalone logic via local IP is now fully verified and bypasses YouTube blocks." },
-    { "decision": "Adopt Gemini 2.5 Flash", "reason": "Superior thinking/reasoning capability for video summarization." },
     { "decision": "Remove Retrofit & Legacy API Files", "reason": "Gemini API uses OkHttp directly, Retrofit and its converters were bloating the APK unused." }
   ]
 }

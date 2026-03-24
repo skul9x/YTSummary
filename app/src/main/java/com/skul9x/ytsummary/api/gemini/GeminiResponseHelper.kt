@@ -34,7 +34,7 @@ object GeminiResponseHelper {
                 ).forEach { category ->
                     addJsonObject {
                         put("category", category)
-                        put("threshold", "BLOCK_NONE")
+                        put("threshold", "BLOCK_ONLY_HIGH")
                     }
                 }
             }

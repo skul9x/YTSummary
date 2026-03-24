@@ -56,16 +56,23 @@ class TtsManager(private val context: Context, private val onInitSuccess: () -> 
         }
     }
 
+    companion object {
+        private val REGEX_MARKDOWN_SYMBOLS = Regex("[#*`~>_-]")
+        private val REGEX_LINKS = Regex("\\[(.*?)\\]\\(.*?\\)")
+        private val REGEX_NUMBERED_LISTS = Regex("\\d+\\.\\s+")
+        private val REGEX_WHITESPACE = Regex("\\s+")
+    }
+
     /**
      * Strips Markdown characters to prevent TTS from reading raw symbols.
      * E.g., "**Important**" -> "Important"
      */
     fun cleanMarkdown(text: String): String {
         return text
-            .replace(Regex("[#*`~>_-]"), " ") // Remove basic Markdown symbols
-            .replace(Regex("\\[(.*?)\\]\\(.*?\\)"), "$1") // Simplify links: [Text](URL) -> Text
-            .replace(Regex("\\d+\\.\\s+"), "") // Remove numbered list prefixes
-            .replace(Regex("\\s+"), " ") // Clean up whitespace
+            .replace(REGEX_MARKDOWN_SYMBOLS, " ") // Remove basic Markdown symbols
+            .replace(REGEX_LINKS, "$1") // Simplify links: [Text](URL) -> Text
+            .replace(REGEX_NUMBERED_LISTS, "") // Remove numbered list prefixes
+            .replace(REGEX_WHITESPACE, " ") // Clean up whitespace
             .trim()
     }
 
@@ -77,8 +84,6 @@ class TtsManager(private val context: Context, private val onInitSuccess: () -> 
         
         val cleanedText = cleanMarkdown(text)
         if (cleanedText.isEmpty()) return
-
-        setVolume(80) 
         
         // Use QUEUE_FLUSH to interrupt any ongoing speech
         tts?.speak(cleanedText, TextToSpeech.QUEUE_FLUSH, null, "SummaryTTS_ID")

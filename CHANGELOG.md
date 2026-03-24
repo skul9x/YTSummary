@@ -1,5 +1,12 @@
 # Changelog - YouTube AI Summarizer (YTSummary)
 
+## [2026-03-24] - Security & Performance Fixes 🛡️⚡
+### Fixed
+- **Deep Security Filters**: Enforced `BLOCK_ONLY_HIGH` safety settings for Gemini API rather than overriding completely to prevent malicious link generation or Hate Speech.
+- **Prompt Injection Defense**: Guarded summary prompt using explicit XML `<transcript>` boundaries and strict "ignore outer instructions" rule to fend off Indirect Prompt Injections.
+- **Regex Memory Leak in TTS**: Hoisted Markdown stripping `Regex` instances to `companion object` to mitigate constant re-instantiations and heavy GC pauses during Android TTS.
+- **Forced Audio Bug**: Removed intrusive system `setVolume(80)` call from `TtsManager` to honor the device's original user volume state.
+
 ## [2026-03-24] - Standalone Final & Cleanup 🧹✅
 ### Added
 - **Gemini 2.5 Flash Integration**: Verified support for `models/gemini-2.5-flash` with thinking-enabled summarization.
