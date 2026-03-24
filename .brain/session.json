@@ -1,51 +1,50 @@
-  "updated_at": "2026-03-25T01:15:00Z",
+{
+  "updated_at": "2026-03-25T01:35:00Z",
   "working_on": {
-    "feature": "TTS Intelligence & Smart Bookmarking",
-    "task": "Fix TTS reading from middle of text during Share Intent",
+    "feature": "Security Hardening & Maintenance",
+    "task": "Finalize v4.2.0 stabilization",
     "status": "DONE",
     "files": [
+      "AndroidManifest.xml",
       "SummaryViewModel.kt",
-      "MainActivity.kt"
+      "PythonUpdateChecker.kt",
+      "PythonUpdateCheckerTest.kt"
     ]
   },
   "pending_tasks": [
-    { "task": "🟢 LOW: Fix final flaky assertion in PythonUpdateCheckerTest (Singleton conflict)", "priority": "low" },
-    { "task": "🟢 LOW: Add usesCleartextTraffic=false to AndroidManifest", "priority": "low" },
-    { "task": "🟢 LOW: Add Strict VideoID Regex validation before passing to backend", "priority": "low" },
+    { "task": "🟢 LOW: Fix final flaky assertion in PythonUpdateCheckerTest (Singleton conflict) - Partially resolved by fixing JSON mock issues", "priority": "low" },
     { "task": "Future: Migrate off Chaquopy to drop 2.5s overhead", "priority": "medium" }
   ],
   "recent_changes": [
     {
-      "timestamp": "2026-03-25T01:15:00Z",
-      "type": "bugfix",
-      "description": "Fixed TTS skipping initial sentences during streaming due to StateFlow conflation. Switched to single-trigger auto-read once full text is ready.",
+      "timestamp": "2026-03-25T01:30:00Z",
+      "type": "security",
+      "description": "Implemented Network Security hardening (cleartext traffic disabled) and strict input validation via Regex.",
       "files": [
-        "com.skul9x.ytsummary.ui.SummaryViewModel",
-        "com.skul9x.ytsummary.ui.MainActivity"
+        "AndroidManifest.xml",
+        "SummaryViewModel.kt"
       ]
     },
     {
-      "timestamp": "2026-03-25T00:50:00Z",
+      "timestamp": "2026-03-25T01:22:00Z",
       "type": "bugfix",
-      "description": "Fixed TTS Resume logic where it would restart from the beginning. Implemented totalSpokenLength tracking in TtsManager to allow absolute position resumption.",
+      "description": "Stabilized PythonUpdateCheckerTest by migrating from org.json to kotlinx.serialization for JVM compatibility.",
       "files": [
-        "com.skul9x.ytsummary.manager.TtsManager",
-        "com.skul9x.ytsummary.ui.MainActivity",
-        "com.skul9x.ytsummary.ui.SummaryViewModel"
+        "PythonUpdateChecker.kt",
+        "PythonUpdateCheckerTest.kt"
       ]
     }
   ],
   "errors_encountered": [
     {
-      "error": "TTS starts reading from the middle/end of text during Share Intent",
-      "solution": "Identified StateFlow conflation as the root cause. Removed chunked emission; implemented a single post-streaming Full-Text speak command.",
+      "error": "Method getJSONObject in org.json.JSONObject not mocked (JVM Test error)",
+      "solution": "Replaced Android-bounded org.json with pure Kotlin kotlinx.serialization library.",
       "resolved": true,
-      "file": "SummaryViewModel.kt"
+      "file": "PythonUpdateCheckerTest.kt"
     }
   ],
   "decisions_made": [
-    { "decision": "Abandon real-time TTS chunking during SSE", "reason": "StateFlow is not a queue; rapid chunks overwrite each other leading to skipped text." },
-    { "decision": "Single Full-Text Trigger via autoReadPending flag", "reason": "Ensures the entire text is available and provided to TTS engine in one go for continuous speech." }
+    { "decision": "Enforce HTTPS globally", "reason": "Prevent API Key leakage over insecure Wi-Fi channels." },
+    { "decision": "Strict VideoID Filtering at ViewModel level", "reason": "Reduce unnecessary Python/AI triggers for garbage input, improving UX and resource consumption." }
   ]
 }
-```

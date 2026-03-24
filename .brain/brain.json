@@ -1,7 +1,7 @@
 {
   "meta": {
     "schema_version": "1.1.0",
-    "awf_version": "4.1.0",
+    "awf_version": "4.2.0",
     "last_audit": "2026-03-25"
   },
   "project": {
@@ -23,9 +23,10 @@
       "libs": ["youtube-transcript-api", "requests", "urllib", "defusedxml"],
       "status": "ACTIVE"
     },
-    "legacy": {
-      "backend": "FastAPI on Railway.app",
-      "status": "REMOVED (Migrated to Standalone)"
+    "security": {
+      "cleartext": "DISABLED (usesCleartextTraffic=false)",
+      "encryption": "SQLCipher (DB) + EncryptedSharedPreferences (Keys)",
+      "validation": "Strict Regex for VideoID & API Keys"
     }
   },
   "api_endpoints": [
@@ -42,7 +43,8 @@
     "Database must be encrypted with SQLCipher",
     "Production error messages sanitized",
     "Main thread strictly protected from Python JNI/IO using Coroutine Dispatchers",
-    "Coroutine ensureActive() after Python calls to prevent stale processing"
+    "Coroutine ensureActive() after Python calls to prevent stale processing",
+    "Cleartext traffic (HTTP) is disabled globally in Manifest"
   ],
   "features": [
     "Tích hợp Share Intent (Chia sẻ YouTube sang YTSummary 1-click & Auto-TTS)",
@@ -55,7 +57,9 @@
     "Hệ thống AudioFocus Ducking (Hồi âm lượng nhạc khi AI đọc)",
     "Tối ưu hóa khởi động Python (Warm-up background khởi chạy sớm)",
     "Quản lý trạng thái bằng ViewModel (Giữ tiến trình tóm tắt khi xoay màn hình)",
-    "TTS Pause/Resume thông minh (Ghi nhớ vị trí đọc qua Bookmark Index)"
+    "TTS Pause/Resume thông minh (Ghi nhớ vị trí đọc qua Bookmark Index)",
+    "Cảnh báo hạ cấp bảo mật (Phát hiện và chặn kết nối HTTP không an toàn)",
+    "Validation Input nghiêm ngặt (Lọc rác URL youtube ngay ở ViewModel)"
   ],
   "knowledge_items": {
     "patterns": [
@@ -77,7 +81,8 @@
       "StringBuilder for SSE Streaming Buffering (O(N2) minimization)",
       "Coroutine Guard: currentCoroutineContext().ensureActive() after JNI/Blocking calls",
       "Multi-layered TTS Bookmarking (Manager -> ViewModel -> UI persistency)",
-      "Absolute Character-Based TTS Tracking (totalSpokenLength + relativeIndex)"
+      "Absolute Character-Based TTS Tracking (totalSpokenLength + relativeIndex)",
+      "Cross-platform Serialization with kotlinx.serialization for JVM/Android compatibility"
     ],
     "gotchas": [
       "Activity Destruction & Re-creation: State managed via remember { } is lost; must use ViewModel for persistence.",
@@ -94,7 +99,8 @@
       "Android setStreamVolume(80): Phương pháp xâm lấn, nên ưu tiên AudioFocus để hòa hợp với volume hệ thống.",
       "MockK vs OkHttp 4.12+: Mocking 'any<Request>()' trực tiếp có thể gây RuntimeException, nên ưu tiên dùng MockWebServer.",
       "TTS isSpeaking Race Condition: Khi dùng QUEUE_ADD, 'tts.isSpeaking' có thể trả về false giữa hai utterance do khoảng nghỉ hệ thống. Giải pháp: Dùng bộ đếm AtomicInteger để quản lý số lượng chunk thực tế trong hàng đợi.",
-      "TTS Pause vs Stop: `stop()` trong TTS API xoá sạch hàng đợi và status. Để Resume, phải tự lưu `totalSpokenLength` của các chunk đã xong và cộng với `currentIndex` của chunk hiện tại trước khi gọi `stop()`."
+      "TTS Pause vs Stop: `stop()` trong TTS API xoá sạch hàng đợi và status. Để Resume, phải tự lưu `totalSpokenLength` của các chunk đã xong và cộng với `currentIndex` của chunk hiện tại trước khi gọi `stop()`.",
+      "Unit Testing JSON: `org.json.JSONObject` là thư viện của bộ Android SDK, sẽ bị throw 'Method not mocked' khi chạy Local JVM Test. Phải dùng `kotlinx.serialization` để thay thế nếu muốn test chạy ổn định không cần emulator."
     ]
   }
 }

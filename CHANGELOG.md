@@ -1,5 +1,14 @@
 # Changelog - YouTube AI Summarizer (YTSummary)
 
+## [2026-03-25] - Security Hardening & Stable Testing 🛡️🧪
+### Fixed
+- **Flaky Unit Test (PythonUpdateCheckerTest)**: Replaced `org.json` with `kotlinx.serialization` to eliminate "Method not mocked" errors during local JVM tests. Tests are now 100% stable.
+- **Strict VideoID Validation**: Implemented a robust Regex check in `SummaryViewModel` to catch invalid YouTube URLs before triggering the pipeline. Added user feedback for invalid inputs.
+
+### Changed
+- **Network Security Policy**: Enforced `android:usesCleartextTraffic="false"` in `AndroidManifest.xml` to mandate HTTPS for all network operations (Critical protection for API Keys).
+- **README.md (Vietnamese)**: Fully localized and updated the main documentation to reflect v4.1.0 capabilities and 2026 copyright.
+
 ## [2026-03-25] - TTS Intelligence & Smart Bookmarking 🎙️📖
 ### Added
 - **Tóm tắt siêu tốc (No Thinking)**: Đã cấu hình vô hiệu hóa chế độ Thinking trên tất cả các model (Gemini 2.0/2.5 Flash) để đạt tốc độ phản hồi nhanh nhất cho người dùng.

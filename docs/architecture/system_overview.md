@@ -23,6 +23,9 @@ Dự án đã được chuyển đổi hoàn toàn từ kiến trúc **Client-Se
    - Database: **Room** + **SQLCipher** (Mã hóa toàn bộ file `.db`).
    - Cache-First Strategy: Check DB trước khi gọi Python/AI.
 6. **Repository Pattern** kết nối Local Storage và Remote APIs.
+7. **Security Policy**:
+   - `usesCleartextTraffic=false` enforces encrypted-only communication.
+   - Strict Input Regex validates VideoID/URL before triggering processes.
 
 ## 🚀 Key Differences (Pre-Migration vs Post-Migration)
 - Không còn REST API gọi qua Railway server.
@@ -35,6 +38,8 @@ Dự án đã được chuyển đổi hoàn toàn từ kiến trúc **Client-Se
 | UI | Jetpack Compose, Material 3, Coil |
 | Concurrency | Kotlin Coroutines, Flow |
 | Local Scripting | Chaquopy 17.0, Python 3.12 |
-| Security | SQLCipher, AndroidX Security Crypto |
+| Security | SQLCipher, AndroidX Security Crypto, Network Security Config |
 | Network | OkHttp, Retrofit (deprecated use) |
 | AI | Gemini API (Generative Language API) |
+| Serialization | Kotlinx Serialization (Standard for tests & production) |
+| Validation | Regex Filter (Security & UX feedback) |
