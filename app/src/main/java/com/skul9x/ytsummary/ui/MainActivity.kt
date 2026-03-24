@@ -35,6 +35,7 @@ import kotlinx.coroutines.flow.firstOrNull
 
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.skul9x.ytsummary.ui.ScreenState
+import androidx.activity.compose.BackHandler
 
 class MainActivity : ComponentActivity() {
     private lateinit var ttsManager: TtsManager
@@ -54,7 +55,7 @@ class MainActivity : ComponentActivity() {
                 val screenState by viewModel.screenState.collectAsState()
                 val videoTitle by viewModel.videoTitle.collectAsState()
                 val thumbnailUrl by viewModel.thumbnailUrl.collectAsState()
-                var isTtsPlaying by remember { mutableStateOf(false) }
+                val isTtsPlaying by viewModel.isTtsPlaying.collectAsState()
 
                 // TTS Chunk Observer
                 val ttsChunk by viewModel.ttsChunks.collectAsState()
@@ -68,6 +69,18 @@ class MainActivity : ComponentActivity() {
                 val sharedUrl by incomingUrl.collectAsState()
                 val historyList by viewModel.getAllHistory().collectAsState(initial = emptyList())
                 val historyCount = historyList.size
+
+                // === FIX: Chặn swipe back gesture cho tất cả màn hình con ===
+                BackHandler(enabled = screenState !is ScreenState.Main) {
+                    // Nếu đang ở Summary và đang đọc TTS thì tắt trước
+                    if (screenState is ScreenState.Summary) {
+                        ttsManager.stop()
+                        viewModel.setTtsPlaying(false)
+                        viewModel.resetTtsPausedIndex()
+                    }
+                    // Quay về màn hình chính
+                    viewModel.navigateTo(ScreenState.Main)
+                }
 
                 LaunchedEffect(sharedUrl) {
                     sharedUrl?.let { url ->
@@ -108,17 +121,25 @@ class MainActivity : ComponentActivity() {
                                 isPlaying = isTtsPlaying,
                                 onBack = { 
                                     ttsManager.stop()
-                                    isTtsPlaying = false
+                                    viewModel.setTtsPlaying(false)
+                                    viewModel.resetTtsPausedIndex()
                                     viewModel.navigateTo(ScreenState.Main) 
                                 },
                                 onTTSClick = {
                                     if (isTtsPlaying) {
                                         ttsManager.stop()
-                                        isTtsPlaying = false
+                                        viewModel.updateTtsPausedIndex(ttsManager.currentIndex)
+                                        viewModel.setTtsPlaying(false)
                                     } else {
-                                        ttsManager.speak(result.text)
-                                        isTtsPlaying = true
+                                        ttsManager.speak(result.text, viewModel.getTtsPausedIndex())
+                                        viewModel.setTtsPlaying(true)
                                     }
+                                },
+                                onRestartClick = {
+                                    ttsManager.stop()
+                                    viewModel.resetTtsPausedIndex()
+                                    ttsManager.speak(result.text, 0)
+                                    viewModel.setTtsPlaying(true)
                                 }
                             )
                             is AiResult.Error -> {

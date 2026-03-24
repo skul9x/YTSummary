@@ -6,7 +6,7 @@ Dự án đã được chuyển đổi hoàn toàn từ kiến trúc **Client-Se
 
 1. **Frontend (UI Layer):** 
    - Kotlin + Jetpack Compose
-   - State management: `remember` + `LaunchedEffect` (Đang chờ refactor sang ViewModel)
+   - State management: `SummaryViewModel` (AndroidViewModel) + `StateFlow`
 2. **Core Logic (Transcript Fetching):**
    - **Chaquopy 17.0.0** nhúng trực tiếp Python 3.12 vào trong file APK.
    - Thư viện `youtube-transcript-api` chạy bằng local IP của thiết bị di động, bypass toàn bộ giới hạn của YouTube Data Center IPs (502 Gateway, IP Blocking).

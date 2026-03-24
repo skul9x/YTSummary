@@ -6,6 +6,7 @@ import android.media.AudioFocusRequest
 import android.media.AudioManager
 import android.os.Build
 import android.speech.tts.TextToSpeech
+import android.speech.tts.UtteranceProgressListener
 import android.util.Log
 import java.util.*
 
@@ -23,6 +24,9 @@ class TtsManager(private val context: Context, private val onInitSuccess: () -> 
     private val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
     private var focusRequest: AudioFocusRequest? = null
 
+    var currentIndex = 0
+        private set
+
     init {
         tts = TextToSpeech(context, this)
     }
@@ -37,6 +41,22 @@ class TtsManager(private val context: Context, private val onInitSuccess: () -> 
                 Log.w("TtsManager", "Vietnamese not supported, falling back to system default.")
                 tts?.language = Locale.getDefault()
             }
+            
+            tts?.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
+                override fun onStart(utteranceId: String?) {}
+
+                override fun onDone(utteranceId: String?) {
+                    currentIndex = 0
+                }
+
+                @Deprecated("Deprecated in Java", ReplaceWith("Unit"))
+                override fun onError(utteranceId: String?) {}
+
+                override fun onRangeStart(utteranceId: String?, start: Int, end: Int, frame: Int) {
+                    super.onRangeStart(utteranceId, start, end, frame)
+                    currentIndex = start
+                }
+            })
             
             isInitialized = true
             onInitSuccess()
@@ -99,7 +119,7 @@ class TtsManager(private val context: Context, private val onInitSuccess: () -> 
             .trim()
     }
 
-    fun speak(text: String) {
+    fun speak(text: String, fromIndex: Int = 0) {
         if (!isInitialized) {
             Log.w("TtsManager", "TTS not initialized yet")
             return
@@ -107,10 +127,11 @@ class TtsManager(private val context: Context, private val onInitSuccess: () -> 
         
         requestAudioFocus()
         val cleanedText = cleanMarkdown(text)
-        if (cleanedText.isEmpty()) return
+        if (cleanedText.isEmpty() || fromIndex >= cleanedText.length) return
         
+        val textToSpeak = if (fromIndex > 0) cleanedText.substring(fromIndex) else cleanedText
         // Use QUEUE_FLUSH to interrupt any ongoing speech
-        tts?.speak(cleanedText, TextToSpeech.QUEUE_FLUSH, null, "SummaryTTS_ID")
+        tts?.speak(textToSpeak, TextToSpeech.QUEUE_FLUSH, null, "SummaryTTS_ID")
     }
 
     /**

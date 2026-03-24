@@ -35,8 +35,15 @@ class SummaryViewModel(application: Application) : AndroidViewModel(application)
     val thumbnailUrl: StateFlow<String> = _thumbnailUrl.asStateFlow()
 
     // Các câu TTS sẵn sàng đọc (producer-consumer qua Flow)
+    // Các câu TTS sẵn sàng đọc (producer-consumer qua Flow)
     private val _ttsChunks = MutableStateFlow<String?>(null)
     val ttsChunks: StateFlow<String?> = _ttsChunks.asStateFlow()
+    
+    // TTS State
+    private val _isTtsPlaying = MutableStateFlow(false)
+    val isTtsPlaying: StateFlow<Boolean> = _isTtsPlaying.asStateFlow()
+
+    private var ttsPausedIndex = 0
 
     private var summaryJob: Job? = null
     private var lastReadIndex = 0
@@ -47,6 +54,8 @@ class SummaryViewModel(application: Application) : AndroidViewModel(application)
         // Cancel job cũ nếu đang chạy
         summaryJob?.cancel()
         lastReadIndex = 0
+        resetTtsPausedIndex()
+        setTtsPlaying(false)
         _screenState.value = ScreenState.Loading("📺 Đang lọc phụ đề...")
 
         summaryJob = viewModelScope.launch {
@@ -115,6 +124,20 @@ class SummaryViewModel(application: Application) : AndroidViewModel(application)
 
     fun clearTtsChunk() {
         _ttsChunks.value = null
+    }
+
+    fun setTtsPlaying(isPlaying: Boolean) {
+        _isTtsPlaying.value = isPlaying
+    }
+
+    fun getTtsPausedIndex(): Int = ttsPausedIndex
+
+    fun updateTtsPausedIndex(currentIndex: Int) {
+        ttsPausedIndex += currentIndex
+    }
+
+    fun resetTtsPausedIndex() {
+        ttsPausedIndex = 0
     }
 
     fun loadFromHistory(title: String, thumbnailUrl: String, summaryText: String) {

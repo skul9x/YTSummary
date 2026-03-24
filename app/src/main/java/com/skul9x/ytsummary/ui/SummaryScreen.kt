@@ -37,10 +37,9 @@ fun SummaryScreen(
     summaryText: String,
     onBack: () -> Unit,
     onTTSClick: () -> Unit,
+    onRestartClick: () -> Unit,
     isPlaying: Boolean = false
 ) {
-    androidx.activity.compose.BackHandler(onBack = onBack)
-
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -159,7 +158,7 @@ fun SummaryScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         IconButton(
-                            onClick = { /* Restart handled by Click */ },
+                            onClick = onRestartClick,
                             modifier = Modifier.background(GlassWhite.copy(alpha = 0.1f), CircleShape)
                         ) {
                             Icon(imageVector = Icons.Default.Refresh, contentDescription = "Restart", tint = TextPrimary)

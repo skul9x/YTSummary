@@ -1,5 +1,21 @@
 # Changelog - YouTube AI Summarizer (YTSummary)
 
+## [2026-03-25] - TTS Intelligence & Smart Bookmarking 🎙️📖
+### Added
+- **TTS Pause/Resume (Bookmark Mode)**: Implemented "smart bookmarking" for Text-to-Speech. The app now tracks the exact character index being read and allows users to Pause and Resume from the same word, rather than restarting.
+- **TtsManager Progress Tracking**: Integrated `UtteranceProgressListener.onRangeStart` to expose the current speech offset to the UI/ViewModel layer.
+- **Restart Capability**: Added a dedicated Restart button in `SummaryScreen` to allow quick re-reading from the beginning (index 0).
+
+### Changed
+- **MVVM State Management for TTS**: Migrated `isTtsPlaying` and `ttsPausedIndex` to `SummaryViewModel`. TTS progress now survives screen rotation and activity lifecycle events.
+- **Standardized Documentation**: Updated `dev.txt` with a comprehensive MVVM-compliant guide for implementing human-like TTS controls.
+
+## [2026-03-24] - Navigation & UX Polish (Fix Swipe Back) 📱🔙
+### Fixed
+- **Centralized BackHandler**: Implemented a global `BackHandler` in `MainActivity` to intercept the Android system "Swipe Back" gesture. This prevents the app from accidentally exiting when the user is on child screens (History, Settings, Summary).
+- **Redundant BackHandler Cleanup**: Removed local `BackHandler` calls from `SummaryScreen` to centralize logic and reduce code duplication.
+- **TTS Auto-Stop**: Added logic to automatically silence Text-to-Speech when navigating back from the Summary view via gesture.
+
 ## [2026-03-24] - Architecture Refactoring (Audit v4.2.0) 🏗️📱
 ### Added
 - **SummaryViewModel**: Implemented MVVM architecture. UI state and the summarization pipeline now live in a `ViewModel` (`AndroidViewModel`), ensuring progress survives device rotation and configuration changes. (Fix ISSUE_004)

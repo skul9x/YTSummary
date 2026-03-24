@@ -1,13 +1,14 @@
 {
-  "updated_at": "2026-03-24T23:33:00Z",
+  "updated_at": "2026-03-25T00:10:00Z",
   "working_on": {
-    "feature": "Architecture Refactoring",
-    "task": "Migrate state to ViewModel and Fix Coroutine Cancellation",
+    "feature": "TTS Intelligence & Smart Bookmarking",
+    "task": "Implement TTS Pause/Resume logic with Bookmark Index",
     "status": "DONE",
     "files": [
+      "TtsManager.kt",
       "SummaryViewModel.kt",
       "MainActivity.kt",
-      "SummarizationRepository.kt"
+      "SummaryScreen.kt"
     ]
   },
   "pending_tasks": [
@@ -17,6 +18,26 @@
     { "task": "Future: Migrate off Chaquopy to drop 2.5s overhead", "priority": "medium" }
   ],
   "recent_changes": [
+    {
+      "timestamp": "2026-03-25T00:10:00Z",
+      "type": "feature",
+      "description": "Implemented TTS Pause/Resume logic with Bookmark Index (UtteranceProgressListener) and ViewModel state persistence.",
+      "files": [
+        "com.skul9x.ytsummary.manager.TtsManager",
+        "com.skul9x.ytsummary.ui.SummaryViewModel",
+        "com.skul9x.ytsummary.ui.MainActivity",
+        "com.skul9x.ytsummary.ui.SummaryScreen"
+      ]
+    },
+    {
+      "timestamp": "2026-03-24T23:45:00Z",
+      "type": "ux",
+      "description": "Implemented centralized BackHandler in MainActivity to support Android System Back Gesture for all child screens.",
+      "files": [
+        "com.skul9x.ytsummary.ui.MainActivity",
+        "com.skul9x.ytsummary.ui.SummaryScreen"
+      ]
+    },
     {
       "timestamp": "2026-03-24T23:30:00Z",
       "type": "architectural",
@@ -59,6 +80,8 @@
   ],
   "decisions_made": [
     { "decision": "Use AndroidViewModel and viewModelScope", "reason": "Ensures the summarization pipeline survives Activity destruction during configuration changes (Fix ISSUE_004)." },
-    { "decision": "Add ensureActive() after Python call", "reason": "Chaquopy JNI calls are non-interruptible; this guard ensures processing stops as soon as control returns to Kotlin if the job was cancelled." }
+    { "decision": "Add ensureActive() after Python call", "reason": "Chaquopy JNI calls are non-interruptible; this guard ensures processing stops as soon as control returns to Kotlin if the job was cancelled." },
+    { "decision": "Centralized BackHandler in MainActivity", "reason": "Standard pattern for intercepting system back gestures in Single-Activity apps using manual state navigation." },
+    { "decision": "TTS Bookmark Index in ViewModel", "reason": "Allows resuming speech from the exact same word after pause or configuration change (Standardized MVVM pattern)." }
   ]
 }

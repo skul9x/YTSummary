@@ -2,7 +2,7 @@
   "meta": {
     "schema_version": "1.1.0",
     "awf_version": "4.1.0",
-    "last_audit": "2026-03-24"
+    "last_audit": "2026-03-25"
   },
   "project": {
     "name": "YTSummary",
@@ -53,12 +53,14 @@
     "Biểu tượng thích ứng (Adaptive Launcher Icon với Vector Drawable)",
     "Hệ thống AudioFocus Ducking (Hồi âm lượng nhạc khi AI đọc)",
     "Tối ưu hóa khởi động Python (Warm-up background khởi chạy sớm)",
-    "Quản lý trạng thái bằng ViewModel (Giữ tiến trình tóm tắt khi xoay màn hình)"
+    "Quản lý trạng thái bằng ViewModel (Giữ tiến trình tóm tắt khi xoay màn hình)",
+    "TTS Pause/Resume thông minh (Ghi nhớ vị trí đọc qua Bookmark Index)"
   ],
   "knowledge_items": {
     "patterns": [
       "MVVM Architecture with AndroidViewModel for persistence",
       "StateFlow for reactive UI updates in Jetpack Compose",
+      "Centralized BackHandler pattern for ScreenState-based navigation",
       "Key Rotation Strategy for Gemini API",
       "Encrypted Room Database with SupportFactory",
       "Standalone Local Python Architecture (Chaquopy integration)",
@@ -72,10 +74,12 @@
       "Android AudioFocus Management (Ducking best practice)",
       "Python Runtime Background Warm-up Strategy",
       "StringBuilder for SSE Streaming Buffering (O(N2) minimization)",
-      "Coroutine Guard: currentCoroutineContext().ensureActive() after JNI/Blocking calls"
+      "Coroutine Guard: currentCoroutineContext().ensureActive() after JNI/Blocking calls",
+      "Multi-layered TTS Bookmarking (Manager -> ViewModel -> UI persistency)"
     ],
     "gotchas": [
       "Activity Destruction & Re-creation: State managed via remember { } is lost; must use ViewModel for persistence.",
+      "System Back Gesture: Bypasses manual ScreenState variables unless intercepted by BackHandler(enabled=true).",
       "Chaquopy JNI Interruption: Coroutine cancellation does NOT stop Python threads; must manually check state after Python return.",
       "Share Intent Background Resumé: Must use launchMode=singleTop to prevent instantiating new processes.",
       "Railway 502/IP Blocking: Resolved by moving to Local IP via Chaquopy",
