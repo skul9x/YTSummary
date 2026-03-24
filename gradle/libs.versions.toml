@@ -28,6 +28,8 @@ lifecycle = "2.8.7"
 ksp = "2.0.21-1.0.27"
 # Serialization
 kotlinxSerializationJson = "1.7.3"
+chaquopy = "17.0.1" 
+
 
 # Firebase
 firebaseBom = "32.7.0"
@@ -119,3 +121,5 @@ compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 google-services = { id = "com.google.gms.google-services", version.ref = "googleServices" }
+chaquopy = { id = "com.chaquo.python", version.ref = "chaquopy" }
+

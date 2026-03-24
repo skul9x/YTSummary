@@ -1,9 +1,42 @@
 # Changelog - YouTube AI Summarizer (YTSummary)
 
+## [2026-03-24] - Standalone Final & Cleanup 🧹✅
+### Added
+- **Gemini 2.5 Flash Integration**: Verified support for `models/gemini-2.5-flash` with thinking-enabled summarization.
+- **Python Bridge Verified**: Full end-to-end flow from Kotlin to Local Python (Chaquopy) successfully tested with real YouTube URLs.
+
+### Removed
+- **Legacy Cloud Backend**: Deleted `backend/` directory, `Dockerfile`, and `main.py` - the app now runs entirely on-device for transcript fetching.
+
+### Changed
+- **Architecture**: Officially transitioned to "Standalone (Android + Local Python)" to eliminate 502 Bad Gateway and YouTube IP blocking issues.
+- **Transcript Helper**: Updated XML parsing logic for compatibility with `yt-transcript-api` master and local `defusedxml`.
+
+
+## [2026-03-24] - Standalone Architecture (Chaquopy Integration) 🚀
+### Added
+- **Chaquopy**: Integrated `com.chaquo.python` version 17.0.1 for local Python execution on Android.
+- **yt_transcript_helper.py**: Ported backend transcript fetching logic to local Python script. Support for `1.2.4+` usage (instance-based `fetch`).
+- **PythonManager.kt**: Implemented Kotlin-Python bridge (Singleton) for seamless integration with Android UI.
+- **Local Metadata**: Added `oEmbed` metadata fetching via `urllib.request` in Python.
+- **End-to-End Success**: Verified full flow (Transcript + Gemini) using a standalone test script on the developer machine.
+
+### Changed
+- **SummarizationRepository**: Refactored to use `PythonManager` locally instead of calling the Railway FastAPI backend.
+- **Build System**: Updated `gradle/libs.versions.toml`, `build.gradle.kts`, and `settings.gradle.kts` to support external Python dependencies.
+
 ## [2026-03-24] - Post-Deployment (Final URL) ✅
 ### Added
 - **Constants.kt**: Created `app/src/main/java/com/skul9x/ytsummary/utils/Constants.kt` for centralized URL management.
 - **Production URL Sync**: Updated Android `NetworkModule` to call Railway Production URL (`https://ytsummary-production.up.railway.app/`).
+- **Production Stress Test**: Verified production URL with two real-world YouTube videos (Food Chemicals & Healthy Eating).
+- **Gemini 2.5 Flash**: Integration verified for summarized content generation via cloud transcript.
+
+### Fixed
+- **Railway 502 Error**: Fixed intermittent 502 errors by switching to the official `youtube-transcript-api` and improving port binding using direct python entrypoint.
+- **Transcript API Fix**: Corrected `YouTubeTranscriptApi` static method call from `fetch` to `get_transcript` to solve 500/502 errors.
+- **Docker Port Binding**: Standardized `Dockerfile` for Railway environment variable injection.
+
 
 ## [2026-03-24] - Production Deployment ✅
 ### Added

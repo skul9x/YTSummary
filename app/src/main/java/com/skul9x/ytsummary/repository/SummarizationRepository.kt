@@ -14,46 +14,37 @@ class SummarizationRepository(context: Context) {
     
     private val db = com.skul9x.ytsummary.data.AppDatabase.getDatabase(context)
     private val summaryDao = db.summaryDao()
-    private val backendApi = NetworkModule.api
+    private val pythonManager = com.skul9x.ytsummary.manager.PythonManager.getInstance(context)
     private val geminiApi = GeminiApiClient(
         apiKeyManager = com.skul9x.ytsummary.manager.ApiKeyManager.getInstance(context),
         quotaManager = com.skul9x.ytsummary.manager.ModelQuotaManager(context)
     )
 
     /**
-     * Lấy Metadata (Title, Thumbnail) của video.
+     * Lấy Metadata (Title, Thumbnail) của video locally qua Python.
      */
     fun getVideoMetadata(videoId: String): Flow<com.skul9x.ytsummary.model.VideoMetadata?> = flow {
         try {
-            val response = backendApi.getMetadata(videoId)
-            if (response.isSuccessful) {
-                emit(response.body())
-            } else {
-                emit(null)
-            }
+            val metadata = pythonManager.fetchMetadata(videoId)
+            emit(metadata)
         } catch (e: Exception) {
             emit(null)
         }
     }
 
     /**
-     * Thực hiện tóm tắt video. Trích xuất transcript từ Backend sau đó tóm tắt qua Gemini.
+     * Thực hiện tóm tắt video. Trích xuất transcript locally sau đó tóm tắt qua Gemini.
      */
     fun getSummary(videoId: String, videoTitle: String = "", thumbnailUrl: String = ""): Flow<AiResult> = flow {
-        // 1. Lấy Transcript từ Backend
-        val transcriptResponse = try {
-            backendApi.getTranscript(videoId)
-        } catch (e: Exception) {
-            emit(AiResult.Error("Lỗi kết nối Backend: ${e.message}"))
+        // 1. Lấy Transcript locally via Python
+        val transcriptResult = pythonManager.fetchTranscript(videoId)
+        
+        if (transcriptResult.isFailure) {
+            emit(AiResult.Error("Lỗi lấy phụ đề (Local): ${transcriptResult.exceptionOrNull()?.message}"))
             return@flow
         }
 
-        if (!transcriptResponse.isSuccessful) {
-            emit(AiResult.Error("Backend error: ${transcriptResponse.code()}"))
-            return@flow
-        }
-
-        val transcript = transcriptResponse.body()?.transcript
+        val transcript = transcriptResult.getOrNull()
         if (transcript.isNullOrBlank()) {
             emit(AiResult.Error("Không lấy được nội dung phụ đề"))
             return@flow

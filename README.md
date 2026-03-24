@@ -1,91 +1,55 @@
-# YTSummary
+# YTSummary - Trình tóm tắt YouTube AI Standalone (Android)
 
-YTSummary là dự án tóm tắt video YouTube bằng AI, gồm ứng dụng Android (Kotlin + Jetpack Compose) và backend FastAPI để lấy transcript. Luồng chính:
+YTSummary là ứng dụng Android hiện đại giúp tóm tắt nội dung video YouTube bằng trí tuệ nhân tạo (AI). Dự án đã chuyển đổi từ kiến trúc Cloud sang kiến trúc **Standalone (Local Python)** để đảm bảo tính ổn định và bảo mật cao nhất.
 
-1. Nhập link YouTube trên app.
-2. Backend lấy transcript từ YouTube.
-3. App gửi transcript sang Gemini để sinh tóm tắt tiếng Việt.
-4. Hiển thị kết quả và lưu lịch sử.
+## 🌟 Tính năng chính
 
-## Tính năng chính
+- **Tóm tắt thông minh:** Sử dụng model **Gemini 2.5 Flash** để tóm tắt nội dung video nhanh chóng, chính xác.
+- **Kiến trúc Standalone (Chaquopy):** Tích hợp Python trực tiếp vào App Android để lấy transcript bằng IP của thiết bị, giúp vượt qua các rào cản chặn IP của YouTube đối với các Cloud Data Center.
+- **Tối ưu hóa cho người lái xe:** Prompt được thiết kế đặc biệt theo phong cách ngắn gọn, súc tích, dễ nghe khi sử dụng tính năng đọc bằng giọng nói (Text-to-Speech).
+- **Bảo mật dữ liệu:** Lịch sử tóm tắt được lưu trữ local và mã hóa bằng **Room Database + SQLCipher**.
+- **Không cần Backend:** Không phụ thuộc vào máy chủ trung gian, giúp giảm chi phí vận hành và tăng tốc độ xử lý.
 
-- Tóm tắt nội dung video YouTube bằng Gemini.
-- Cơ chế xoay vòng API key/model để tăng độ ổn định khi quota giới hạn.
-- Hỗ trợ lưu lịch sử tóm tắt.
-- Backend proxy trung gian để tách luồng transcript khỏi mobile app.
+## 🛠️ Công nghệ sử dụng
 
-## Cấu trúc thư mục
+- **Frontend:** Kotlin, Jetpack Compose, Material Design 3.
+- **AI Integration:** Google Gemini API (models/gemini-2.5-flash).
+- **Python Bridge:** Chaquopy 17.0.1 (Python 3.11).
+- **Phụ đề:** `youtube-transcript-api`.
+- **Cơ sở dữ liệu:** Room + SQLCipher (Mã hóa toàn diện).
 
-- `app/`: Ứng dụng Android (UI, repository, API client, lưu trữ local).
-- `backend/`: FastAPI service (`main.py`, `requirements.txt`, `Dockerfile`).
-- `docs/`: Tài liệu mô tả và báo cáo audit.
-- `plans/`: Kế hoạch triển khai theo từng phase.
-- `youtube-transcript-api-master/`: Bản local của thư viện transcript để tham khảo/tuỳ chỉnh.
+## 📂 Cấu trúc thư mục
 
-## Yêu cầu môi trường
+- `app/src/main/python/`: Chứa logic Python (`yt_transcript_helper.py`) để lấy transcript và metadata.
+- `app/src/main/java/`: Chứa mã nguồn Kotlin của ứng dụng (UI, Manager, Repository).
+- `.brain/`: Thư mục lưu trữ kiến thức dự án và context của AI (Dùng cho phát triển).
+- `docs/`: Tài liệu mô tả kiến trúc và báo cáo bảo mật.
 
-### Android
+## 🚀 Hướng dẫn cài đặt
 
-- Android Studio (bản mới).
-- JDK 17.
-- Gradle theo cấu hình trong project.
+1. **Clone Repository:**
+   ```bash
+   git clone https://github.com/skul9x/YTSummary.git
+   ```
 
-### Backend
+2. **Mở dự án:** 
+   Sử dụng Android Studio (phiên bản mới nhất) để mở thư mục dự án.
 
-- Python 3.10+ (khuyến nghị 3.11/3.12).
-- `pip`.
+3. **Đồng bộ Gradle:**
+   Nhấn **"Sync Project with Gradle Files"**. Lưu ý: Quá trình này sẽ tải về Python Runtime và các thư viện cần thiết (`youtube-transcript-api`, `requests`).
 
-## Cài đặt và chạy local
+4. **Cấu hình API Key:**
+   - Lấy API Key tại [Google AI Studio](https://aistudio.google.com/).
+   - Nhập API Key vào phần cài đặt trong ứng dụng.
 
-### 1) Chạy backend
+5. **Build & Run:**
+   Build app và cài đặt lên điện thoại Android hoặc Emulator.
 
-```bash
-cd backend
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-python main.py
-```
+## ⚠️ Lưu ý quan trọng
 
-Mặc định backend chạy tại `http://0.0.0.0:8000` (hoặc port từ biến môi trường `PORT`).
+- Dự án đã loại bỏ hoàn toàn backend cũ chạy trên Railway.app. Mọi logic lấy dữ liệu hiện tại đều chạy local trên thiết bị.
+- Đảm bảo thiết bị của bạn có kết nối internet ổn định để lấy transcript từ YouTube và gọi Gemini API.
 
-Test nhanh:
-
-```bash
-curl "http://127.0.0.1:8000/api/transcript?video_id=dQw4w9WgXcQ"
-```
-
-### 2) Chạy app Android
-
-1. Mở project trong Android Studio.
-2. Build và chạy app.
-3. Vào màn hình cài đặt để thêm Gemini API key.
-4. Dán link YouTube và bắt đầu tóm tắt.
-
-## Deploy backend (Railway)
-
-- Source repo: `main` branch.
-- Root directory: `/backend`.
-- Dockerfile: `backend/Dockerfile`.
-- Start command dùng trong container: `python main.py`.
-- Domain production ví dụ: `https://ytsummary-production.up.railway.app`.
-
-### Biến môi trường quan trọng (Production)
-
-- `PORT`: Railway tự cấp, không cần set thủ công trong đa số trường hợp.
-- `ALLOWED_ORIGINS`: Danh sách domain frontend được phép gọi API (phân tách bằng dấu phẩy).
-- `YOUTUBE_PROXY_URL` (khuyến nghị khi chạy cloud): proxy URL dùng chung cho HTTP/HTTPS, ví dụ `http://user:pass@host:port`.
-- Hoặc dùng cặp `YOUTUBE_HTTP_PROXY` + `YOUTUBE_HTTPS_PROXY` nếu bạn muốn tách riêng.
-
-Lưu ý: YouTube thường chặn IP thuộc cloud provider, nên `/api/transcript` có thể lỗi nếu không có proxy quay vòng (residential/rotating proxy).
-
-## Ghi chú vận hành
-
-- Nếu gặp lỗi 502 trên Railway nhưng local chạy ổn, cần kiểm tra:
-	- Runtime logs khi container start.
-	- Cấu hình Root Directory có đúng `/backend` không.
-	- Biến môi trường `PORT` và trạng thái healthcheck endpoint.
-
-## Bản quyền
+## 📄 Bản quyền
 
 Copyright 2026 Nguyễn Duy Trường

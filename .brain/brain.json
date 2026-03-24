@@ -1,12 +1,12 @@
 {
   "meta": {
     "schema_version": "1.1.0",
-    "awf_version": "3.3.1",
+    "awf_version": "4.0.2",
     "last_audit": "2026-03-24"
   },
   "project": {
     "name": "YTSummary",
-    "type": "AI Summarizer (Android/Python)",
+    "type": "AI Summarizer (Android + Local Python)",
     "status": "production_ready"
   },
   "tech_stack": {
@@ -14,46 +14,42 @@
       "language": "Kotlin",
       "framework": "Jetpack Compose",
       "database": "Room + SQLCipher (Encrypted)",
-      "network": "OkHttp + Retrofit"
+      "network": "OkHttp + Retrofit (Gemini calls)"
     },
-    "backend": {
-      "language": "Python",
-      "framework": "FastAPI",
-      "libraries": ["youtube-transcript-api (pip)", "slowapi", "httpx", "cachetools"],
-      "deployment": "Railway.app (Dockerized)",
-      "version": "1.1.1"
+    "core": {
+      "framework": "Chaquopy 17.0.1 (Local Python Backend)",
+      "python_version": "3.11",
+      "libs": ["youtube-transcript-api", "requests", "urllib", "defusedxml"],
+      "status": "ACTIVE"
+    },
+    "legacy": {
+      "backend": "FastAPI on Railway.app",
+      "status": "REMOVED (Migrated to Standalone)"
     }
   },
-  "deployment": {
-    "production_url": "https://ytsummary-production.up.railway.app",
-    "root_directory": "/backend",
-    "exposed_port": "DYNAMIC ($PORT)",
-    "env_vars": ["PORT", "ALLOWED_ORIGINS"]
-  },
   "api_endpoints": [
-    { "path": "/", "desc": "Health check" },
-    { "path": "/api/metadata", "desc": "Fetch YouTube video metadata" },
-    { "path": "/api/transcript", "desc": "Fetch cleaned YouTube transcript (VI/EN)" }
+    { "path": "Local Call", "desc": "Metadata fetch via Python oEmbed" },
+    { "path": "Local Call", "desc": "Transcript fetch via Python with multi-language support (vi/en)" },
+    { "path": "Gemini API", "desc": "Summarization via models/gemini-2.5-flash (Thinking enabled)" }
   ],
   "security_rules": [
     "Gemini API Keys must be sent via Headers, NEVER URLs",
+    "Local transcript fetching bypasses Data Center IP blocking",
     "Database must be encrypted with SQLCipher",
-    "Backend must have rate limiting (10 req/min)",
-    "Backend CORS restricted to Railway domains and trusted origins",
     "Production error messages sanitized"
   ],
   "knowledge_items": {
     "patterns": [
       "Key Rotation Strategy for Gemini API",
       "Encrypted Room Database with SupportFactory",
-      "In-memory Caching for YouTube Transcripts",
-      "Centralized Constants for API URLs",
-      "Direct Python Entrypoint for Railway (Port stability)"
+      "Standalone Local Python Architecture (Chaquopy integration)",
+      "Thinking-enabled Model Support (Gemini 2.5 Flash)"
     ],
     "gotchas": [
-      "502 Error: Ensure official pip version of youtube-transcript-api on Linux Cloud",
-      "Railway: Requires direct python entrypoint for $PORT binding stability",
-      "Avoiding Redundant Prompt Building in Android (Current focus)"
+      "Railway 502/IP Blocking: Resolved by moving to Local IP via Chaquopy",
+      "YouTube-Transcript-Api v0.6.2+: 'fetch()' is the standard instance method for FetchedTranscript objects",
+      "Gemini 2.5 Flash requires v1beta endpoint for advanced features",
+      "Android Studio Sync: MUST be run after any build.gradle or python resource changes"
     ]
   }
 }

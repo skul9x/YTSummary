@@ -1,24 +1,44 @@
 {
-  "updated_at": "2026-03-24T13:00:00Z",
+  "updated_at": "2026-03-24T15:20:00Z",
   "working_on": {
-    "feature": "Post-Deployment & Maintenance",
-    "task": "Fix Production Stability (502) & Final Test",
+    "feature": "Architecture Cleanup & Final Logic Verification",
+    "task": "Cleanup Legacy Backend & Test Gemini 2.5 Flash Flow",
     "status": "finished",
-    "files": ["backend/Dockerfile", "backend/main.py", "backend/Procfile"]
+    "files": [
+      "app/src/main/python/yt_transcript_helper.py",
+      "app/src/main/java/com/skul9x/ytsummary/manager/PythonManager.kt",
+      "backend/",
+      "Dockerfile",
+      "main.py"
+    ]
   },
   "pending_tasks": [
-    { "task": "Fix Redundant Prompt Building in Android", "priority": "high" },
-    { "task": "Implement run_in_threadpool for Backend", "priority": "medium" },
-    { "task": "Build Final Production APK", "priority": "medium" },
-    { "task": "Optimize Prompt AI for Gemini 1.5 Flash", "priority": "low" }
+    { "task": "Sync Gradle and Build Final Production APK", "priority": "high" },
+    { "task": "Optimize Prompt AI for Gemini 2.5 Flash thinking capability", "priority": "medium" },
+    { "task": "Verify APK size & RAM usage (Python bundle check)", "priority": "low" }
   ],
   "recent_changes": [
-    { "timestamp": "2026-03-24", "type": "bugfix", "description": "Fixed Railway 502 Bad Gateway by switching to official pip libraries and python entrypoint", "files": ["Dockerfile", "main.py"] },
-    { "timestamp": "2026-03-24", "type": "testing", "description": "Verified production backend with multiple long YouTube videos and Gemini 2.5 Flash", "files": ["ok2.txt", "ok3.txt"] }
+    {
+      "timestamp": "2026-03-24",
+      "type": "refactor",
+      "description": "Removed legacy backend files (backend, Dockerfile, main.py)",
+      "files": ["backend/", "Dockerfile", "main.py"]
+    },
+    {
+      "timestamp": "2026-03-24",
+      "type": "testing",
+      "description": "Verified end-to-end Standalone flow with models/gemini-2.5-flash",
+      "files": ["ok.txt"]
+    },
+    {
+      "timestamp": "2026-03-24",
+      "type": "fix",
+      "description": "Updated yt_transcript_helper.py to work with newest youtube-transcript-api and local environment",
+      "files": ["app/src/main/python/yt_transcript_helper.py"]
+    }
   ],
   "decisions_made": [
-    { "decision": "Direct Python Entrypoint", "reason": "Consistent port binding on Railway Cloud" },
-    { "decision": "Official Pip Libraries", "reason": "Avoid build/runtime instabilities in custom cloud environments" },
-    { "decision": "Fix library method typo", "reason": "youtube-transcript-api changed 'fetch' to 'get_transcript'" }
+    { "decision": "Remove Legacy Cloud Backend", "reason": "Standalone logic via local IP is now fully verified and bypasses YouTube blocks." },
+    { "decision": "Adopt Gemini 2.5 Flash", "reason": "Superior thinking/reasoning capability for video summarization." }
   ]
 }
