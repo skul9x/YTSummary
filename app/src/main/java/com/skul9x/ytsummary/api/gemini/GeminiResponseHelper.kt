@@ -24,10 +24,10 @@ object GeminiResponseHelper {
                 put("temperature", temperature)
                 put("maxOutputTokens", maxOutputTokens)
                 put("topP", 0.95)
-                // Disable Thinking mode for speed as per user request
-                putJsonObject("thinking_config") {
-                    put("include_thoughts", false)
-                }
+            }
+            // Mới nhất: thinkingConfig nằm ở root, dùng thinkingBudget = 0 để disable tính năng Thinking
+            putJsonObject("thinkingConfig") {
+                put("thinkingBudget", 0)
             }
             putJsonArray("safetySettings") {
                 listOf(

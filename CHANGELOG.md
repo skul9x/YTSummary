@@ -1,5 +1,14 @@
 # Changelog - YouTube AI Summarizer (YTSummary)
 
+## [2026-03-25] - Gemini 2.5 Flash Migration & Thinking Disable 🚀⚡
+### Added
+- **Gemini 2.5 Flash Migration**: Cập nhật toàn bộ hệ thống để ưu tiên sử dụng `models/gemini-2.5-flash` và `models/gemini-2.5-flash-lite`.
+- **JSON Request Validation Test**: Thêm `GeminiResponseHelperTest.kt` để tự động hóa việc kiểm tra cấu trúc JSON (đảm bảo `thinkingConfig` luôn nằm ở root và budget = 0).
+
+### Changed
+- **Thinking Configuration**: Chuyển đổi từ `thinking_config` (trong generationConfig) sang `thinkingConfig` (root level) theo chuẩn API mới nhất để tắt chế độ Thinking, giúp giảm đáng kể thời gian phản hồi (TTFB).
+- **Model Deprecation Cleanup**: Loại bỏ hoàn toàn các model dòng `2.0-flash` khỏi danh sách xoay tua để chuẩn bị cho lộ trình khai tử của Google (June 2026).
+
 ## [2026-03-25] - Security Hardening & Stable Testing 🛡️🧪
 ### Fixed
 - **Flaky Unit Test (PythonUpdateCheckerTest)**: Replaced `org.json` with `kotlinx.serialization` to eliminate "Method not mocked" errors during local JVM tests. Tests are now 100% stable.

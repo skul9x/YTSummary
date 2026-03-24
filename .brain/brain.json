@@ -33,7 +33,7 @@
     { "path": "Android Share Intent", "desc": "Intercept ACTION_SEND intent text/plain directly from OS to extract Youtube URI" },
     { "path": "Local Call", "desc": "Metadata fetch via Python oEmbed" },
     { "path": "Local Call", "desc": "Transcript fetch via Python with multi-language support (vi/en)" },
-    { "path": "Gemini API", "desc": "Summarization via models/gemini-2.5-flash (Thinking enabled)" },
+    { "path": "Gemini API", "desc": "Summarization via models/gemini-2.5-flash (Thinking disabled via thinkingBudget=0 @ root)" },
     { "path": "Gemini Streaming", "desc": "SSE Streaming via streamGenerateContent?alt=sse for jumping text UX" },
     { "path": "Auto-TTS Call", "desc": "Triggered once when full summary finishes to avoid chunk overwriting issues" }
   ],
@@ -56,10 +56,12 @@
     "Biểu tượng thích ứng (Adaptive Launcher Icon với Vector Drawable)",
     "Hệ thống AudioFocus Ducking (Hồi âm lượng nhạc khi AI đọc)",
     "Tối ưu hóa khởi động Python (Warm-up background khởi chạy sớm)",
-    "Quản lý trạng thái bằng ViewModel (Giữ tiến trình tóm tắt khi xoay màn hình)",
-    "TTS Pause/Resume thông minh (Ghi nhớ vị trí đọc qua Bookmark Index)",
-    "Cảnh báo hạ cấp bảo mật (Phát hiện và chặn kết nối HTTP không an toàn)",
-    "Validation Input nghiêm ngặt (Lọc rác URL youtube ngay ở ViewModel)"
+    "ViewModel state management (Saves progress on screen rotation)",
+    "TTS Pause/Resume smart bookmarking (Saves read position index)",
+    "Root-level thinkingConfig injection (Disables thinking for lowest TTFB)",
+    "Gemini 2.5 Flash Migration (Prioritizes 2.5 models over deprecated 2.0)",
+    "Strict Regex input validation (ViewModel-level guard)",
+    "Security Hardening (HTTPS only globally)"
   ],
   "knowledge_items": {
     "patterns": [
@@ -82,7 +84,8 @@
       "Coroutine Guard: currentCoroutineContext().ensureActive() after JNI/Blocking calls",
       "Multi-layered TTS Bookmarking (Manager -> ViewModel -> UI persistency)",
       "Absolute Character-Based TTS Tracking (totalSpokenLength + relativeIndex)",
-      "Cross-platform Serialization with kotlinx.serialization for JVM/Android compatibility"
+      "Cross-platform Serialization with kotlinx.serialization for JVM/Android compatibility",
+      "Root-level thinkingConfig pattern (thinkingBudget: 0) for Gemini latency optimization"
     ],
     "gotchas": [
       "Activity Destruction & Re-creation: State managed via remember { } is lost; must use ViewModel for persistence.",
