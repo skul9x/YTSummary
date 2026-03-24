@@ -20,5 +20,5 @@ RUN pip install /app/youtube-transcript-api-master
 # Chúng ta không cần EXPOSE nữa, Railway sẽ tự quản lý
 # ENV PORT=8000 - Bạn có thể set default nếu chạy local
 
-# Lệnh chạy server
-CMD uvicorn main:app --host 0.0.0.0 --port $PORT
+# Lệnh chạy server: Chạy trực tiếp qua script để hỗ trợ port động tốt hơn
+CMD ["python", "main.py"]
