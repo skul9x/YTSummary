@@ -33,7 +33,7 @@
     { "path": "Android Share Intent", "desc": "Intercept ACTION_SEND intent text/plain directly from OS to extract Youtube URI" },
     { "path": "Local Call", "desc": "Metadata fetch via Python oEmbed" },
     { "path": "Local Call", "desc": "Transcript fetch via Python with multi-language support (vi/en)" },
-    { "path": "Gemini API", "desc": "Summarization via models/gemini-2.5-flash (Thinking disabled via thinkingBudget=0 @ root)" },
+    { "path": "Gemini API", "desc": "Summarization via models/gemini-2.5-flash (Standard model, no thinkingConfig needed)" },
     { "path": "Gemini Streaming", "desc": "SSE Streaming via streamGenerateContent?alt=sse for jumping text UX" },
     { "path": "Auto-TTS Call", "desc": "Triggered once when full summary finishes to avoid chunk overwriting issues" }
   ],
@@ -58,8 +58,7 @@
     "Tối ưu hóa khởi động Python (Warm-up background khởi chạy sớm)",
     "ViewModel state management (Saves progress on screen rotation)",
     "TTS Pause/Resume smart bookmarking (Saves read position index)",
-    "Root-level thinkingConfig injection (Disables thinking for lowest TTFB)",
-    "Gemini 2.5 Flash Migration (Prioritizes 2.5 models over deprecated 2.0)",
+    "Gemini 2.5 Flash Migration (Prioritizes 2.5 models without thinkingConfig over deprecated 2.0)",
     "Strict Regex input validation (ViewModel-level guard)",
     "Security Hardening (HTTPS only globally)"
   ],
@@ -85,7 +84,7 @@
       "Multi-layered TTS Bookmarking (Manager -> ViewModel -> UI persistency)",
       "Absolute Character-Based TTS Tracking (totalSpokenLength + relativeIndex)",
       "Cross-platform Serialization with kotlinx.serialization for JVM/Android compatibility",
-      "Root-level thinkingConfig pattern (thinkingBudget: 0) for Gemini latency optimization"
+      "API Error Mapping: Avoid catch-all generic exceptions that mask real HTTP 400 Bad Request errors into 429 logic."
     ],
     "gotchas": [
       "Activity Destruction & Re-creation: State managed via remember { } is lost; must use ViewModel for persistence.",
@@ -103,7 +102,8 @@
       "MockK vs OkHttp 4.12+: Mocking 'any<Request>()' trực tiếp có thể gây RuntimeException, nên ưu tiên dùng MockWebServer.",
       "TTS isSpeaking Race Condition: Khi dùng QUEUE_ADD, 'tts.isSpeaking' có thể trả về false giữa hai utterance do khoảng nghỉ hệ thống. Giải pháp: Dùng bộ đếm AtomicInteger để quản lý số lượng chunk thực tế trong hàng đợi.",
       "TTS Pause vs Stop: `stop()` trong TTS API xoá sạch hàng đợi và status. Để Resume, phải tự lưu `totalSpokenLength` của các chunk đã xong và cộng với `currentIndex` của chunk hiện tại trước khi gọi `stop()`.",
-      "Unit Testing JSON: `org.json.JSONObject` là thư viện của bộ Android SDK, sẽ bị throw 'Method not mocked' khi chạy Local JVM Test. Phải dùng `kotlinx.serialization` để thay thế nếu muốn test chạy ổn định không cần emulator."
+      "Unit Testing JSON: `org.json.JSONObject` là thư viện của bộ Android SDK, sẽ bị throw 'Method not mocked' khi chạy Local JVM Test. Phải dùng `kotlinx.serialization` để thay thế nếu muốn test chạy ổn định không cần emulator.",
+      "Gemini 2.5 Flash v1beta generateContent API: Does NOT support 'thinkingConfig' parameter at root. Sending it will result in HTTP 400 Bad Request, which might be masked as Quota Exhausted by OkHttp catch-all clients."
     ]
   }
 }

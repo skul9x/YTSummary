@@ -28,6 +28,14 @@
       ]
     },
     {
+      "timestamp": "2026-03-25T02:22:00Z",
+      "type": "bugfix",
+      "description": "Removed thinkingConfig from GeminiResponseHelper to fix HTTP 400 Bad Request error masquerading as QuotaExhausted on Gemini 2.5 Flash.",
+      "files": [
+        "GeminiResponseHelper.kt"
+      ]
+    },
+    {
       "timestamp": "2026-03-25T01:30:00Z",
       "type": "security",
       "description": "Implemented Network Security hardening (cleartext traffic disabled) and strict input validation via Regex.",
@@ -52,6 +60,12 @@
       "solution": "Replaced Android-bounded org.json with pure Kotlin kotlinx.serialization library.",
       "resolved": true,
       "file": "PythonUpdateCheckerTest.kt"
+    },
+    {
+      "error": "Status: AllQuotaExhausted on Gemini 2.5 Flash",
+      "solution": "Root cause was HTTP 400 due to invalid 'thinkingConfig' param. Removed the field from GeminiResponseHelper.kt.",
+      "resolved": true,
+      "file": "GeminiResponseHelper.kt"
     }
   ],
   "decisions_made": [

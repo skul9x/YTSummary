@@ -25,10 +25,6 @@ object GeminiResponseHelper {
                 put("maxOutputTokens", maxOutputTokens)
                 put("topP", 0.95)
             }
-            // Mới nhất: thinkingConfig nằm ở root, dùng thinkingBudget = 0 để disable tính năng Thinking
-            putJsonObject("thinkingConfig") {
-                put("thinkingBudget", 0)
-            }
             putJsonArray("safetySettings") {
                 listOf(
                     "HARM_CATEGORY_HARASSMENT",
