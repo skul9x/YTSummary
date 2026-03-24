@@ -1,77 +1,67 @@
-# 📺 YTSummary - Trình tóm tắt video YouTube thông minh 🚀
+# YT Summary AI 📺🤖
 
-**YTSummary** là ứng dụng Android tối ưu, được thiết kế để giúp bạn nắm bắt nội dung video YouTube chỉ trong vài giây. Bằng cách kết hợp sức mạnh của trí tuệ nhân tạo **Gemini 2.5 Flash** và khả năng xử lý cục bộ mạnh mẽ qua **Chaquopy**, YTSummary mang đến trải nghiệm tóm tắt video mượt mà, bảo mật và cực kỳ hiệu quả.
-
----
+**YouTube Summary AI** là một ứng dụng Android hiện đại giúp bạn tóm tắt nội dung video YouTube một cách nhanh chóng và thông minh bằng trí tuệ nhân tạo (Gemini AI). Ứng dụng kết hợp sức mạnh của Python (chạy cục bộ) và Kotlin Jetpack Compose để mang lại trải nghiệm mượt mà, bảo mật và hiệu quả.
 
 ## ✨ Tính năng nổi bật
 
-*   **⚡ Local Transcript Extraction**: Ứng dụng tích hợp Python (qua Chaquopy) để lấy phụ đề (subtitle) trực tiếp từ YouTube, không cần qua server trung gian, đảm bảo tốc độ và bảo mật thông tin.
-*   **🤖 AI Summarization (Gemini 2.5 Flash)**: Tận dụng mô hình AI mới nhất để tóm tắt nội dung video sâu sắc, nắm bắt đúng ý chính và cấu trúc bài nói.
-*   **🌊 SSE Streaming UX**: Hiển thị kết quả tóm tắt dạng nhảy chữ thời gian thực (như ChatGPT), mang lại cảm giác phản hồi tức thì.
-*   **🗣️ Auto-TTS Sentence Chunking**: Bộ đọc văn bản (Text-to-Speech) thông minh, bắt đầu đọc ngay khi câu đầu tiên được AI tạo ra, không cần chờ đợi toàn bộ bản tóm tắt hoàn thành.
-*   **🔊 AudioFocus & Ducking**: Hệ thống âm thanh chuyên nghiệp, tự động giảm âm lượng nhạc nền (ducking) khi AI đang đọc tóm tắt và khôi phục khi kết thúc.
-*   **📂 Offline Cache (Room + SQLCipher)**: Tự động lưu trữ lịch sử tóm tắt vào cơ sở dữ liệu được mã hóa hoàn hoàn. Bạn có thể xem lại kết quả ngay lập tức mà không cần kết nối internet.
-*   **🔄 Auto Update Notification**: Tự động kiểm tra phiên bản mới nhất của thư viện Python trên PyPI và hiển thị cảnh báo cập nhật trực quan trên giao diện ứng dụng.
-*   **📲 Share Intent Integration**: Chia sẻ video trực tiếp từ ứng dụng YouTube sang YTSummary để tóm tắt trong 1 cú click. Tự động xử lý khi app đang chạy ngầm (`singleTop`).
-*   **🎨 Glassmorphism Design**: Giao diện mang đậm phong cách hiện đại với hiệu ứng kính mờ, thẻ GlassCard sang trọng và icon thích ứng (Adaptive Icons).
+- **Tóm tắt siêu tốc**: Sử dụng model Gemini 2.5 Flash mới nhất để đọc và phân tích video trong vài giây.
+- **Xử lý Python Cục bộ**: Trích xuất phụ đề (transcript) trực tiếp trên thiết bị bằng Chaquopy, không thông qua server trung gian, giúp bảo vệ quyền riêng tư và tránh bị chặn IP.
+- **Hỗ trợ đa ngôn ngữ**: Tóm tắt tốt cả video tiếng Việt và tiếng Anh.
+- **Text-to-Speech (TTS)**: Tự động đọc bản tóm tắt bằng giọng nói tự nhiên, hỗ trợ nghe rảnh tay.
+- **Chia sẻ 1-Click**: Tích hợp Android Share Intent, chỉ cần nhấn "Chia sẻ" từ app YouTube sang YTSummary để bắt đầu tóm tắt ngay lập tức.
+- **Quản lý Lịch sử**: Lưu trữ các bản tóm tắt đã thực hiện trong cơ sở dữ liệu Room được mã hóa (SQLCipher).
+- **Giao diện Modern Glassmorphism**: Thiết kế kính mờ sang trọng, hỗ trợ chế độ tối (Dark Mode) và biểu tượng thích ứng (Adaptive Icon).
+- **Bền bỉ (MVVM Architecture)**: Tiến trình tóm tắt không bị gián đoạn ngay cả khi xoay màn hình hoặc thay đổi cấu hình ứng dụng.
 
----
+## 🛠️ Công nghệ sử dụng
 
-## 🛠️ Công nghệ cốt lõi
+- **Ngôn ngữ**: Kotlin (Frontend) & Python 3.11 (Backend on Android).
+- **UI Framework**: Jetpack Compose.
+- **AI Engine**: Google Gemini API (Vertex AI/Google AI SDK).
+- **Python Bridge**: Chaquopy 17.0.0.
+- **Database**: Room Database + SQLCipher (Mã hóa toàn bộ dữ liệu).
+- **Kiến trúc**: MVVM (ViewModel, Flow, StateFlow), Repository Pattern.
 
-| Công nghệ | Vai trò |
-|-----------|---------|
-| **Kotlin (Compose)** | Ngôn ngữ phát triển UI hiện đại, mượt mà. |
-| **Chaquopy** | Cầu nối chạy Python 3.12 trực tiếp bên trong Android. |
-| **Gemini AI** | Trái tim xử lý ngôn ngữ tự nhiên từ Google. |
-| **Room + SQLCipher** | Lưu trữ dữ liệu an toàn cao cấp với mã hóa AES-256 đầu cuối. |
-| **OkHttp & Retrofit** | Xử lý các luồng dữ liệu mạng và SSE Streaming. |
-| **MockWebServer** | Đảm bảo tính ổn định và độ tin cậy của code qua Unit Testing. |
+## 🚀 Hướng dẫn cài đặt
 
----
+### Yêu cầu hệ thống
+- Android 8.0 (API 26) trở lên.
+- Kết nối Internet.
 
-## 📂 Cấu trúc dự án
-
-```text
-YTSummary-main/
-├── app/src/main/java       # Mã nguồn Kotlin (UI, Manager, Api, Logic)
-├── app/src/main/python     # Script Python lấy phụ đề (yt_transcript_helper.py)
-├── app/src/test/java       # Unit test (xác thực logic API/Checker)
-├── .brain/                 # 🧠 Bộ nhớ dự án (dành cho Antigravity AI Assistant)
-├── docs/                   # Tài liệu chi tiết về kiến trúc (Audit, Specs)
-└── app/build.gradle.kts    # Cấu hình dự án & Dependencies (PIP packages)
-```
-
----
-
-## ⚙️ Hướng dẫn cài đặt
-
-1.  **Clone dự án**:
-    ```bash
-    git clone https://github.com/skul9x/YTSummary.git
-    ```
-2.  **Mở bằng Android Studio**: Yêu cầu phiên bản Android Studio Ladybug hoặc mới hơn.
-3.  **Cấu hình dự án**:
-    *   Đảm bảo máy đã cài đặt Python 3.11/3.12 (để Gradle cài Chaquopy).
-    *   Nhấn **Sync Project with Gradle Files**.
-4.  **Chạy ứng dụng**: Kết nối thiết bị Android (minSdk 26) và nhấn **Run (Shift + F10)**.
-
----
+### Các bước thực hiện (Dành cho nhà phát triển)
+1. Clone repository:
+   ```bash
+   git clone https://github.com/skul9x/YTSummary.git
+   ```
+2. Mở dự án bằng **Android Studio Ladybug** (hoặc mới hơn).
+3. Đảm bảo bạn đã cài đặt Python 3.11 trên máy tính để build Chaquopy.
+4. Thêm API Key của bạn vào ứng dụng:
+   - Mở ứng dụng, vào mục **Settings**.
+   - Dán Gemini API Key của bạn vào (Ứng dụng sẽ tự động nhận diện Key bắt đầu bằng `AIza...`).
+5. Build và chạy: Nhấn nút **Run** trong Android Studio.
 
 ## 📖 Cách sử dụng
 
-1.  **Thiết lập API Key**: Mở ứng dụng ➔ Vào **Settings** ➔ Dán Gemini API Key của bạn (App sẽ tự bóc tách Key từ bất kỳ đoạn văn bản nào bạn dán vào).
-2.  **Tóm tắt video**:
-    *   **Cách 1**: Dán link YouTube trực tiếp trên màn hình chính.
-    *   **Cách 2**: Khi đang xem video trong app YouTube ➔ nhấn nút **Share (Chia sẻ)** ➔ chọn **YTSummary**.
-3.  **Nghe tóm tắt**: Nhấn biểu tượng loa để AI đọc to nội dung tóm tắt cho bạn.
+1. **Cách 1 (Trực tiếp)**: Mở app, dán link YouTube vào ô nhập liệu và nhấn biểu tượng Play.
+2. **Cách 2 (Chia sẻ)**: Khi đang xem video trên YouTube, nhấn nút **Chia sẻ** -> Chọn biểu tượng **YT Summary AI**. Ứng dụng sẽ tự động thực hiện mọi công đoạn còn lại.
 
----
+## 📁 Cấu trúc thư mục chính
+
+```text
+app/src/main/
+├── java/com/skul9x/ytsummary/
+│   ├── api/            # Kết nối Gemini API
+│   ├── data/           # Room Database & Entities
+│   ├── manager/        # Quản lý Python, TTS, API Keys
+│   ├── repository/     # Điều phối dữ liệu
+│   └── ui/             # Jetpack Compose Screens & ViewModels
+├── python/             # Mã nguồn Python chạy trên Android
+│   └── yt_transcript_helper.py  # Logic lấy phụ đề video
+└── res/                # Assets & Icons
+```
 
 ## 📜 Bản quyền
-
 Copyright 2026 Nguyễn Duy Trường
 
 ---
-*Phát triển bởi [skul9x] với sự hỗ trợ của Antigravity Workflow Framework (AWF) – Bảo mật, hiệu quả và tối ưu.*
+*Dự án được phát triển bởi Nguyễn Duy Trường với sự hỗ trợ từ Antigravity AI.*

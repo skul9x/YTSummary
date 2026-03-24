@@ -33,9 +33,11 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.firstOrNull
 
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.skul9x.ytsummary.ui.ScreenState
+
 class MainActivity : ComponentActivity() {
     private lateinit var ttsManager: TtsManager
-    private lateinit var repository: SummarizationRepository
     private val incomingUrl = MutableStateFlow<String?>(null)
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -44,159 +46,92 @@ class MainActivity : ComponentActivity() {
         PythonManager.warmUp(this)
         handleIntent(intent)
         
-        // Task 4.1: Initialize TTS and Set Volume to 80% on startup
         ttsManager = TtsManager(this) { }
-        repository = SummarizationRepository.getInstance(this)
 
         setContent {
             YTSummaryTheme {
-                var currentScreen by remember { mutableStateOf("main") }
-                var summaryResult by remember { mutableStateOf<AiResult?>(null) }
-                var loadingMessage by remember { mutableStateOf("Đang chuẩn bị...") }
-                var videoTitle by remember { mutableStateOf("Summarizing...") }
-                var thumbnailUrl by remember { mutableStateOf("") }
+                val viewModel: SummaryViewModel = viewModel()
+                val screenState by viewModel.screenState.collectAsState()
+                val videoTitle by viewModel.videoTitle.collectAsState()
+                val thumbnailUrl by viewModel.thumbnailUrl.collectAsState()
                 var isTtsPlaying by remember { mutableStateOf(false) }
-                
-                val scope = rememberCoroutineScope()
 
-
-                val performSummarization: (String) -> Unit = { url ->
-                    val videoId = extractVideoId(url)
-                    if (videoId != null) {
-                        videoTitle = "Fetching info..."
-                        currentScreen = "loading"
-                        scope.launch {
-                            // Step 1: Chạy song song cả 2 (Fix C2)
-                            val metadataJob = async {
-                                repository.getVideoMetadata(videoId).firstOrNull()
-                            }
-                            
-                            // Cập nhật UI ngay khi Metadata load xong
-                            launch {
-                                val metadata = metadataJob.await()
-                                if (metadata != null) {
-                                    videoTitle = metadata.title
-                                    thumbnailUrl = metadata.thumbnailUrl
-                                }
-                            }
-                            
-                            var lastReadIndex = 0
-                            
-                            // Chờ Summary xong mới redirect
-                            repository.getSummary(videoId).collect { result ->
-                                if (result is AiResult.Loading) {
-                                    loadingMessage = result.message
-                                } else if (result is AiResult.Success) {
-                                    summaryResult = result
-                                    currentScreen = "summary"
-                                    
-                                    // Item 4: TTS Sentence detection logic for speakChunk
-                                    val newTextSoFar = result.text
-                                    val newPart = newTextSoFar.substring(lastReadIndex)
-                                    val lastPunct = newPart.lastIndexOfAny(charArrayOf('.', '!', '?', ':', '\n'))
-                                    
-                                    if (lastPunct != -1) {
-                                        val toRead = newPart.substring(0, lastPunct + 1)
-                                        ttsManager.speakChunk(toRead)
-                                        lastReadIndex += lastPunct + 1
-                                    }
-                                } else {
-                                    summaryResult = result
-                                    currentScreen = "summary"
-                                }
-                            }
-                            
-                            // Final cleanup: read remaining and save to history once
-                            val finalResult = summaryResult
-                            if (finalResult is AiResult.Success) {
-                                val remaining = finalResult.text.substring(lastReadIndex)
-                                if (remaining.isNotBlank()) {
-                                    ttsManager.speakChunk(remaining)
-                                }
-                                
-                                // Save to history only once and NOT if it was from cache
-                                if (finalResult.model != "cache") {
-                                    val metadata = metadataJob.await()
-                                    repository.saveToHistory(
-                                        videoId = videoId,
-                                        title = metadata?.title ?: videoId,
-                                        thumbnailUrl = metadata?.thumbnailUrl ?: "",
-                                        summaryText = finalResult.text
-                                    )
-                                }
-                            }
-                            isTtsPlaying = true
-                        }
+                // TTS Chunk Observer
+                val ttsChunk by viewModel.ttsChunks.collectAsState()
+                LaunchedEffect(ttsChunk) {
+                    ttsChunk?.let {
+                        ttsManager.speakChunk(it)
+                        viewModel.clearTtsChunk()
                     }
                 }
 
                 val sharedUrl by incomingUrl.collectAsState()
-                val historyList by repository.getAllHistory().collectAsState(initial = emptyList())
+                val historyList by viewModel.getAllHistory().collectAsState(initial = emptyList())
                 val historyCount = historyList.size
 
                 LaunchedEffect(sharedUrl) {
                     sharedUrl?.let { url ->
-                        incomingUrl.value = null // reset after trigger
-                        // currentScreen = "main" // optionally reset first, but performSummarization handles it
-                        performSummarization(url)
+                        incomingUrl.value = null
+                        viewModel.summarize(url)
                     }
                 }
 
-                when (currentScreen) {
-                    "main" -> MainScreen(
+                when (val state = screenState) {
+                    is ScreenState.Main -> MainScreen(
                         summaryCount = historyCount,
-                        onSettingsClick = { currentScreen = "settings" },
-                        onSummaryRequest = performSummarization,
-                        onHistoryClick = { currentScreen = "history" }
+                        onSettingsClick = { viewModel.navigateTo(ScreenState.Settings) },
+                        onSummaryRequest = { viewModel.summarize(it) },
+                        onHistoryClick = { viewModel.navigateTo(ScreenState.History) }
                     )
-                    "history" -> HistoryScreen(
-                        repository = repository,
-                        onBack = { currentScreen = "main" },
+                    is ScreenState.History -> HistoryScreen(
+                        repository = SummarizationRepository.getInstance(this),
+                        onBack = { viewModel.navigateTo(ScreenState.Main) },
                         onItemClick = { item ->
-                            videoTitle = item.title
-                            thumbnailUrl = item.thumbnailUrl
-                            summaryResult = AiResult.Success(item.summaryText, "Local / History")
-                            currentScreen = "summary"
+                            viewModel.loadFromHistory(item.title, item.thumbnailUrl, item.summaryText)
                         }
                     )
-                    "settings" -> SettingsScreen(onBack = { currentScreen = "main" })
-                    "loading" -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { 
+                    is ScreenState.Settings -> SettingsScreen(onBack = { viewModel.navigateTo(ScreenState.Main) })
+                    is ScreenState.Loading -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { 
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             CircularProgressIndicator(color = YouTubeRed)
                             Spacer(modifier = Modifier.height(16.dp))
-                            Text(loadingMessage, color = TextPrimary, style = MaterialTheme.typography.titleMedium)
+                            Text(state.message, color = TextPrimary, style = MaterialTheme.typography.titleMedium)
                         }
                     }
-                    "summary" -> {
-                        summaryResult?.let { result ->
-                            when (result) {
-                                is AiResult.Success -> SummaryScreen(
-                                    videoTitle = videoTitle,
-                                    thumbnailUrl = thumbnailUrl,
-                                    summaryText = result.text,
-                                    isPlaying = isTtsPlaying,
-                                    onBack = { 
+                    is ScreenState.Summary -> {
+                        val result = state.result
+                        when (result) {
+                            is AiResult.Success -> SummaryScreen(
+                                videoTitle = videoTitle,
+                                thumbnailUrl = thumbnailUrl,
+                                summaryText = result.text,
+                                isPlaying = isTtsPlaying,
+                                onBack = { 
+                                    ttsManager.stop()
+                                    isTtsPlaying = false
+                                    viewModel.navigateTo(ScreenState.Main) 
+                                },
+                                onTTSClick = {
+                                    if (isTtsPlaying) {
                                         ttsManager.stop()
                                         isTtsPlaying = false
-                                        currentScreen = "main" 
-                                    },
-                                    onTTSClick = {
-                                        if (isTtsPlaying) {
-                                            ttsManager.stop()
-                                            isTtsPlaying = false
-                                        } else {
-                                            ttsManager.speak(result.text)
-                                            isTtsPlaying = true
+                                    } else {
+                                        ttsManager.speak(result.text)
+                                        isTtsPlaying = true
+                                    }
+                                }
+                            )
+                            is AiResult.Error -> {
+                                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                        Text("Error: ${result.message}", color = YouTubeRed)
+                                        Button(onClick = { viewModel.navigateTo(ScreenState.Main) }) {
+                                            Text("Quay lại")
                                         }
                                     }
-                                )
-                                is AiResult.Error -> {
-                                    // Handle Error screen or dialog
-                                    Text("Error: ${result.message}\nBấm quay lại để thử lại.")
-                                    // ...
                                 }
-                                else -> Text("Checking status...")
                             }
+                            else -> Text("Status: $result")
                         }
                     }
                 }
@@ -224,13 +159,11 @@ class MainActivity : ComponentActivity() {
         if (intent.action == Intent.ACTION_SEND && intent.type == "text/plain") {
             val sharedText = intent.getStringExtra(Intent.EXTRA_TEXT)
             if (sharedText != null) {
-                // Find URL in text
                 val urlRegex = "(https?://(?:www\\.|m\\.)?(?:youtube\\.com/|youtu\\.be/)[^\\s]+)".toRegex()
                 val match = urlRegex.find(sharedText)
                 if (match != null) {
                     incomingUrl.value = match.value
                 } else {
-                    // Fallback to extractVideoId to see if there's an ID
                     val extracted = extractVideoId(sharedText)
                     if (extracted != null) {
                         incomingUrl.value = sharedText
@@ -240,6 +173,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
+
 
 @Composable
 fun MainScreen(

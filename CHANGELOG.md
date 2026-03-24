@@ -1,5 +1,18 @@
 # Changelog - YouTube AI Summarizer (YTSummary)
 
+## [2026-03-24] - Architecture Refactoring (Audit v4.2.0) 🏗️📱
+### Added
+- **SummaryViewModel**: Implemented MVVM architecture. UI state and the summarization pipeline now live in a `ViewModel` (`AndroidViewModel`), ensuring progress survives device rotation and configuration changes. (Fix ISSUE_004)
+- **ScreenState Sealed Class**: Standardized UI navigation and state transition using a unified `ScreenState` pattern (Main, Loading, Summary, History, Settings).
+
+### Changed
+- **MainActivity Logic Migration**: Offloaded all summarization, metadata fetching, and TTS orchestration logic from the Activity to the ViewModel.
+- **Improved History Navigation**: History item selection now correctly restores the video title, thumbnail, and summary text via `loadFromHistory`.
+
+### Fixed
+- **Python Coroutine Guard**: Added `currentCoroutineContext().ensureActive()` in `SummarizationRepository` immediately after blocking Python JNI calls. This prevents the app from processing or emitting stale data if the underlying coroutine was cancelled. (Fix ISSUE_003)
+- **Activity State Loss**: Fixed the critical bug where rotating the screen would reset the entire summarization process.
+
 ## [2026-03-24] - Performance Audit Fixes (Audit v4.1.0) 🏎️💨
 ### Added
 - **Python Runtime Warm-up**: Implemented `PythonManager.warmUp` (background initialization) in `MainActivity.onCreate` để giảm độ trễ khởi động ~1-2s.

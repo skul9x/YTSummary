@@ -7,6 +7,8 @@ import com.skul9x.ytsummary.model.AiResult
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.currentCoroutineContext
 
 /**
  * Repository điều phối luồng: Backend (Transcript) -> Google AI (Summarize).
@@ -59,6 +61,9 @@ class SummarizationRepository private constructor(context: Context) {
         
         // 1. Lấy Transcript locally via Python (Safe Threading due to flowOn)
         val transcriptResult = pythonManager.fetchTranscript(videoId)
+        
+        // Guard: Kiểm tra coroutine vẫn active sau khi blocking call Python trả về
+        currentCoroutineContext().ensureActive()
         
         if (transcriptResult.isFailure) {
             emit(AiResult.Error("Lỗi lấy phụ đề (Local): ${transcriptResult.exceptionOrNull()?.message}"))

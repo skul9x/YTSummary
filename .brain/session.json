@@ -1,14 +1,13 @@
 {
-  "updated_at": "2026-03-24T22:20:00Z",
+  "updated_at": "2026-03-24T23:33:00Z",
   "working_on": {
-    "feature": "Performance Audit & Update System",
-    "task": "Implementation of Python Library Update Notification",
+    "feature": "Architecture Refactoring",
+    "task": "Migrate state to ViewModel and Fix Coroutine Cancellation",
     "status": "DONE",
     "files": [
-      "PythonUpdateChecker.kt",
-      "UpdateBanner.kt",
-      "SettingsScreen.kt",
-      "PythonUpdateCheckerTest.kt"
+      "SummaryViewModel.kt",
+      "MainActivity.kt",
+      "SummarizationRepository.kt"
     ]
   },
   "pending_tasks": [
@@ -19,6 +18,21 @@
   ],
   "recent_changes": [
     {
+      "timestamp": "2026-03-24T23:30:00Z",
+      "type": "architectural",
+      "description": "Migrated UI state management from remember { mutableStateOf } to AndroidViewModel (SummaryViewModel) for better lifecycle persistence.",
+      "files": [
+        "com.skul9x.ytsummary.ui.SummaryViewModel",
+        "com.skul9x.ytsummary.ui.MainActivity"
+      ]
+    },
+    {
+      "timestamp": "2026-03-24T23:25:00Z",
+      "type": "bugfix",
+      "description": "Implemented Coroutine ensureActive() guard in SummarizationRepository to prevent processing stale data after cancellation (Fix ISSUE_003).",
+      "files": ["com.skul9x.ytsummary.repository.SummarizationRepository"]
+    },
+    {
       "timestamp": "2026-03-24T22:20:00Z",
       "type": "feature",
       "description": "Implemented auto-check for youtube-transcript-api updates on PyPI with 24h cache and runtime version detection.",
@@ -27,30 +41,24 @@
         "com.skul9x.ytsummary.ui.components.UpdateBanner",
         "SettingsScreen.kt"
       ]
-    },
-    {
-      "timestamp": "2026-03-24T21:55:00Z",
-      "type": "optimization",
-      "description": "Fixed O(N2) string concatenation, added Python warmup, integrated AudioFocus ducking.",
-      "files": ["GeminiApiClient.kt", "yt_transcript_helper.py", "MainActivity.kt", "TtsManager.kt", "PythonManager.kt"]
     }
   ],
   "errors_encountered": [
+    {
+      "error": "Kotlin compilation error: Expecting a top level declaration",
+      "solution": "Fixed duplicate code and misplaced class closing brace in MainActivity.kt during ViewModel refactoring.",
+      "resolved": true,
+      "file": "MainActivity.kt"
+    },
     {
       "error": "java.lang.UnsatisfiedLinkError in Unit Tests",
       "solution": "Added internal 'testVersion' to bypass JNI dependency during JVM tests.",
       "resolved": true,
       "file": "PythonUpdateChecker.kt"
-    },
-    {
-      "error": "MockK RuntimeException mocking OkHttpClient",
-      "solution": "Switched to MockWebServer for network isolation.",
-      "resolved": true,
-      "file": "PythonUpdateCheckerTest.kt"
     }
   ],
   "decisions_made": [
-    { "decision": "Detect version at runtime via importlib.metadata", "reason": "Avoids hardcode sync issues with Chaquopy/pip." },
-    { "decision": "Cache PyPI response for 24h", "reason": "Reduces network overhead and respects PyPI rate limits." }
+    { "decision": "Use AndroidViewModel and viewModelScope", "reason": "Ensures the summarization pipeline survives Activity destruction during configuration changes (Fix ISSUE_004)." },
+    { "decision": "Add ensureActive() after Python call", "reason": "Chaquopy JNI calls are non-interruptible; this guard ensures processing stops as soon as control returns to Kotlin if the job was cancelled." }
   ]
 }
