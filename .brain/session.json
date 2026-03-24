@@ -1,66 +1,66 @@
 {
-  "updated_at": "2026-03-24T16:55:00Z",
+  "updated_at": "2026-03-24T18:55:00Z",
   "working_on": {
-    "feature": "Performance Audit",
-    "task": "Diagnose app performance and identify bottlenecks",
-    "status": "audited",
+    "feature": "Performance Issues Resolution",
+    "task": "Fixed W2 and W3 (ModelQuota Caching & Legacy Code Cleanup)",
+    "status": "completed",
     "files": [
-      "docs/reports/audit_perf_20260324.md"
+      "app/src/main/java/com/skul9x/ytsummary/manager/ModelQuotaManager.kt",
+      "app/src/main/java/com/skul9x/ytsummary/di/NetworkModule.kt",
+      "app/build.gradle.kts"
     ]
   },
   "pending_tasks": [
-    { "task": "C3: Add dispatchers.IO to python execution logic to prevent ANR", "priority": "high" },
-    { "task": "C2: Execute metadata fetch and transcript fetch in parallel", "priority": "high" },
-    { "task": "C1: Enforce Singleton for Repositories and quota managers", "priority": "medium" },
-    { "task": "Optimize Prompt AI for Gemini 2.5 Flash thinking capability", "priority": "medium" },
-    { "task": "Clean up dead legacy backend code from Android app limits", "priority": "low" }
+    { "task": "W1: Remove non-existent models from GeminiApiClient lists", "priority": "medium" },
+    { "task": "W4: Remove redundant setVolume call in TtsManager.speak", "priority": "low" },
+    { "task": "Optimize Prompt AI for Gemini 2.5 Flash thinking capability", "priority": "medium" }
   ],
   "recent_changes": [
+    {
+      "timestamp": "2026-03-24T18:38:00Z",
+      "type": "fix",
+      "description": "Fixed W2 (Cached SHA-256 for ModelQuotaManager) and W3 (Removed legacy Retrofit/Backend code, cleaned up NetworkModule and build specs).",
+      "files": [
+        "app/src/main/java/com/skul9x/ytsummary/manager/ModelQuotaManager.kt",
+        "app/src/main/java/com/skul9x/ytsummary/di/NetworkModule.kt",
+        "app/build.gradle.kts"
+      ]
+    },
+    {
+      "timestamp": "2026-03-24T18:28:00Z",
+      "type": "fix",
+      "description": "Fixed Performance Issues C1, C2, C3: Applied Singleton pattern to avoid re-creation of Repository and Managers; parallelized metadata and transcript fetching in MainActivity to save 500ms+; moved Chaquopy calls to Dispatchers.IO to prevent ANR.",
+      "files": [
+        "app/src/main/java/com/skul9x/ytsummary/ui/MainActivity.kt",
+        "app/src/main/java/com/skul9x/ytsummary/repository/SummarizationRepository.kt",
+        "app/src/main/java/com/skul9x/ytsummary/manager/ModelQuotaManager.kt"
+      ]
+    },
     {
       "timestamp": "2026-03-24T16:50:00Z",
       "type": "audit",
       "description": "Executed Performance Audit. Found 3 critical issues (blocking I/O, synchronous remote fetching, non-singleton manager creations) that severely impacts Android UX.",
       "files": ["docs/reports/audit_perf_20260324.md"]
-    },
-    {
-      "timestamp": "2026-03-24",
-      "type": "fix",
-      "description": "Fixed 'Unknown python error' by explicitly adding requests & defusedxml to Gradle pip block, and using PyObject.asMap() to correctly read Python dict keys in Kotlin.",
-      "files": ["app/build.gradle.kts", "app/src/main/python/yt_transcript_helper.py", "app/src/main/java/com/skul9x/ytsummary/manager/PythonManager.kt"]
-    },
-    {
-      "timestamp": "2026-03-24",
-      "type": "fix",
-      "description": "Fixed build.gradle.kts python block syntax for Chaquopy 17.0 and eliminated unresolved PythonManager references",
-      "files": ["app/build.gradle.kts", "app/src/main/java/com/skul9x/ytsummary/manager/PythonManager.kt"]
-    },
-    {
-      "timestamp": "2026-03-24",
-      "type": "feature",
-      "description": "Implemented UX improvements: API Key multi-paste with regex parsing, Quick Paste & Summarize button, Loading Indicator text, Copy Summary button, and fixing Swipe Back interaction.",
-      "files": [
-        "app/src/main/java/com/skul9x/ytsummary/ui/SettingsScreen.kt",
-        "app/src/main/java/com/skul9x/ytsummary/ui/MainActivity.kt",
-        "app/src/main/java/com/skul9x/ytsummary/ui/SummaryScreen.kt"
-      ]
     }
   ],
   "errors_encountered": [
     {
-      "error": "PyObject.get() returns null for Python dict keys",
-      "solution": "Use PyObject.asMap()[PyObject.fromJava('key')] to invoke __getitem__ instead of getattr when reading Python dicts in Kotlin.",
+      "error": "Chaquopy block main thread causing ANR",
+      "solution": "Wrap pythonManager object calls inside Flow using .flowOn(Dispatchers.IO)",
       "resolved": true,
-      "file": "PythonManager.kt"
+      "file": "SummarizationRepository.kt"
     },
     {
-      "error": "Text and buttons inside GlassCard are blurry and unreadable",
-      "solution": "Jetpack Compose Modifier.blur() blurred the entire component tree. Removed it from GlassCard so only the gradient is used.",
+      "error": "Memory and Resource Overhead from repeated Object creations",
+      "solution": "Apply double-checked locking Singleton pattern to ModelQuotaManager and SummarizationRepository",
       "resolved": true,
-      "file": "GlassCard.kt"
+      "file": "ModelQuotaManager.kt"
     }
   ],
   "decisions_made": [
+    { "decision": "Parallel API Calls UI Binding", "reason": "Wait for metadata via async before fetching summary to update UI instantly and guarantee history data consistency." },
     { "decision": "Remove Legacy Cloud Backend", "reason": "Standalone logic via local IP is now fully verified and bypasses YouTube blocks." },
-    { "decision": "Adopt Gemini 2.5 Flash", "reason": "Superior thinking/reasoning capability for video summarization." }
+    { "decision": "Adopt Gemini 2.5 Flash", "reason": "Superior thinking/reasoning capability for video summarization." },
+    { "decision": "Remove Retrofit & Legacy API Files", "reason": "Gemini API uses OkHttp directly, Retrofit and its converters were bloating the APK unused." }
   ]
 }

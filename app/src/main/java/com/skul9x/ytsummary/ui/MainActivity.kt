@@ -27,6 +27,8 @@ import com.skul9x.ytsummary.ui.components.GlassCard
 import com.skul9x.ytsummary.ui.components.NeonGlassCard
 import com.skul9x.ytsummary.ui.theme.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.firstOrNull
 
 class MainActivity : ComponentActivity() {
     private lateinit var ttsManager: TtsManager
@@ -39,7 +41,7 @@ class MainActivity : ComponentActivity() {
         ttsManager = TtsManager(this) {
             ttsManager.setVolume(80) 
         }
-        repository = SummarizationRepository(this)
+        repository = SummarizationRepository.getInstance(this)
 
         setContent {
             YTSummaryTheme {
@@ -60,16 +62,36 @@ class MainActivity : ComponentActivity() {
                                 videoTitle = "Fetching info..."
                                 currentScreen = "loading"
                                 scope.launch {
-                                    // Step 1: Fetch Metadata
-                                    repository.getVideoMetadata(videoId).collect { metadata ->
+                                    // Step 1: Chạy song song cả 2 (Fix C2)
+                                    val metadataJob = async {
+                                        repository.getVideoMetadata(videoId).firstOrNull()
+                                    }
+                                    val summaryJob = async {
+                                        repository.getSummary(videoId).firstOrNull()
+                                    }
+                                    
+                                    // Cập nhật UI ngay khi Metadata load xong
+                                    launch {
+                                        val metadata = metadataJob.await()
                                         if (metadata != null) {
                                             videoTitle = metadata.title
                                             thumbnailUrl = metadata.thumbnailUrl
                                         }
                                     }
                                     
-                                    // Step 2: Fetch Summary (passing metadata for saving to DB)
-                                    repository.getSummary(videoId, videoTitle, thumbnailUrl).collect { result ->
+                                    // Chờ Summary xong mới redirect
+                                    val result = summaryJob.await()
+                                    if (result != null) {
+                                        if (result is AiResult.Success) {
+                                            // Chắc chắn đã có Metadata để lưu DB
+                                            val metadata = metadataJob.await()
+                                            repository.saveToHistory(
+                                                videoId = videoId,
+                                                title = metadata?.title ?: videoId,
+                                                thumbnailUrl = metadata?.thumbnailUrl ?: "",
+                                                summaryText = result.text
+                                            )
+                                        }
                                         summaryResult = result
                                         currentScreen = "summary"
                                     }

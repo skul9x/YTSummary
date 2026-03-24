@@ -80,22 +80,14 @@
 
 ## 🟡 WARNINGS (Nên sửa)
 
-### 🟡 W1. Model list chứa model không tồn tại → Request thất bại tốn thời gian
-- **File:** `api/GeminiApiClient.kt` (Line 127-133)
-- **Triệu chứng:** Danh sách `MODELS` chứa:
-  - `models/gemini-2.5-flash-lite` (chưa chắc tồn tại)
-  - `models/gemini-3-flash-preview` (chưa phát hành)
-  Mỗi model không tồn tại sẽ trả về HTTP 404, tốn **1-3 giây cho mỗi lần thử** × số API keys.
-- **Hậu quả:** Nếu có 3 keys và 2 model ảo → 6 request thất bại = **6-18 giây lãng phí**.
-- **Cách sửa:** Chỉ giữ lại các model đã verify hoạt động. Thêm caching cho model availability.
 
-### 🟡 W2. ModelQuotaManager tính SHA-256 hash mỗi lần check availability
+### ✅ W2. [FIXED] ModelQuotaManager tính SHA-256 hash mỗi lần check availability
 - **File:** `manager/ModelQuotaManager.kt` (Line 61-71)
 - **Triệu chứng:** `makeKey()` gọi `MessageDigest.getInstance("SHA-256")` và tính hash **mỗi lần** `isAvailable()` được gọi. Trong vòng lặp rotation (5 models × N keys), hàm này chạy rất nhiều lần.
 - **Hậu quả:** CPU overhead không cần thiết trên mỗi request. Trên thiết bị yếu có thể gây jank.
 - **Cách sửa:** Cache kết quả hash của API key.
 
-### 🟡 W3. Legacy code và dependencies vẫn còn sót lại
+### ✅ W3. [FIXED] Legacy code và dependencies vẫn còn sót lại
 - **Files:**
   - `api/YouTubeApiClient.kt` → Interface Retrofit cho backend cũ (Railway), **KHÔNG CÒN DÙNG**
   - `utils/Constants.kt` → `BASE_URL` trỏ tới Railway, **KHÔNG CÒN DÙNG**
@@ -104,13 +96,7 @@
   - `build.gradle.kts` Line 23 → `buildConfigField("String", "BASE_URL", ...)` trỏ Railway
 - **Triệu chứng:** Dead code nằm trong APK, tăng kích thước app. Retrofit dependency (~300KB) được bundle nhưng chức năng chính không dùng.
 - **Hậu quả:** APK lớn hơn cần thiết (~500KB-1MB dead code + dependencies). ProGuard có thể loại bớt nhưng không hoàn toàn.
-- **Cách sửa:** Xóa các file legacy, loại bỏ Retrofit dependencies nếu không cần.
-
-### 🟡 W4. TtsManager gọi setVolume(80) MỖI LẦN speak()
-- **File:** `manager/TtsManager.kt` (Line 81)
-- **Triệu chứng:** Method `speak()` luôn gọi `setVolume(80)` trước khi phát. Mỗi lần gọi `setVolume()` sẽ truy cập AudioManager system service.
-- **Hậu quả:** I/O overhead nhỏ nhưng không cần thiết vì volume đã được set ở `onCreate`.
-- **Cách sửa:** Chỉ set volume lần đầu (đã có trong `onCreate`), bỏ call thừa trong `speak()`.
+- **Cách sửa:** Xóa các file legacy, loại bỏ Retrofit dependencies nếu không cần. 
 
 ---
 

@@ -14,7 +14,7 @@
       "language": "Kotlin",
       "framework": "Jetpack Compose",
       "database": "Room + SQLCipher (Encrypted)",
-      "network": "OkHttp + Retrofit (Gemini calls)"
+      "network": "OkHttp (Gemini calls)"
     },
     "core": {
       "framework": "Chaquopy 17.0.0 (Local Python Backend)",
@@ -36,28 +36,30 @@
     "Gemini API Keys must be sent via Headers, NEVER URLs",
     "Local transcript fetching bypasses Data Center IP blocking",
     "Database must be encrypted with SQLCipher",
-    "Production error messages sanitized"
+    "Production error messages sanitized",
+    "Main thread strictly protected from Python JNI/IO using Coroutine Dispatchers"
   ],
   "features": [
     "Trích xuất Subtitle Cục bộ (Local Fetch bằng Chaquopy)",
     "Tóm tắt thông minh bằng Gemini 2.5 Flash (Có tư duy sâu)",
     "Quản lý Khóa API (Tự quét Regex từ bộ nhớ tạm)",
     "Thao tác nhúng 1-click (Paste & Tóm tắt nhanh liên mạch)",
-    "Lưu trữ đám mây an toàn bằng Room + SQLCipher"
+    "Lưu trữ đám mây an toàn bằng Room + SQLCipher",
+    "Tối ưu hóa chạy song song cho Metadata và Summary"
   ],
   "knowledge_items": {
     "patterns": [
       "Key Rotation Strategy for Gemini API",
       "Encrypted Room Database with SupportFactory",
       "Standalone Local Python Architecture (Chaquopy integration)",
-      "Thinking-enabled Model Support (Gemini 2.5 Flash)",
-      "Chaquopy Dict Mapping: PyObject.asMap()[PyObject.fromJava('key')]"
+      "Double-Checked Locking Singleton Pattern in Kotlin Managers",
+      "Kotlin Coroutines Async/Await for parallel Data Fetching"
     ],
     "gotchas": [
       "Railway 502/IP Blocking: Resolved by moving to Local IP via Chaquopy",
       "YouTube-Transcript-Api v0.6.2+: 'fetch()' is the standard instance method for FetchedTranscript objects",
       "Gemini 2.5 Flash requires v1beta endpoint for advanced features",
-      "Android Studio Sync: MUST be run after any build.gradle or python resource changes",
+      "Chaquopy JNI calls (Python blocks) must trigger on background thread (Dispatchers.IO) to avert ANR freezes.",
       "Chaquopy Versioning: 17.0.1 is a DEV version in source but NOT yet published to Maven. Use 17.0.0 for stable production.",
       "Chaquopy PyObject.get() uses Python getattr(). For dictionaries, use .asMap() instead.",
       "Chaquopy Pip Dependencies: Transitive dependencies with C-extensions (like requests) often need explicit manual mapping in Gradle."

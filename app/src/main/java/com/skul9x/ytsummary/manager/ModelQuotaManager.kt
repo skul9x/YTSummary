@@ -13,7 +13,7 @@ import kotlinx.serialization.json.Json
  * - 429 (Quota Exceeded): Ban combo for 30 hours. Persisted to disk.
  * - 503 (Server Busy): Cooldown combo for 5 minutes. In-memory only.
  */
-class ModelQuotaManager(context: Context) {
+class ModelQuotaManager private constructor(context: Context) {
 
     companion object {
         private const val TAG = "ModelQuotaManager"
@@ -22,6 +22,15 @@ class ModelQuotaManager(context: Context) {
 
         private const val EXHAUSTED_DURATION_MS = 30 * 60 * 60 * 1000L // 30 hours
         private const val COOLDOWN_DURATION_MS = 5 * 60 * 1000L      // 5 minutes
+
+        @Volatile
+        private var instance: ModelQuotaManager? = null
+
+        fun getInstance(context: Context): ModelQuotaManager {
+            return instance ?: synchronized(this) {
+                instance ?: ModelQuotaManager(context.applicationContext).also { instance = it }
+            }
+        }
     }
 
     private val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
@@ -29,6 +38,7 @@ class ModelQuotaManager(context: Context) {
     
     private val exhaustedMap = mutableMapOf<String, Long>()
     private val cooldownMap = mutableMapOf<String, Long>()
+    private val apiKeyHashMap = mutableMapOf<String, String>()
 
     init {
         loadExhaustedMap()
@@ -59,15 +69,17 @@ class ModelQuotaManager(context: Context) {
     }
 
     private fun makeKey(model: String, apiKey: String): String {
-        return try {
-            val hash = java.security.MessageDigest.getInstance("SHA-256")
-                .digest(apiKey.toByteArray())
-                .take(8)
-                .joinToString("") { "%02x".format(it) }
-            "$model::$hash"
-        } catch (e: Exception) {
-            "$model::${apiKey.hashCode()}"
+        val hash = apiKeyHashMap.getOrPut(apiKey) {
+            try {
+                java.security.MessageDigest.getInstance("SHA-256")
+                    .digest(apiKey.toByteArray())
+                    .take(8)
+                    .joinToString("") { "%02x".format(it) }
+            } catch (e: Exception) {
+                apiKey.hashCode().toString()
+            }
         }
+        return "$model::$hash"
     }
 
     suspend fun markExhausted(model: String, apiKey: String) {

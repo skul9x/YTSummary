@@ -19,8 +19,6 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        
-        buildConfigField("String", "BASE_URL", "\"https://ytsummary-production.up.railway.app/\"")
 
         ndk {
             abiFilters += listOf("arm64-v8a", "x86_64")
@@ -82,10 +80,7 @@ dependencies {
     implementation(libs.compose.material.icons)
     debugImplementation(libs.compose.ui.tooling)
 
-    // Network & Retrofit
-    implementation(libs.retrofit)
-    implementation(libs.retrofit.converter.gson)
-    implementation(libs.retrofit.converter.scalars)
+    // Network & OkHttp
     implementation(libs.okhttp)
     implementation(libs.okhttp.logging)
 

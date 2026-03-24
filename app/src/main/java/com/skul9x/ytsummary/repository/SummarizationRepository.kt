@@ -6,18 +6,30 @@ import com.skul9x.ytsummary.di.NetworkModule
 import com.skul9x.ytsummary.model.AiResult
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 
 /**
  * Repository điều phối luồng: Backend (Transcript) -> Google AI (Summarize).
  */
-class SummarizationRepository(context: Context) {
+class SummarizationRepository private constructor(context: Context) {
     
+    companion object {
+        @Volatile
+        private var instance: SummarizationRepository? = null
+
+        fun getInstance(context: Context): SummarizationRepository {
+            return instance ?: synchronized(this) {
+                instance ?: SummarizationRepository(context.applicationContext).also { instance = it }
+            }
+        }
+    }
+
     private val db = com.skul9x.ytsummary.data.AppDatabase.getDatabase(context)
     private val summaryDao = db.summaryDao()
     private val pythonManager = com.skul9x.ytsummary.manager.PythonManager.getInstance(context)
     private val geminiApi = GeminiApiClient(
         apiKeyManager = com.skul9x.ytsummary.manager.ApiKeyManager.getInstance(context),
-        quotaManager = com.skul9x.ytsummary.manager.ModelQuotaManager(context)
+        quotaManager = com.skul9x.ytsummary.manager.ModelQuotaManager.getInstance(context) // Fixed C1
     )
 
     /**
@@ -30,13 +42,13 @@ class SummarizationRepository(context: Context) {
         } catch (e: Exception) {
             emit(null)
         }
-    }
+    }.flowOn(kotlinx.coroutines.Dispatchers.IO) // Fixed C3: Runs on background thread
 
     /**
      * Thực hiện tóm tắt video. Trích xuất transcript locally sau đó tóm tắt qua Gemini.
      */
-    fun getSummary(videoId: String, videoTitle: String = "", thumbnailUrl: String = ""): Flow<AiResult> = flow {
-        // 1. Lấy Transcript locally via Python
+    fun getSummary(videoId: String): Flow<AiResult> = flow {
+        // 1. Lấy Transcript locally via Python (Safe Threading due to flowOn)
         val transcriptResult = pythonManager.fetchTranscript(videoId)
         
         if (transcriptResult.isFailure) {
@@ -50,22 +62,26 @@ class SummarizationRepository(context: Context) {
             return@flow
         }
 
-        // 2. Tóm tắt bằng Gemini (đã có xoay tua Key bên trong)
+        // 2. Tóm tắt bằng Gemini
         val result = geminiApi.summarize(transcript)
         
-        // 3. Nếu thành công -> Lưu vào History
-        if (result is AiResult.Success) {
+        emit(result)
+    }.flowOn(kotlinx.coroutines.Dispatchers.IO) // Fixed C3: Prevent ANR
+
+    /**
+     * Lưu lịch sử tóm tắt xuống DB (Gọi từ ViewModel/Activity sau khi đã có cả Metadata và Summary)
+     */
+    suspend fun saveToHistory(videoId: String, title: String, thumbnailUrl: String, summaryText: String) {
+        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
             summaryDao.insertSummary(
                 com.skul9x.ytsummary.data.SummaryEntity(
                     videoId = videoId,
-                    title = videoTitle,
+                    title = title,
                     thumbnailUrl = thumbnailUrl,
-                    summaryText = result.text
+                    summaryText = summaryText
                 )
             )
         }
-        
-        emit(result)
     }
 
     /**

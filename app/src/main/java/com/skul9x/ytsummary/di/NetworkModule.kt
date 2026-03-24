@@ -1,12 +1,8 @@
 package com.skul9x.ytsummary.di
 
 import com.skul9x.ytsummary.BuildConfig
-import com.skul9x.ytsummary.api.YouTubeApiClient
-import com.skul9x.ytsummary.utils.Constants
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
 /**
@@ -29,17 +25,5 @@ object NetworkModule {
             .readTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
             .writeTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
             .build()
-    }
-
-    private val retrofit: Retrofit by lazy {
-        Retrofit.Builder()
-            .baseUrl(Constants.BASE_URL)
-            .client(okHttpClient)
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-    }
-
-    val api: YouTubeApiClient by lazy {
-        retrofit.create(YouTubeApiClient::class.java)
     }
 }
