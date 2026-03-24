@@ -47,7 +47,11 @@ class SummaryViewModel(application: Application) : AndroidViewModel(application)
     private var summaryJob: Job? = null
 
     fun summarize(url: String) {
-        val videoId = extractVideoId(url) ?: return
+        val videoId = extractVideoId(url)
+        if (videoId == null) {
+            _screenState.value = ScreenState.Summary(AiResult.Error("URL hoặc Video ID không hợp lệ (cần đúng chuẩn YouTube 11 ký tự)."))
+            return
+        }
         
         // Cancel job cũ nếu đang chạy
         summaryJob?.cancel()
@@ -137,7 +141,15 @@ class SummaryViewModel(application: Application) : AndroidViewModel(application)
     suspend fun clearAllHistory() = repository.clearAllHistory()
 
     private fun extractVideoId(url: String): String? {
+        val trimmed = url.trim()
+        
+        // 1. Kiểm tra trực tiếp Video ID (đúng 11 ký tự chuẩn YouTube)
+        if (trimmed.matches(Regex("^[a-zA-Z0-9_-]{11}$"))) {
+            return trimmed
+        }
+        
+        // 2. Trích xuất từ link YouTube hợp lệ
         val pattern = "^(?:https?://)?(?:www\\.|m\\.)?(?:youtube\\.com/(?:(?:v|e(?:mbed)?)/|.*[?&]v=)|youtu\\.be/)([a-zA-Z0-9_-]{11})"
-        return Regex(pattern).find(url)?.groupValues?.get(1)
+        return Regex(pattern).find(trimmed)?.groupValues?.get(1)
     }
 }
