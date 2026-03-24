@@ -1,58 +1,82 @@
-# 🤖 YTSummary AI - Tóm tắt Video YouTube bằng Trí tuệ Nhân tạo
+# YTSummary
 
-**YTSummary AI** là một ứng dụng Android hiện đại, mạnh mẽ, được thiết kế để giúp bạn tiết kiệm thời gian bằng cách tóm tắt nội dung video YouTube một cách nhanh chóng và chính xác thông qua công nghệ Gemini AI của Google. 
+YTSummary là dự án tóm tắt video YouTube bằng AI, gồm ứng dụng Android (Kotlin + Jetpack Compose) và backend FastAPI để lấy transcript. Luồng chính:
 
----
+1. Nhập link YouTube trên app.
+2. Backend lấy transcript từ YouTube.
+3. App gửi transcript sang Gemini để sinh tóm tắt tiếng Việt.
+4. Hiển thị kết quả và lưu lịch sử.
 
-## ✨ Tính năng nổi bật
+## Tính năng chính
 
-- 📝 **Tóm tắt AI thông minh**: Sử dụng các mô hình Gemini mới nhất (Flash, Pro) để tạo ra các bản tóm tắt súc tích, dễ hiểu.
-- 🔄 **Cơ chế Model Rotation**: Tự động xoay vòng giữa danh sách các API Key và Model để tối ưu hóa quota và độ tin cậy.
-- 🔊 **Hỗ trợ TTS (Text-to-Speech)**: Đọc to nội dung tóm tắt để bạn có thể lắng nghe khi đang di chuyển.
-- 🎨 **Giao diện Glassmorphism**: Thiết kế hiện đại theo phong cách "Vibe Coding" với hiệu ứng kính mờ và Neon bắt mắt.
-- 🔒 **Bảo mật tuyệt đối**: API Key được mã hóa và lưu trữ an toàn bằng `EncryptedSharedPreferences`.
-- 📂 **Quản lý lịch sử**: Tự động lưu trữ các bản tóm tắt trước đó trong cơ sở dữ liệu nội bộ (Room).
+- Tóm tắt nội dung video YouTube bằng Gemini.
+- Cơ chế xoay vòng API key/model để tăng độ ổn định khi quota giới hạn.
+- Hỗ trợ lưu lịch sử tóm tắt.
+- Backend proxy trung gian để tách luồng transcript khỏi mobile app.
 
----
+## Cấu trúc thư mục
 
-## 🛠 Cấu trúc dự án
+- `app/`: Ứng dụng Android (UI, repository, API client, lưu trữ local).
+- `backend/`: FastAPI service (`main.py`, `requirements.txt`, `Dockerfile`).
+- `docs/`: Tài liệu mô tả và báo cáo audit.
+- `plans/`: Kế hoạch triển khai theo từng phase.
+- `youtube-transcript-api-master/`: Bản local của thư viện transcript để tham khảo/tuỳ chỉnh.
 
-Dự án bao gồm 3 phần chính:
+## Yêu cầu môi trường
 
-1.  **`app/`**: Mã nguồn ứng dụng Android (Kotlin, Jetpack Compose, Material 3).
-2.  **`backend/`**: Backend xử lý trung gian dựa trên FastAPI (Python).
-3.  **`youtube-transcript-api-master/`**: Thư viện xử lý trích xuất phụ đề YouTube được tinh chỉnh cục bộ.
+### Android
 
----
+- Android Studio (bản mới).
+- JDK 17.
+- Gradle theo cấu hình trong project.
 
-## 🚀 Hướng dẫn cài đặt & Sử dụng
+### Backend
 
-### 1. Backend (FastAPI)
-- Yêu cầu: Python 3.9+
-- Cài đặt dependency: `pip install -r backend/requirements.txt`
-- Chạy server: `uvicorn backend.main:app --reload`
+- Python 3.10+ (khuyến nghị 3.11/3.12).
+- `pip`.
 
-### 2. Frontend (Android)
-- Mở thư mục `app/` bằng Android Studio.
-- Cấu hình API Key trong mục **Settings (Cài đặt)** ngay trên ứng dụng.
-- Nhập link video YouTube và nhấn biểu tượng "Play" để nhận kết quả.
+## Cài đặt và chạy local
 
----
+### 1) Chạy backend
 
-## 🏗 Công nghệ sử dụng
+```bash
+cd backend
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+python main.py
+```
 
-- **Mobile**: Kotlin, Jetpack Compose, Retrofit, Room, Dagger Hilt.
-- **AI**: Google Gemini API (Vertex AI / Google AI Studio).
-- **Backend**: Python, FastAPI, YouTube Transcript API.
-- **Design**: Figma Design System (Glassmorphism & Neon styles).
+Mặc định backend chạy tại `http://0.0.0.0:8000` (hoặc port từ biến môi trường `PORT`).
 
----
+Test nhanh:
 
-## 📜 Bản quyền & Liên hệ
+```bash
+curl "http://127.0.0.1:8000/api/transcript?video_id=dQw4w9WgXcQ"
+```
 
-**Copyright 2026 Nguyễn Duy Trường**
+### 2) Chạy app Android
 
-Dự án được phát triển với mục đích học tập và chia sẻ kiến thức. Vui lòng ghi rõ nguồn nếu bạn có ý định sử dụng lại mã nguồn.
+1. Mở project trong Android Studio.
+2. Build và chạy app.
+3. Vào màn hình cài đặt để thêm Gemini API key.
+4. Dán link YouTube và bắt đầu tóm tắt.
 
----
-> *Tự động được cập nhật và làm sạch mã nguồn bởi Antigravity AI.*
+## Deploy backend (Railway)
+
+- Source repo: `main` branch.
+- Root directory: `/backend`.
+- Dockerfile: `backend/Dockerfile`.
+- Start command dùng trong container: `python main.py`.
+- Domain production ví dụ: `https://ytsummary-production.up.railway.app`.
+
+## Ghi chú vận hành
+
+- Nếu gặp lỗi 502 trên Railway nhưng local chạy ổn, cần kiểm tra:
+	- Runtime logs khi container start.
+	- Cấu hình Root Directory có đúng `/backend` không.
+	- Biến môi trường `PORT` và trạng thái healthcheck endpoint.
+
+## Bản quyền
+
+Copyright 2026 Nguyễn Duy Trường

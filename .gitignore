@@ -33,6 +33,7 @@ wheels/
 .installed.cfg
 *.egg
 backend/venv/
+backend/test_venv/
 backend/.env
 
 # Logs

@@ -50,9 +50,12 @@ def clean_transcript(transcript_data: list) -> str:
     return " ".join(text_list).replace('\n', ' ').strip()
 
 @app.get("/")
-@limiter.limit("5/minute")
 async def read_root(request: Request):
     return {"status": "online", "message": "YouTube Transcript API is running."}
+
+@app.get("/health")
+async def health_check():
+    return {"status": "ok"}
 
 @app.get("/api/metadata")
 @limiter.limit("10/minute")

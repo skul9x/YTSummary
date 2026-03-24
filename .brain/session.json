@@ -1,10 +1,10 @@
 {
-  "updated_at": "2026-03-24T12:30:00Z",
+  "updated_at": "2026-03-24T13:00:00Z",
   "working_on": {
     "feature": "Post-Deployment & Maintenance",
-    "task": "Final URL Sync & Cleanup",
+    "task": "Fix Production Stability (502) & Final Test",
     "status": "finished",
-    "files": ["app/src/main/java/com/skul9x/ytsummary/utils/Constants.kt", "app/src/main/java/com/skul9x/ytsummary/di/NetworkModule.kt"]
+    "files": ["backend/Dockerfile", "backend/main.py", "backend/Procfile"]
   },
   "pending_tasks": [
     { "task": "Fix Redundant Prompt Building in Android", "priority": "high" },
@@ -13,11 +13,12 @@
     { "task": "Optimize Prompt AI for Gemini 1.5 Flash", "priority": "low" }
   ],
   "recent_changes": [
-    { "timestamp": "2026-03-24", "type": "deployment", "description": "Deployed backend to Railway.app", "files": ["backend/*"] },
-    { "timestamp": "2026-03-24", "type": "config", "description": "Updated Android App to call Production Railway URL via Constants.kt", "files": ["Constants.kt", "NetworkModule.kt"] }
+    { "timestamp": "2026-03-24", "type": "bugfix", "description": "Fixed Railway 502 Bad Gateway by switching to official pip libraries and python entrypoint", "files": ["Dockerfile", "main.py"] },
+    { "timestamp": "2026-03-24", "type": "testing", "description": "Verified production backend with multiple long YouTube videos and Gemini 2.5 Flash", "files": ["ok2.txt", "ok3.txt"] }
   ],
   "decisions_made": [
-    { "decision": "Dockerized Backend", "reason": "Ensure consistent environment on Railway" },
-    { "decision": "Centralized Constants", "reason": "Better URL management in Android app" }
+    { "decision": "Direct Python Entrypoint", "reason": "Consistent port binding on Railway Cloud" },
+    { "decision": "Official Pip Libraries", "reason": "Avoid build/runtime instabilities in custom cloud environments" },
+    { "decision": "Fix library method typo", "reason": "youtube-transcript-api changed 'fetch' to 'get_transcript'" }
   ]
 }

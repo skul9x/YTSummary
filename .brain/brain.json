@@ -1,13 +1,13 @@
 {
   "meta": {
     "schema_version": "1.1.0",
-    "awf_version": "3.3.0",
+    "awf_version": "3.3.1",
     "last_audit": "2026-03-24"
   },
   "project": {
     "name": "YTSummary",
     "type": "AI Summarizer (Android/Python)",
-    "status": "production_deployed"
+    "status": "production_ready"
   },
   "tech_stack": {
     "frontend": {
@@ -19,15 +19,16 @@
     "backend": {
       "language": "Python",
       "framework": "FastAPI",
-      "libraries": ["youtube_transcript_api", "slowapi (Rate Limit)", "httpx", "cachetools"],
-      "deployment": "Railway.app (Dockerized)"
+      "libraries": ["youtube-transcript-api (pip)", "slowapi", "httpx", "cachetools"],
+      "deployment": "Railway.app (Dockerized)",
+      "version": "1.1.1"
     }
   },
   "deployment": {
     "production_url": "https://ytsummary-production.up.railway.app",
     "root_directory": "/backend",
-    "exposed_port": 8000,
-    "env_vars": ["ALLOWED_ORIGINS", "PORT"]
+    "exposed_port": "DYNAMIC ($PORT)",
+    "env_vars": ["PORT", "ALLOWED_ORIGINS"]
   },
   "api_endpoints": [
     { "path": "/", "desc": "Health check" },
@@ -38,23 +39,21 @@
     "Gemini API Keys must be sent via Headers, NEVER URLs",
     "Database must be encrypted with SQLCipher",
     "Backend must have rate limiting (10 req/min)",
-    "Backend CORS must be restricted to trusted origins",
-    "Error messages must be sanitized for production",
-    "Railway Root Directory must be /backend"
+    "Backend CORS restricted to Railway domains and trusted origins",
+    "Production error messages sanitized"
   ],
   "knowledge_items": {
     "patterns": [
       "Key Rotation Strategy for Gemini API",
       "Encrypted Room Database with SupportFactory",
       "In-memory Caching for YouTube Transcripts",
-      "Dynamic Port Binding ($PORT) for Cloud Deployment",
-      "Centralized Constants for API URLs"
+      "Centralized Constants for API URLs",
+      "Direct Python Entrypoint for Railway (Port stability)"
     ],
     "gotchas": [
-      "Railway: Must copy local libraries into build context subfolder",
-      "Railway: Requires sh -c to interpolate environment variables in Docker CMD",
-      "CORS: ALLOWED_ORIGINS must include Railway generated domain",
-      "Avoid 404 for model rotation: Stick to 1.5 Flash/Pro stable"
+      "502 Error: Ensure official pip version of youtube-transcript-api on Linux Cloud",
+      "Railway: Requires direct python entrypoint for $PORT binding stability",
+      "Avoiding Redundant Prompt Building in Android (Current focus)"
     ]
   }
 }
