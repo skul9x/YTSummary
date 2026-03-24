@@ -18,10 +18,16 @@ limiter = Limiter(key_func=get_remote_address)
 app = FastAPI(
     title="YouTube Summarizer Backend Proxy",
     description="API lấy Transcript từ YouTube Video ID (v4.0 Production)",
-    version="1.0.0"
+    version="1.1.0"
 )
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+@app.on_event("startup")
+async def startup_event():
+    port = os.getenv("PORT", "8000")
+    logger.info(f"### [YTSummary] Backend is starting on port {port} ###")
+    logger.info(f"### [YTSummary] Origins: {ALLOWED_ORIGINS} ###")
 
 # Cấu hình CORS chặt chẽ cho Production
 # Khuyến nghị: Set ALLOWED_ORIGINS trong Dashboard Railway (ví dụ: https://your-frontend.railway.app,*)
@@ -125,4 +131,7 @@ async def get_transcript(
         raise HTTPException(status_code=500, detail="Có lỗi xảy ra trên máy chủ, vui lòng thử lại sau.")
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    # Lấy port từ env (ưu tiên Railway PORT), mặc định 8000 khi chạy local
+    port = int(os.environ.get("PORT", 8000))
+    logger.info(f"YTSummary Server running locally on port {port}")
+    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=False)
