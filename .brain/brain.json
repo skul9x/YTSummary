@@ -77,7 +77,8 @@
       "Chaquopy Versioning: 17.0.1 is a DEV version in source but NOT yet published to Maven. Use 17.0.0 for stable production.",
       "Chaquopy Pip Dependencies: Transitive dependencies with C-extensions (like requests) often need explicit manual mapping in Gradle.",
       "Python urllib.request.urlopen: Yêu cầu timeout=10 để tránh treo thread vĩnh viễn (Thread Leak).",
-      "Android setStreamVolume(80): Phương pháp xâm lấn, nên ưu tiên AudioFocus để hòa hợp với volume hệ thống."
+      "Android setStreamVolume(80): Phương pháp xâm lấn, nên ưu tiên AudioFocus để hòa hợp với volume hệ thống.",
+      "MockK vs OkHttp 4.12+: Mocking 'any<Request>()' trực tiếp có thể gây RuntimeException, nên ưu tiên dùng MockWebServer."
     ]
   }
 }

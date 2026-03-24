@@ -1,0 +1,193 @@
+```markdown
+# Hướng dẫn từ A-Z: Thêm tính năng thông báo cập nhật thư viện Python
+
+Dưới đây là các bước chi tiết để thêm tính năng tự động kiểm tra phiên bản mới của thư viện `youtube-transcript-api` trên PyPI và hiển thị cảnh báo trên giao diện ứng dụng.
+
+## Bước 1: Tạo hàm kiểm tra phiên bản từ PyPI
+
+Bạn cần tạo một file mới, ví dụ `PythonUpdateHelper.kt` (có thể đặt trong package `com.skul9x.ytsummary.manager` hoặc `utils`), và thêm đoạn code sau:
+
+```kotlin
+package com.skul9x.ytsummary.manager
+
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import org.json.JSONObject
+
+suspend fun checkPythonLibraryUpdate(currentVersion: String): String? {
+    return withContext(Dispatchers.IO) {
+        try {
+            val client = OkHttpClient()
+            val request = Request.Builder()
+                .url("[https://pypi.org/pypi/youtube-transcript-api/json](https://pypi.org/pypi/youtube-transcript-api/json)")
+                .build()
+
+            client.newCall(request).execute().use { response ->
+                if (response.isSuccessful) {
+                    val body = response.body?.string()
+                    if (body != null) {
+                        val latestVersion = JSONObject(body)
+                            .getJSONObject("info")
+                            .getString("version")
+                        
+                        // So sánh phiên bản mạng với phiên bản hiện tại
+                        if (latestVersion != currentVersion) {
+                            return@withContext latestVersion
+                        }
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        return@withContext null
+    }
+}
+```
+
+**Nguyên nhân tại sao làm bước này:**
+* **Dùng API của PyPI:** PyPI cung cấp sẵn một endpoint JSON trả về thông tin chi tiết của thư viện. Việc gọi API này nhẹ và chính xác hơn rất nhiều so với việc tải và bóc tách (scrape) mã nguồn HTML của trang web.
+* **Dùng `withContext(Dispatchers.IO)`:** Các thao tác gọi mạng (Network call) bắt buộc phải chạy trên luồng phụ (Background Thread) trên Android. Nếu chạy trên luồng chính (Main Thread), ứng dụng sẽ bị treo (crash) với lỗi `NetworkOnMainThreadException`.
+* **Dùng `OkHttpClient`:** Ứng dụng của bạn đã có sẵn thư viện OkHttp trong file `build.gradle.kts`, việc tận dụng nó giúp gọi API nhanh chóng mà không cần cài thêm thư viện khác.
+
+---
+
+## Bước 2: Tạo Component Giao diện (UI Banner)
+
+Bạn có thể thêm hàm `@Composable` này ngay trong file `SettingsScreen.kt` (hoặc tạo file riêng trong thư mục `components` như `ui/components/UpdateBanner.kt`).
+
+```kotlin
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
+import com.skul9x.ytsummary.manager.checkPythonLibraryUpdate
+
+@Composable
+fun PythonUpdateBanner(modifier: Modifier = Modifier) {
+    // KHAI BÁO PHIÊN BẢN ĐANG DÙNG (Cần khớp với app/build.gradle.kts)
+    val currentVersion = "0.6.2" 
+    
+    // State lưu phiên bản mới (nếu có)
+    var availableUpdate by remember { mutableStateOf<String?>(null) }
+
+    // Gọi API 1 lần duy nhất khi Composable này được hiển thị
+    LaunchedEffect(Unit) {
+        availableUpdate = checkPythonLibraryUpdate(currentVersion)
+    }
+
+    // Chỉ render UI nếu availableUpdate khác null (tức là có bản mới)
+    availableUpdate?.let { newVersion ->
+        Card(
+            modifier = modifier
+                .fillMaxWidth()
+                .padding(bottom = 16.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = Color(0xFF856404) // Màu vàng cảnh báo
+            ) 
+        ) {
+            Row(
+                modifier = Modifier.padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Info, 
+                    contentDescription = "Update Info", 
+                    tint = Color.White
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                Column {
+                    Text(
+                        text = "Có bản cập nhật thư viện Python!",
+                        color = Color.White,
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    Text(
+                        text = "youtube-transcript-api: $currentVersion ➔ $newVersion\nHãy mở Android Studio để update file build.gradle.kts.",
+                        color = Color.White.copy(alpha = 0.8f),
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+            }
+        }
+    }
+}
+```
+
+**Nguyên nhân tại sao làm bước này:**
+* **Dùng `LaunchedEffect(Unit)`:** Compose sẽ gọi lại (re-compose) giao diện rất nhiều lần. `LaunchedEffect(Unit)` đảm bảo khối lệnh gọi mạng bên trong nó chỉ được chạy đúng 1 lần khi banner xuất hiện trên màn hình, tránh việc gọi API liên tục làm lãng phí tài nguyên và bị PyPI chặn IP.
+* **Dùng `mutableStateOf`:** Khi API trả về kết quả ngầm xong, nó cập nhật vào biến `availableUpdate`. Compose theo dõi biến này, khi thấy biến thay đổi từ `null` sang một chuỗi (ví dụ `"0.6.3"`), nó sẽ tự động vẽ lại màn hình để hiển thị thẻ `Card` màu vàng.
+* **Ẩn/Hiện tự động:** Biểu thức `availableUpdate?.let { ... }` đảm bảo rằng nếu không có bản cập nhật (trả về null), ứng dụng sẽ không tốn không gian vẽ bất kỳ thứ gì lên màn hình.
+
+---
+
+## Bước 3: Gắn Banner vào màn hình Cài đặt (SettingsScreen)
+
+Mở file `SettingsScreen.kt` của bạn và chèn hàm `PythonUpdateBanner()` vào vị trí thích hợp (thường là dưới Header).
+
+```kotlin
+// Bên trong file SettingsScreen.kt
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SettingsScreen(onBack: () -> Unit) {
+    // ... (code khởi tạo của bạn) ...
+
+    Box(
+        // ... (cấu hình modifier) ...
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(24.dp)
+        ) {
+            // Header
+            Row( /* ... */ ) { /* ... */ }
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            // GỌI BANNER TẠI ĐÂY
+            // Nó sẽ tự động ẩn nếu app đang ở bản mới nhất
+            PythonUpdateBanner()
+
+            // Add Key Input Section
+            Text(
+                "Add Gemini API Keys (Paste mixed text)",
+            // ... (phần code còn lại của bạn) ...
+```
+
+**Nguyên nhân tại sao làm bước này:**
+* **Đặt ở SettingsScreen:** Màn hình Settings là nơi phù hợp nhất cho các thông báo mang tính hệ thống. Việc đặt ở màn hình Home (SummaryScreen) có thể gây rối mắt và làm gián đoạn luồng sử dụng chính của người dùng (nhập link, tóm tắt).
+* **Kiểm tra lười (Lazy check):** Chỉ khi nào bạn chủ động bấm vào màn hình Cài đặt, app mới tốn công gọi API kiểm tra. Điều này tối ưu hiệu năng hơn so với việc lúc nào mở app lên cũng kiểm tra.
+
+---
+
+## Bước 4: Quy trình xử lý khi Banner xuất hiện (Cập nhật thủ công)
+
+Do ứng dụng sử dụng Chaquopy để đóng gói môi trường Python, việc cập nhật an toàn nhất là làm ở bước biên dịch (compile-time).
+
+Khi bạn vào Settings và thấy thẻ màu vàng báo (Ví dụ: `0.6.2 ➔ 0.6.3`), bạn thực hiện các bước sau:
+
+1. Mở file `app/build.gradle.kts` trên Android Studio.
+2. Sửa dòng thư viện trong khối `chaquopy` thành phiên bản mới:
+   ```kotlin
+   pip {
+       install("youtube-transcript-api==0.6.3") // Thay đổi số ở đây
+       install("requests")
+       install("defusedxml")
+   }
+   ```
+3. Nhấn **Sync Now** trên góc phải.
+4. Nhấn **Run (Nút Play xanh lá)** để cài đè app mới vào máy điện thoại.
+5. Khi bạn mở app lại và vào Settings, biến `currentVersion` sẽ khớp với bản trên PyPI, và banner màu vàng sẽ tự động biến mất.
+
+**Nguyên nhân tại sao làm bước này:**
+* **Độ ổn định:** Chaquopy sẽ tải mã nguồn thư viện và build nó vào file APK. Nếu cố gắng ép thư viện tự tải và ghi đè trên điện thoại khi app đang chạy (runtime), bạn có nguy cơ bị lỗi phân quyền (permission denied), lỗi thiếu dung lượng, hoặc gây crash toàn bộ phần lõi Python của ứng dụng. Cập nhật qua `build.gradle.kts` là "best practice" (cách làm chuẩn mực) cho Chaquopy.
+```
