@@ -13,6 +13,7 @@
 *   💎 **Giao diện Glassmorphism:** Thiết kế Premium với hiệu ứng kính mờ và Neon cực kỳ thẩm mỹ.
 *   📂 **Lịch sử tóm tắt:** Lưu trữ và quản lý các video đã tóm tắt để xem lại bất cứ lúc nào.
 *   🔄 **Tự động kiểm tra cập nhật:** Thông báo khi có phiên bản thư viện Python mới để đảm bảo tính ổn định.
+*   🛠️ **Quản lý Model Priority:** Tùy biến thứ tự ưu tiên các mô hình Gemini, thiết lập cơ chế Fallback linh hoạt và kiểm tra kết nối (Connectivity Test) ngay trong ứng dụng.
 
 ---
 

@@ -33,7 +33,7 @@
     { "path": "Android Share Intent", "desc": "Intercept ACTION_SEND intent text/plain directly from OS to extract Youtube URI" },
     { "path": "Local Call", "desc": "Metadata fetch via Python oEmbed" },
     { "path": "Local Call", "desc": "Transcript fetch via Python with multi-language support (vi/en)" },
-    { "path": "Gemini API", "desc": "Summarization via models/gemini-2.5-flash (Standard model, no thinkingConfig needed)" },
+    { "path": "Gemini API", "desc": "Summarization via dyamic models from ModelManager (Model-First Key Rotation)" },
     { "path": "Gemini Streaming", "desc": "SSE Streaming via streamGenerateContent?alt=sse for jumping text UX" },
     { "path": "Auto-TTS Call", "desc": "Triggered once when full summary finishes to avoid chunk overwriting issues" }
   ],
@@ -49,7 +49,7 @@
   "features": [
     "Tích hợp Share Intent (Chia sẻ YouTube sang YTSummary 1-click & Auto-TTS)",
     "Trích xuất Subtitle Cục bộ (Local Fetch bằng Chaquopy)",
-    "Tóm tắt thông minh bằng Gemini 2.5 Flash (Có tư duy sâu)",
+    "Tóm tắt thông minh bằng Gemini (Tư duy sâu hoặc tốc độ cao tùy model)",
     "Quản lý Khóa API (Tự quét Regex từ bộ nhớ tạm)",
     "Lưu trữ đám mây an toàn bằng Room + SQLCipher",
     "Tối ưu hóa chạy song song cho Metadata và Summary",
@@ -62,14 +62,16 @@
     "Strict Regex input validation (ViewModel-level guard)",
     "Security Hardening (HTTPS only globally)",
     "Hệ thống Early Warning (Tự động thông báo có bản cập nhật youtube-transcript-api tại MainScreen)",
-    "Logic Caching 24h (Kiểm tra cập nhật thư viện Python tiết kiệm network)"
+    "Logic Caching 24h (Kiểm tra cập nhật thư viện Python tiết kiệm network)",
+    "Custom Model Management (Thay đổi thứ tự ưu tiên & Fallback model linh hoạt)",
+    "Hệ thống Kiểm thử Model thực tế (Nút Test gọi 1-token dummy payload)"
   ],
   "knowledge_items": {
     "patterns": [
       "MVVM Architecture with AndroidViewModel for persistence",
       "StateFlow for reactive UI updates in Jetpack Compose",
       "Centralized BackHandler pattern for ScreenState-based navigation",
-      "Key Rotation Strategy for Gemini API",
+      "Key Rotation Strategy for Gemini API (Model-First Key Persistence)",
       "Encrypted Room Database with SupportFactory",
       "Standalone Local Python Architecture (Chaquopy integration)",
       "Double-Checked Locking Singleton Pattern in Kotlin Managers",
@@ -87,7 +89,8 @@
       "Absolute Character-Based TTS Tracking (totalSpokenLength + relativeIndex)",
       "Cross-platform Serialization with kotlinx.serialization for JVM/Android compatibility",
       "API Error Mapping: Avoid catch-all generic exceptions that mask real HTTP 400 Bad Request errors into 429 logic.",
-      "Python Versioning & Automated Update Check pattern (PyPI JSON API + SharedPreferences Cache)."
+      "Python Versioning & Automated Update Check pattern (PyPI JSON API + SharedPreferences Cache).",
+      "JSON-Serialized SharedPreferences cho danh sách cấu hình động (Model Priority List)."
     ],
     "gotchas": [
       "Activity Destruction & Re-creation: State managed via remember { } is lost; must use ViewModel for persistence.",
@@ -98,7 +101,7 @@
       "YouTube-Transcript-Api v0.6.2+: 'fetch()' is the standard instance method for FetchedTranscript objects",
       "Gemini 2.5 Flash requires v1beta endpoint for advanced features",
       "Chaquopy JNI calls (Python blocks) must trigger on background thread (Dispatchers.IO) to avert ANR freezes.",
-      "Chaquopy Versioning: 17.0.1 is a DEV version in source but NOT yet published to Maven. Use 17.0.0 for stable production.",
+      "Chaquopy Versioning: 17.0.0 for stable production.",
       "Chaquopy Pip Dependencies: Transitive dependencies with C-extensions (like requests) often need explicit manual mapping in Gradle.",
       "Python urllib.request.urlopen: Yêu cầu timeout=10 để tránh treo thread vĩnh viễn (Thread Leak).",
       "Android setStreamVolume(80): Phương pháp xâm lấn, nên ưu tiên AudioFocus để hòa hợp với volume hệ thống.",
@@ -106,7 +109,8 @@
       "TTS isSpeaking Race Condition: Khi dùng QUEUE_ADD, 'tts.isSpeaking' có thể trả về false giữa hai utterance do khoảng nghỉ hệ thống. Giải pháp: Dùng bộ đếm AtomicInteger để quản lý số lượng chunk thực tế trong hàng đợi.",
       "TTS Pause vs Stop: `stop()` trong TTS API xoá sạch hàng đợi và status. Để Resume, phải tự lưu `totalSpokenLength` của các chunk đã xong và cộng với `currentIndex` của chunk hiện tại trước khi gọi `stop()`.",
       "Unit Testing JSON: `org.json.JSONObject` là thư viện của bộ Android SDK, sẽ bị throw 'Method not mocked' khi chạy Local JVM Test. Phải dùng `kotlinx.serialization` để thay thế nếu muốn test chạy ổn định không cần emulator.",
-      "Gemini 2.5 Flash v1beta generateContent API: Does NOT support 'thinkingConfig' parameter at root. Sending it will result in HTTP 400 Bad Request, which might be masked as Quota Exhausted by OkHttp catch-all clients."
+      "Gemini 2.5 Flash v1beta generateContent API: Does NOT support 'thinkingConfig' parameter at root. Sending it will result in HTTP 400 Bad Request.",
+      "Kotlin String Template ($) escaping in AI write_to_file tool: Cần cẩn thận tránh biến thành literal text khi ghi file Kotlin/Java."
     ]
   }
 }

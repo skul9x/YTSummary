@@ -1,5 +1,22 @@
 # Changelog - YouTube AI Summarizer (YTSummary)
 
+## [2026-03-25] - Custom Model Management (Model Priority) 🛠️🔄
+### Added
+- **ModelManager**: Created a dynamic model management system using SharedPreferences and JSON serialization. Supports CRUD, Reordering, and Reset to defaults.
+- **Dynamic Model Rotation**: Refactored `GeminiApiClient` to use `ModelManager`'s priority list instead of a hard-coded array.
+- **Model Priority UI**: Added a comprehensive "Model Priority" section in Settings screen:
+  - Add/Remove custom Gemini models (e.g., `models/gemini-2.0-flash-exp`).
+  - Drag-and-drop-like reordering (Move Up/Down) to set fallback sequence.
+  - **Test Button**: Interactive "Test" button per model with loading indicator and success/failure visual feedback (using 1-token dummy calls).
+  - **Reset to Defaults**: Quickly restore the 4 recommended models (Flash Lite -> Flash).
+
+### Changed
+- **Settings Architecture**: Refactored `SettingsScreen` to use a single `LazyColumn` for smoother scrolling and better handling of multiple configuration sections.
+- **API Injection**: Updated `SummarizationRepository` to inject `ModelManager` into the `GeminiApiClient` constructor.
+
+### Fixed
+- **String Template Escaping**: Resolved a bug where Kotlin string templates (`$index`, `$model`) were incorrectly escaped as literal text in the UI.
+
 ## [2026-03-25] - Early Warning System & UX Refinement 🚨📱
 ### Added
 - **MainScreen Update Banner**: Di chuyển thông báo cập nhật `youtube-transcript-api` từ Settings ra màn hình chính để dev dễ nhận biết (Early Warning).

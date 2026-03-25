@@ -31,7 +31,8 @@ class SummarizationRepository private constructor(context: Context) {
     private val pythonManager = com.skul9x.ytsummary.manager.PythonManager.getInstance(context)
     private val geminiApi = GeminiApiClient(
         apiKeyManager = com.skul9x.ytsummary.manager.ApiKeyManager.getInstance(context),
-        quotaManager = com.skul9x.ytsummary.manager.ModelQuotaManager.getInstance(context) // Fixed C1
+        quotaManager = com.skul9x.ytsummary.manager.ModelQuotaManager.getInstance(context),
+        modelManager = com.skul9x.ytsummary.manager.ModelManager.getInstance(context)
     )
 
     /**

@@ -18,13 +18,13 @@ Dự án đã được chuyển đổi hoàn toàn từ kiến trúc **Client-Se
    - Thư viện `youtube-transcript-api` chạy bằng local IP của thiết bị di động, bypass toàn bộ giới hạn của YouTube Data Center IPs (502 Gateway, IP Blocking).
 3. **AI Layer (Summarization):**
    - **Gemini API (v1beta)** gọi trực tiếp từ client qua `GeminiApiClient`.
-   - Model mặc định: `models/gemini-2.5-flash` và `models/gemini-2.5-flash-lite` (Ưu tiên bản 2.5 mới nhất).
-   - **Thinking Mode**: Đã vô hiệu hóa hoàn toàn bằng cách đặt `thinkingBudget = 0` ở root request để tối ưu tốc độ phản hồi (Latency reduction).
-   - Tránh giới hạn API (Quota) bằng hệ thống **Key Rotation** (Lưu trữ an toàn tại `EncryptedSharedPreferences`).
+   - **Custom Model Management**: Người dùng tự định nghĩa danh sách model (Dynamic Model Priority) qua `ModelManager`.
+   - **Key Rotation**: Tránh giới hạn API (Quota) bằng cơ chế xoay tua key trên từng model ưu tiên.
+   - **Thinking Mode**: Đã vô hiệu hóa hoàn toàn bằng cách đặt `thinkingBudget = 0` ở root request để tối ưu tốc độ phản hồi.
 4. **Performance Optimization (Audit v4.2.0):**
    - **Pipeline**: Stream Processing (SSE) -> StringBuilder Buffer -> Sentence Detect -> TSS speakChunk.
    - **Cold Start**: Python Warm-up (Background initialization).
-   - **TTS Synchronization**: Đồng bộ hóa trạng thái engine với UI qua callback và bộ đếm hàng đợi (Atomic counter), khắc phục hiện tượng delay giữa các đoạn văn.
+   - **TTS Synchronization**: Đồng đồng bộ hóa trạng thái engine với UI qua callback và bộ đếm hàng đợi (Atomic counter).
    - **Audio UX**: AudioFocus Ducking (Best practice).
 5. **Data Layer (Storage):**
    - Database: **Room** + **SQLCipher** (Mã hóa toàn bộ file `.db`).
@@ -37,7 +37,7 @@ Dự án đã được chuyển đổi hoàn toàn từ kiến trúc **Client-Se
 ## 🚀 Key Differences (Pre-Migration vs Post-Migration)
 - Không còn REST API gọi qua Railway server.
 - Không chịu phí backend server duy trì liên tục.
-- Yêu cầu ứng dụng Android build to hơn (chứa môi trường Python x86_64, arm64-v8a). Tiết kiệm chi phí ở quy mô người dùng lớn.
+- Yêu cầu ứng dụng Android build to hơn. Tiết kiệm chi phí ở quy mô người dùng lớn.
 
 ## 📦 Tech Stack
 | Tier | Technology |

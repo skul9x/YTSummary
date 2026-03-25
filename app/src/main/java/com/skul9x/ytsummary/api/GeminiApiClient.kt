@@ -6,6 +6,7 @@ import com.skul9x.ytsummary.api.gemini.GeminiPrompts
 import com.skul9x.ytsummary.api.gemini.GeminiResponseHelper
 import com.skul9x.ytsummary.di.NetworkModule
 import com.skul9x.ytsummary.manager.ApiKeyManager
+import com.skul9x.ytsummary.manager.ModelManager
 import com.skul9x.ytsummary.manager.ModelQuotaManager
 import com.skul9x.ytsummary.model.AiResult
 import kotlinx.coroutines.Dispatchers
@@ -23,13 +24,11 @@ import java.io.IOException
 class GeminiApiClient(
     private val apiKeyManager: ApiKeyManager,
     private val quotaManager: ModelQuotaManager,
+    private val modelManager: ModelManager,
     private val client: OkHttpClient = NetworkModule.okHttpClient,
     private val baseUrl: String = BASE_URL
 ) {
 
-    /**
-     * Tóm tắt transcript với cơ chế xoay tua Key.
-     */
     /**
      * Tóm tắt transcript với cơ chế xoay tua Key và Streaming (SSE).
      */
@@ -44,7 +43,9 @@ class GeminiApiClient(
         val requestBodyJson = GeminiResponseHelper.buildRequestBody(prompt)
         Log.d(TAG, "Starting streaming rotation...")
 
-        for (model in MODELS) {
+        val activeModels = modelManager.getModels()
+
+        for (model in activeModels) {
             for (apiKey in keys) {
                 if (!quotaManager.isAvailable(model, apiKey)) continue
 
@@ -53,7 +54,7 @@ class GeminiApiClient(
                 
                 try {
                     val request = Request.Builder()
-                        .url("$BASE_URL/$model:streamGenerateContent?alt=sse")
+                        .url("$baseUrl/$model:streamGenerateContent?alt=sse")
                         .header("x-goog-api-key", apiKey)
                         .post(requestBodyJson.toRequestBody("application/json".toMediaType()))
                         .build()
@@ -116,12 +117,5 @@ class GeminiApiClient(
     companion object {
         private const val TAG = "GeminiApiClient"
         private const val BASE_URL = "https://generativelanguage.googleapis.com/v1beta"
-
-        val MODELS = listOf(
-            "models/gemini-3.1-flash-lite-preview",
-            "models/gemini-3-flash-preview",
-            "models/gemini-2.5-flash-lite",
-            "models/gemini-2.5-flash"
-        )
     }
 }
