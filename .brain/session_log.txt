@@ -80,3 +80,5 @@ Status: READY FOR PHASE 05 (DEPLOYMENT).
 [01:50] END phase-03-test ✅
 [01:50] ALL PHASES COMPLETE! v4.3.0 Ready.
 [02:22] DONE Task: Fixed Gemini 2.5 Flash AllQuotaExhausted bug (caused by HTTP 400 with thinkingConfig). Removed thinkingConfig from GeminiResponseHelper.
+2026-03-25 19:23:41 - Task: Di chuyển banner cập nhật youtube-transcript-api sang HomeScreen. Trạng thái: HOÀN THÀNH. File sửa: [SummaryViewModel.kt, MainActivity.kt, SettingsScreen.kt]. Mục tiêu: Tăng tính chủ động thông báo cho dev (Early Warning).
+2026-03-25 19:30:00 - Task: Implement Python update system notification. Status: DONE. Fixed 4 phases of implementation_plan.

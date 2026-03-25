@@ -1,22 +1,32 @@
 {
-  "updated_at": "2026-03-25T01:49:00Z",
+  "updated_at": "2026-03-25T19:25:00Z",
   "working_on": {
-    "feature": "Gemini 2.5 Flash Migration & Thinking Disable",
-    "current_plan_path": "plans/260325-0145-gemini-thinking-update/",
-    "current_phase": "phase-03",
-    "task": "Completed all testing",
+    "feature": "Python Update Notification Migration",
+    "current_plan_path": "plans/update_banner_migration_todo.md",
+    "current_phase": "Phase 04",
+    "task": "Completed migration and verification",
     "status": "DONE",
     "files": [
-      "GeminiResponseHelper.kt",
-      "GeminiApiClient.kt",
-      "GeminiResponseHelperTest.kt"
+      "SummaryViewModel.kt",
+      "MainActivity.kt",
+      "SettingsScreen.kt"
     ]
   },
   "pending_tasks": [
-    { "task": "🟢 LOW: Fix final flaky assertion in PythonUpdateCheckerTest (Singleton conflict) - Partially resolved by fixing JSON mock issues", "priority": "low" },
-    { "task": "Future: Migrate off Chaquopy to drop 2.5s overhead", "priority": "medium" }
+    { "task": "Future: Migrate off Chaquopy to drop 2.5s overhead", "priority": "medium" },
+    { "task": "Improve Update UI: Add 'Update Now' button that opens a guide or deep link if possible", "priority": "low" }
   ],
   "recent_changes": [
+    {
+      "timestamp": "2026-03-25T19:25:00Z",
+      "type": "ux_refinement",
+      "description": "Moved youtube-transcript-api update banner from Settings to MainScreen for better visibility. Integrated check into SummaryViewModel init.",
+      "files": [
+        "SummaryViewModel.kt",
+        "MainActivity.kt",
+        "SettingsScreen.kt"
+      ]
+    },
     {
       "timestamp": "2026-03-25T01:49:00Z",
       "type": "migration",
@@ -26,50 +36,18 @@
         "GeminiApiClient.kt",
         "GeminiResponseHelperTest.kt"
       ]
-    },
-    {
-      "timestamp": "2026-03-25T02:22:00Z",
-      "type": "bugfix",
-      "description": "Removed thinkingConfig from GeminiResponseHelper to fix HTTP 400 Bad Request error masquerading as QuotaExhausted on Gemini 2.5 Flash.",
-      "files": [
-        "GeminiResponseHelper.kt"
-      ]
-    },
-    {
-      "timestamp": "2026-03-25T01:30:00Z",
-      "type": "security",
-      "description": "Implemented Network Security hardening (cleartext traffic disabled) and strict input validation via Regex.",
-      "files": [
-        "AndroidManifest.xml",
-        "SummaryViewModel.kt"
-      ]
-    },
-    {
-      "timestamp": "2026-03-25T01:22:00Z",
-      "type": "bugfix",
-      "description": "Stabilized PythonUpdateCheckerTest by migrating from org.json to kotlinx.serialization for JVM compatibility.",
-      "files": [
-        "PythonUpdateChecker.kt",
-        "PythonUpdateCheckerTest.kt"
-      ]
     }
   ],
   "errors_encountered": [
     {
-      "error": "Method getJSONObject in org.json.JSONObject not mocked (JVM Test error)",
-      "solution": "Replaced Android-bounded org.json with pure Kotlin kotlinx.serialization library.",
+      "error": "Banner not showing up in trial run",
+      "solution": "Ensured updateInfo is collected as state in MainActivity and passed down to MainScreen component.",
       "resolved": true,
-      "file": "PythonUpdateCheckerTest.kt"
-    },
-    {
-      "error": "Status: AllQuotaExhausted on Gemini 2.5 Flash",
-      "solution": "Root cause was HTTP 400 due to invalid 'thinkingConfig' param. Removed the field from GeminiResponseHelper.kt.",
-      "resolved": true,
-      "file": "GeminiResponseHelper.kt"
+      "file": "MainActivity.kt"
     }
   ],
   "decisions_made": [
-    { "decision": "Enforce HTTPS globally", "reason": "Prevent API Key leakage over insecure Wi-Fi channels." },
-    { "decision": "Strict VideoID Filtering at ViewModel level", "reason": "Reduce unnecessary Python/AI triggers for garbage input, improving UX and resource consumption." }
+    { "decision": "Move Update Notification to MainScreen", "reason": "Ensure developers see library update warnings immediately without checking settings." },
+    { "decision": "Run update check in ViewModel init", "reason": "Trigger background check as soon as app starts for proactive warning." }
   ]
 }

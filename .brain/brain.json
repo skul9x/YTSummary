@@ -60,7 +60,9 @@
     "TTS Pause/Resume smart bookmarking (Saves read position index)",
     "Gemini 2.5 Flash Migration (Prioritizes 2.5 models without thinkingConfig over deprecated 2.0)",
     "Strict Regex input validation (ViewModel-level guard)",
-    "Security Hardening (HTTPS only globally)"
+    "Security Hardening (HTTPS only globally)",
+    "Hệ thống Early Warning (Tự động thông báo có bản cập nhật youtube-transcript-api tại MainScreen)",
+    "Logic Caching 24h (Kiểm tra cập nhật thư viện Python tiết kiệm network)"
   ],
   "knowledge_items": {
     "patterns": [
@@ -84,7 +86,8 @@
       "Multi-layered TTS Bookmarking (Manager -> ViewModel -> UI persistency)",
       "Absolute Character-Based TTS Tracking (totalSpokenLength + relativeIndex)",
       "Cross-platform Serialization with kotlinx.serialization for JVM/Android compatibility",
-      "API Error Mapping: Avoid catch-all generic exceptions that mask real HTTP 400 Bad Request errors into 429 logic."
+      "API Error Mapping: Avoid catch-all generic exceptions that mask real HTTP 400 Bad Request errors into 429 logic.",
+      "Python Versioning & Automated Update Check pattern (PyPI JSON API + SharedPreferences Cache)."
     ],
     "gotchas": [
       "Activity Destruction & Re-creation: State managed via remember { } is lost; must use ViewModel for persistence.",

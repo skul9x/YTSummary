@@ -1,6 +1,12 @@
 # System Overview - YTSummary
 *Updated: 2026-03-25*
 
+## 🔄 Update Mechanism (Early Warning System)
+Để duy trì tính ổn định của việc lấy transcript (do YouTube thường xuyên đổi cấu trúc), hệ thống tích hợp:
+1. **PythonUpdateChecker**: Tự động gọi PyPI API (JSON endpoint) sau mỗi 24 giờ (có caching locally).
+2. **MainScreen Notification**: Hiển thị Banner cảnh báo cập nhật trực tiếp tại màn hình chính nếu phiên bản `youtube-transcript-api` trong máy thấp hơn phiên bản trên PyPI.
+3. **Manual Trigger**: Dev cập nhật phiên bản tại `app/build.gradle.kts` (khối `chaquopy.pip`) và thực hiện Gradle Sync.
+
 ## 🏛️ Architecture: Standalone Mobile Client
 Dự án đã được chuyển đổi hoàn toàn từ kiến trúc **Client-Server** (sử dụng FastAPI trên Railway) sang **Standalone Client**.
 

@@ -3,6 +3,7 @@ package com.skul9x.ytsummary.ui
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.skul9x.ytsummary.manager.PythonUpdateChecker
 import com.skul9x.ytsummary.model.AiResult
 import com.skul9x.ytsummary.repository.SummarizationRepository
 import kotlinx.coroutines.Job
@@ -23,6 +24,10 @@ sealed class ScreenState {
 class SummaryViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository = SummarizationRepository.getInstance(application)
+
+    // --- API & Updates State ---
+    private val _updateInfo = MutableStateFlow<PythonUpdateChecker.UpdateInfo?>(null)
+    val updateInfo: StateFlow<PythonUpdateChecker.UpdateInfo?> = _updateInfo.asStateFlow()
 
     // --- UI State ---
     private val _screenState = MutableStateFlow<ScreenState>(ScreenState.Main)
@@ -45,6 +50,20 @@ class SummaryViewModel(application: Application) : AndroidViewModel(application)
     private var ttsPausedIndex = 0
 
     private var summaryJob: Job? = null
+
+    init {
+        viewModelScope.launch {
+            val info = PythonUpdateChecker.checkForUpdate(application)
+            _updateInfo.value = info
+            info?.let {
+                com.skul9x.ytsummary.manager.NotificationHelper.showUpdateNotification(
+                    application,
+                    it.currentVersion,
+                    it.latestVersion
+                )
+            }
+        }
+    }
 
     fun summarize(url: String) {
         val videoId = extractVideoId(url)

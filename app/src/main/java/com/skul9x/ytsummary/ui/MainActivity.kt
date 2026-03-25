@@ -28,6 +28,8 @@ import com.skul9x.ytsummary.model.AiResult
 import com.skul9x.ytsummary.repository.SummarizationRepository
 import com.skul9x.ytsummary.ui.components.GlassCard
 import com.skul9x.ytsummary.ui.components.NeonGlassCard
+import com.skul9x.ytsummary.ui.components.PythonUpdateBanner
+import com.skul9x.ytsummary.manager.PythonUpdateChecker
 import com.skul9x.ytsummary.ui.theme.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.async
@@ -56,9 +58,30 @@ class MainActivity : ComponentActivity() {
             }
         )
 
+        com.skul9x.ytsummary.manager.NotificationHelper.createChannel(this)
+
         setContent {
             YTSummaryTheme {
                 val viewModel: SummaryViewModel = viewModel()
+                
+                // Xin quyền Notification (Android 13+)
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                    val permissionLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
+                        contract = androidx.activity.result.contract.ActivityResultContracts.RequestPermission()
+                    ) { _ ->
+                        // Xử lý sau khi xin quyền (nếu cần)
+                    }
+                    
+                    LaunchedEffect(Unit) {
+                        if (androidx.core.content.ContextCompat.checkSelfPermission(
+                                this@MainActivity,
+                                android.Manifest.permission.POST_NOTIFICATIONS
+                            ) != android.content.pm.PackageManager.PERMISSION_GRANTED
+                        ) {
+                            permissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+                        }
+                    }
+                }
                 
                 // Gán callback để TtsManager có thể báo ngược lại ViewModel
                 DisposableEffect(Unit) {
@@ -72,6 +95,7 @@ class MainActivity : ComponentActivity() {
                 val videoTitle by viewModel.videoTitle.collectAsState()
                 val thumbnailUrl by viewModel.thumbnailUrl.collectAsState()
                 val isTtsPlaying by viewModel.isTtsPlaying.collectAsState()
+                val updateInfo by viewModel.updateInfo.collectAsState()
 
                 // Auto-Read Observer: đọc toàn bộ text từ đầu khi summary hoàn tất
                 val autoRead by viewModel.autoReadPending.collectAsState()
@@ -115,6 +139,7 @@ class MainActivity : ComponentActivity() {
                 when (val state = screenState) {
                     is ScreenState.Main -> MainScreen(
                         summaryCount = historyCount,
+                        updateInfo = updateInfo,
                         onSettingsClick = { viewModel.navigateTo(ScreenState.Settings) },
                         onSummaryRequest = { viewModel.summarize(it) },
                         onHistoryClick = { viewModel.navigateTo(ScreenState.History) }
@@ -223,6 +248,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MainScreen(
     summaryCount: Int,
+    updateInfo: PythonUpdateChecker.UpdateInfo?,
     onSettingsClick: () -> Unit,
     onHistoryClick: () -> Unit,
     onSummaryRequest: (String) -> Unit
@@ -286,7 +312,11 @@ fun MainScreen(
                 }
             }
             
-            Spacer(modifier = Modifier.height(60.dp))
+            Spacer(modifier = Modifier.height(24.dp))
+            
+            PythonUpdateBanner(updateInfo = updateInfo)
+            
+            Spacer(modifier = Modifier.height(16.dp))
             
             // Hero
             Text(text = "Summarize fast.", style = MaterialTheme.typography.displayLarge.copy(lineHeight = 40.sp), color = TextPrimary)

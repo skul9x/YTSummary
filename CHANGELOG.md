@@ -1,5 +1,13 @@
 # Changelog - YouTube AI Summarizer (YTSummary)
 
+## [2026-03-25] - Early Warning System & UX Refinement 🚨📱
+### Added
+- **MainScreen Update Banner**: Di chuyển thông báo cập nhật `youtube-transcript-api` từ Settings ra màn hình chính để dev dễ nhận biết (Early Warning).
+- **Automated Update Check**: Tích hợp logic kiểm tra phiên bản vào `init` block của `SummaryViewModel` (gọi ngay khi app start).
+
+### Changed
+- **Settings Cleanup**: Loại bỏ logic check update và banner cũ tại màn hình Settings để tối ưu UX.
+
 ## [2026-03-25] - Gemini 2.5 Flash Migration & Thinking Disable 🚀⚡
 ### Added
 - **Gemini 2.5 Flash Migration**: Cập nhật toàn bộ hệ thống để ưu tiên sử dụng `models/gemini-2.5-flash` và `models/gemini-2.5-flash-lite`.

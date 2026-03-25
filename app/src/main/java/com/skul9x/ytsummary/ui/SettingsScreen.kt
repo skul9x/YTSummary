@@ -21,9 +21,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.skul9x.ytsummary.manager.ApiKeyManager
-import com.skul9x.ytsummary.manager.PythonUpdateChecker
 import com.skul9x.ytsummary.ui.components.GlassCard
-import com.skul9x.ytsummary.ui.components.PythonUpdateBanner
 import com.skul9x.ytsummary.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -36,13 +34,6 @@ fun SettingsScreen(onBack: () -> Unit) {
     var apiKeys by remember { mutableStateOf(apiKeyManager.getApiKeys()) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     
-    // Python Library Update Check
-    var updateInfo by remember { mutableStateOf<PythonUpdateChecker.UpdateInfo?>(null) }
-
-    LaunchedEffect(Unit) {
-        updateInfo = PythonUpdateChecker.checkForUpdate(context)
-    }
-
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -73,9 +64,6 @@ fun SettingsScreen(onBack: () -> Unit) {
             }
 
             Spacer(modifier = Modifier.height(32.dp))
-
-            // Python Library Update Banner (auto-hide nếu không có update)
-            PythonUpdateBanner(updateInfo = updateInfo)
 
             // Add Key Input Section
             Text(
