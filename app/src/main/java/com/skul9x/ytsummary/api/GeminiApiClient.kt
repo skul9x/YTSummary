@@ -118,9 +118,10 @@ class GeminiApiClient(
         private const val BASE_URL = "https://generativelanguage.googleapis.com/v1beta"
 
         val MODELS = listOf(
-            "models/gemini-2.5-flash",       // Sức mạnh mới nhất, lý tưởng nhất khi đã tắt Thinking budget
-            "models/gemini-2.5-flash-lite",  // Tiết kiệm và nhanh chóng
-            "models/gemini-3-flash-preview"  // Dự phòng
+            "models/gemini-3.1-flash-lite-preview",
+            "models/gemini-3-flash-preview",
+            "models/gemini-2.5-flash-lite",
+            "models/gemini-2.5-flash"
         )
     }
 }
