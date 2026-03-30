@@ -59,12 +59,12 @@ object GeminiResponseHelper {
                 val isThought = partObj["thought"]?.jsonPrimitive?.booleanOrNull == true
                 if (!isThought) {
                     val text = partObj["text"]?.jsonPrimitive?.content
-                    if (!text.isNullOrBlank()) {
+                    if (!text.isNullOrEmpty()) {
                         result.append(text)
                     }
                 }
             }
-            result.toString().trim()
+            result.toString()
         } catch (e: Exception) {
             Log.e(TAG, "Error extracting text from response", e)
             ""
