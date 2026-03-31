@@ -1,5 +1,33 @@
 # Changelog - YouTube AI Summarizer (YTSummary)
 
+## [2026-03-31] - UI & State Optimization (Phase 05 - Final) 🚀🎨
+### Added
+- **Unified UI State**: Created `UiState` data class in `SummaryViewModel` to group 6 individual StateFlows into a single reactive stream using `combine`.
+- **Smart Image Caching**: Integrated `coil.request.ImageRequest` with `CachePolicy.ENABLED` for `AsyncImage` across `SummaryScreen` and `HistoryScreen`, ensuring instant thumbnail loads from memory/disk.
+
+### Changed
+- **Single Collection Pattern**: Refactored `MainActivity` to use a single `uiState` collection instead of multiple `collectAsState` calls, drastically reducing unnecessary recompositions and improving UI smoothness (vibe coding).
+- **Gradle Verification**: Verified codebase stability through a successful full build (`assembleDebug`) and all unit tests passing.
+
+### Fixed
+- **StateFlow Combine Logic**: Fixed a compilation error when combining more than 5 flows by switching to the array-based `combine` overload in `SummaryViewModel`.
+- **GeminiResponseHelperTest**: Updated failing unit test to match the recent removal of `thinkingConfig` (legacy AI feature), restoring 100% test pass rate.
+- **AI Summary Formatting**: Corrected a bug where spaces were missing between streaming chunks (e.g., "thi đấuvì danh dự") by removing premature `.trim()` and enhancing `isNullOrEmpty` checks during extraction.
+
+
+## [2026-03-31] - Performance Optimization (Phase 01-04) 🏎️⚡
+### Added
+- **Transcript Context Cache**: Created `TranscriptCache.kt` to store YouTube transcripts on the filesystem with a 24-hour TTL, drastically reducing wait times (3-10s) for re-summarization.
+- **Network Resilience Layer**: Implemented `RetryInterceptor.kt` with **Exponential Backoff** (3 retries: 1s -> 2s -> 4s) to handle transient network failures and 5xx server errors gracefully.
+- **OkHttp Cache & Pool**: Enabled a 10MB HTTP cache and optimized the `ConnectionPool` (10 connections, 5-minute keep-alive) in `NetworkModule.kt` for faster API responsiveness.
+- **Custom Unit Tests**: Added `TranscriptCacheTest.kt` and `RetryInterceptorTest.kt` using `MockWebServer` and `MockK` to verify persistence and retry logic.
+
+### Changed
+- **Python Bridge Optimization**: Pre-cached `PyObject` keys in `PythonManager.kt` to reduce memory pressure and GC cycles during Chaquopy JNI calls (Phase 03).
+- **Extended Read Timeouts**: Increased API timeouts to 60 seconds to support large transcripts and complex AI generation without premature connection drops.
+- **Application Lifecycle**: Integrated `NetworkModule.initialize(this)` into `YTSummaryApplication` for early and consistent network layer setup.
+
+
 ## [2026-03-25] - Custom Model Management (Model Priority) 🛠️🔄
 ### Added
 - **ModelManager**: Created a dynamic model management system using SharedPreferences and JSON serialization. Supports CRUD, Reordering, and Reset to defaults.

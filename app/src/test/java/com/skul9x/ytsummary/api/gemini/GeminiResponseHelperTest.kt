@@ -9,15 +9,16 @@ class GeminiResponseHelperTest {
 
 /*
     @Test
-    fun testBuildRequestBody_includesThinkingConfigAtRoot() {
+    fun testBuildRequestBody_basicStructure() {
         val prompt = "Test prompt"
         val jsonString = GeminiResponseHelper.buildRequestBody(prompt)
         val json = Json.parseToJsonElement(jsonString).jsonObject
 
-        // Note: Currently buildRequestBody does not include thinkingConfig. 
-        // We will adjust this test to reflect the current implementation.
-        val generationConfig = json["generationConfig"]?.jsonObject
-        assertNotNull("generationConfig should exist", generationConfig)
+        // 1. Kiểm tra cấu trúc contents
+        val contents = json["contents"]?.jsonArray
+        assertNotNull("contents should exist", contents)
+        val firstPart = contents?.get(0)?.jsonObject?.get("parts")?.jsonArray?.get(0)?.jsonObject
+        assertEquals("Prompt should match", prompt, firstPart?.get("text")?.jsonPrimitive?.content)
     }
 */
 
@@ -63,7 +64,7 @@ class GeminiResponseHelperTest {
                             {"text": "A"},
                             {"text": " B"}
                         ]
-                    }
+                            }
                 }]
             }
         """.trimIndent()

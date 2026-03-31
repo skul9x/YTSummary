@@ -113,6 +113,11 @@ dependencies {
     // Room
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
+    implementation(libs.room.paging)
     ksp(libs.room.compiler)
     implementation(libs.sqlcipher)
+
+    // Paging
+    implementation(libs.paging.runtime)
+    implementation(libs.paging.compose)
 }

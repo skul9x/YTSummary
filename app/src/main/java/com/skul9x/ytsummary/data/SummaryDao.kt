@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.Flow
 interface SummaryDao {
 
     @Query("SELECT * FROM summaries ORDER BY timestamp DESC")
-    fun getAllSummaries(): Flow<List<SummaryEntity>>
+    fun getAllSummaries(): androidx.paging.PagingSource<Int, SummaryEntity>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertSummary(summary: SummaryEntity)
@@ -20,6 +20,9 @@ interface SummaryDao {
 
     @Query("SELECT * FROM summaries WHERE videoId = :videoId LIMIT 1")
     suspend fun getSummaryById(videoId: String): SummaryEntity?
+
+    @Query("SELECT COUNT(*) FROM summaries")
+    fun getSummaryCount(): kotlinx.coroutines.flow.Flow<Int>
 
     @Query("DELETE FROM summaries")
     suspend fun clearHistory()

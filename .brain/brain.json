@@ -1,116 +1,89 @@
 {
   "meta": {
     "schema_version": "1.1.0",
-    "awf_version": "4.2.0",
-    "last_audit": "2026-03-25"
+    "awf_version": "3.3.0"
   },
   "project": {
     "name": "YTSummary",
-    "type": "AI Summarizer (Android + Local Python)",
-    "status": "production_ready"
+    "type": "Android App",
+    "status": "Performance Optimized (v4.4.0)"
   },
   "tech_stack": {
     "frontend": {
-      "language": "Kotlin",
       "framework": "Jetpack Compose",
-      "architecture": "MVVM (ViewModel + Flow + StateFlow)",
-      "database": "Room + SQLCipher (Encrypted)",
-      "network": "OkHttp (Gemini calls)"
+      "language": "Kotlin"
     },
-    "core": {
-      "framework": "Chaquopy 17.0.0 (Local Python Backend)",
-      "python_version": "3.11",
-      "libs": ["youtube-transcript-api", "requests", "urllib", "defusedxml"],
-      "status": "ACTIVE"
+    "backend": {
+      "bridge": "Chaquopy",
+      "language": "Python"
     },
-    "security": {
-      "cleartext": "DISABLED (usesCleartextTraffic=false)",
-      "encryption": "SQLCipher (DB) + EncryptedSharedPreferences (Keys)",
-      "validation": "Strict Regex for VideoID & API Keys"
+    "database": {
+      "framework": "Room SQLite"
+    },
+    "network": {
+      "frameworks": [
+        "OkHttp (with Cache & Retry)",
+        "Retrofit",
+        "Gemini API"
+      ],
+      "features": [
+        "Exponential Backoff",
+        "Connection Pooling",
+        "JSON-over-SSE Streaming"
+      ]
     }
   },
+  "database_schema": {
+    "summary": "App lưu: lịch sử tóm tắt video YouTube",
+    "tables": [
+      {
+        "name": "summaries",
+        "columns": [
+          "id",
+          "videoId",
+          "title",
+          "thumbnailUrl",
+          "summaryText",
+          "timestamp"
+        ]
+      }
+    ],
+    "relationships_explained": "Các video được lưu độc lập kèm theo thời gian lưu để hiện vào màn hình History."
+  },
   "api_endpoints": [
-    { "path": "Android Share Intent", "desc": "Intercept ACTION_SEND intent text/plain directly from OS to extract Youtube URI" },
-    { "path": "Local Call", "desc": "Metadata fetch via Python oEmbed" },
-    { "path": "Local Call", "desc": "Transcript fetch via Python with multi-language support (vi/en)" },
-    { "path": "Gemini API", "desc": "Summarization via dyamic models from ModelManager (Model-First Key Rotation)" },
-    { "path": "Gemini Streaming", "desc": "SSE Streaming via streamGenerateContent?alt=sse for jumping text UX" },
-    { "path": "Auto-TTS Call", "desc": "Triggered once when full summary finishes to avoid chunk overwriting issues" }
+    {
+      "path": "Gemini API",
+      "explained": "Gửi transcript lên LLM Gemini để lấy bản tóm tắt markdown"
+    }
   ],
-  "security_rules": [
-    "Gemini API Keys must be sent via Headers, NEVER URLs",
-    "Local transcript fetching bypasses Data Center IP blocking",
-    "Database must be encrypted with SQLCipher",
-    "Production error messages sanitized",
-    "Main thread strictly protected from Python JNI/IO using Coroutine Dispatchers",
-    "Coroutine ensureActive() after Python calls to prevent stale processing",
-    "Cleartext traffic (HTTP) is disabled globally in Manifest"
+  "business_rules": [
+    "Sử dụng Python (qua Chaquopy) để tải transcript trực tiếp từ YouTube",
+    "Cache lại transcript để không cần tải lại nếu summary lại cùng video",
+    "Lưu lại lịch sử để xem lại hoặc phát âm thanh Text-To-Speech"
   ],
   "features": [
-    "Tích hợp Share Intent (Chia sẻ YouTube sang YTSummary 1-click & Auto-TTS)",
-    "Trích xuất Subtitle Cục bộ (Local Fetch bằng Chaquopy)",
-    "Tóm tắt thông minh bằng Gemini (Tư duy sâu hoặc tốc độ cao tùy model)",
-    "Quản lý Khóa API (Tự quét Regex từ bộ nhớ tạm)",
-    "Lưu trữ đám mây an toàn bằng Room + SQLCipher",
-    "Tối ưu hóa chạy song song cho Metadata và Summary",
-    "Biểu tượng thích ứng (Adaptive Launcher Icon với Vector Drawable)",
-    "Hệ thống AudioFocus Ducking (Hồi âm lượng nhạc khi AI đọc)",
-    "Tối ưu hóa khởi động Python (Warm-up background khởi chạy sớm)",
-    "ViewModel state management (Saves progress on screen rotation)",
-    "TTS Pause/Resume smart bookmarking (Saves read position index)",
-    "Gemini 2.5 Flash Migration (Prioritizes 2.5 models without thinkingConfig over deprecated 2.0)",
-    "Strict Regex input validation (ViewModel-level guard)",
-    "Security Hardening (HTTPS only globally)",
-    "Hệ thống Early Warning (Tự động thông báo có bản cập nhật youtube-transcript-api tại MainScreen)",
-    "Logic Caching 24h (Kiểm tra cập nhật thư viện Python tiết kiệm network)",
-    "Custom Model Management (Thay đổi thứ tự ưu tiên & Fallback model linh hoạt)",
-    "Hệ thống Kiểm thử Model thực tế (Nút Test gọi 1-token dummy payload)"
+    "Summarize YouTube Video via link",
+    "History (Lịch sử video đã tóm tắt)",
+    "TTS (Đọc to văn bản tóm tắt)"
   ],
   "knowledge_items": {
     "patterns": [
-      "MVVM Architecture with AndroidViewModel for persistence",
-      "StateFlow for reactive UI updates in Jetpack Compose",
-      "Centralized BackHandler pattern for ScreenState-based navigation",
-      "Key Rotation Strategy for Gemini API (Model-First Key Persistence)",
-      "Encrypted Room Database with SupportFactory",
-      "Standalone Local Python Architecture (Chaquopy integration)",
-      "Double-Checked Locking Singleton Pattern in Kotlin Managers",
-      "Kotlin Coroutines Async/Await for parallel Data Fetching",
-      "Activity onNewIntent Lifecycle Intercepts with MutableStateFlow",
-      "Vector Drawable layering (Background + Foreground) for Adaptive Icons",
-      "Cache-First Strategy (SQLite check before Network/AI triggers)",
-      "SSE Streaming with OkHttp source().readUtf8Line()",
-      "TTS Sentence detection & Queue-Add Chunking for real-time speech",
-      "Android AudioFocus Management (Ducking best practice)",
-      "Python Runtime Background Warm-up Strategy",
-      "StringBuilder for SSE Streaming Buffering (O(N2) minimization)",
-      "Coroutine Guard: currentCoroutineContext().ensureActive() after JNI/Blocking calls",
-      "Multi-layered TTS Bookmarking (Manager -> ViewModel -> UI persistency)",
-      "Absolute Character-Based TTS Tracking (totalSpokenLength + relativeIndex)",
-      "Cross-platform Serialization with kotlinx.serialization for JVM/Android compatibility",
-      "API Error Mapping: Avoid catch-all generic exceptions that mask real HTTP 400 Bad Request errors into 429 logic.",
-      "Python Versioning & Automated Update Check pattern (PyPI JSON API + SharedPreferences Cache).",
-      "JSON-Serialized SharedPreferences cho danh sách cấu hình động (Model Priority List)."
+      "Repository pattern",
+      "MVVM",
+      "Flow/StateFlow for reactive UI",
+      "Single UI State Pattern (UiState combine)",
+      "Coil optimized image caching",
+      "Paging 3 with Room PagingSource for memory efficiency"
     ],
     "gotchas": [
-      "Activity Destruction & Re-creation: State managed via remember { } is lost; must use ViewModel for persistence.",
-      "System Back Gesture: Bypasses manual ScreenState variables unless intercepted by BackHandler(enabled=true).",
-      "Chaquopy JNI Interruption: Coroutine cancellation does NOT stop Python threads; must manually check state after Python return.",
-      "Share Intent Background Resumé: Must use launchMode=singleTop to prevent instantiating new processes.",
-      "Railway 502/IP Blocking: Resolved by moving to Local IP via Chaquopy",
-      "YouTube-Transcript-Api v0.6.2+: 'fetch()' is the standard instance method for FetchedTranscript objects",
-      "Gemini 2.5 Flash requires v1beta endpoint for advanced features",
-      "Chaquopy JNI calls (Python blocks) must trigger on background thread (Dispatchers.IO) to avert ANR freezes.",
-      "Chaquopy Versioning: 17.0.0 for stable production.",
-      "Chaquopy Pip Dependencies: Transitive dependencies with C-extensions (like requests) often need explicit manual mapping in Gradle.",
-      "Python urllib.request.urlopen: Yêu cầu timeout=10 để tránh treo thread vĩnh viễn (Thread Leak).",
-      "Android setStreamVolume(80): Phương pháp xâm lấn, nên ưu tiên AudioFocus để hòa hợp với volume hệ thống.",
-      "MockK vs OkHttp 4.12+: Mocking 'any<Request>()' trực tiếp có thể gây RuntimeException, nên ưu tiên dùng MockWebServer.",
-      "TTS isSpeaking Race Condition: Khi dùng QUEUE_ADD, 'tts.isSpeaking' có thể trả về false giữa hai utterance do khoảng nghỉ hệ thống. Giải pháp: Dùng bộ đếm AtomicInteger để quản lý số lượng chunk thực tế trong hàng đợi.",
-      "TTS Pause vs Stop: `stop()` trong TTS API xoá sạch hàng đợi và status. Để Resume, phải tự lưu `totalSpokenLength` của các chunk đã xong và cộng với `currentIndex` của chunk hiện tại trước khi gọi `stop()`.",
-      "Unit Testing JSON: `org.json.JSONObject` là thư viện của bộ Android SDK, sẽ bị throw 'Method not mocked' khi chạy Local JVM Test. Phải dùng `kotlinx.serialization` để thay thế nếu muốn test chạy ổn định không cần emulator.",
-      "Gemini 2.5 Flash v1beta generateContent API: Does NOT support 'thinkingConfig' parameter at root. Sending it will result in HTTP 400 Bad Request.",
-      "Kotlin String Template ($) escaping in AI write_to_file tool: Cần cẩn thận tránh biến thành literal text khi ghi file Kotlin/Java."
+      "Tránh gọi Python startup trên Main Thread vì gây giật app 2-5s (cold start)",
+      "Quá nhiều collectAsState riêng lẻ làm màn hình Compose bị render lại (recompose) liên tục",
+      "Truy vấn Database lớn không dùng Pagination và thiếu Index sẽ làm app đứng hình",
+      "Retry mạng quá nhiều trên lỗi 429 sẽ block model rotation (phải trả về ngay ở tầng Interceptor)",
+      "Streaming dữ liệu từ AI: Luôn để nguyên khoảng trắng trong mỗi mẩu tin (chunk); tránh dùng .trim() khi ghép mẩu tin vì sẽ làm mất dấu cách giữa các phần tử."
+    ],
+    "conventions": [
+      "Dùng Coroutines cho tác vụ bất đồng bộ (Dispatchers.IO/Default)"
     ]
   }
 }

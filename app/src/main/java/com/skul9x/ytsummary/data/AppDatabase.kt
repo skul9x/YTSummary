@@ -9,7 +9,7 @@ import net.sqlcipher.database.SQLiteDatabase
 /**
  * Lớp khởi tạo Room Database gộp lại toàn bộ project.
  */
-@Database(entities = [SummaryEntity::class], version = 1, exportSchema = false)
+@Database(entities = [SummaryEntity::class], version = 2, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
     
     abstract fun summaryDao(): SummaryDao

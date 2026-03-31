@@ -1,6 +1,9 @@
 package com.skul9x.ytsummary.ui
 
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import coil.request.CachePolicy
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
@@ -85,7 +88,12 @@ fun SummaryScreen(
                 ) {
                     if (thumbnailUrl.isNotEmpty()) {
                         AsyncImage(
-                            model = thumbnailUrl,
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data(thumbnailUrl)
+                                .crossfade(true)
+                                .diskCachePolicy(CachePolicy.ENABLED)
+                                .memoryCachePolicy(CachePolicy.ENABLED)
+                                .build(),
                             contentDescription = "Thumbnail",
                             modifier = Modifier
                                 .fillMaxWidth()

@@ -38,6 +38,7 @@ import kotlinx.coroutines.flow.firstOrNull
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.skul9x.ytsummary.ui.ScreenState
 import androidx.activity.compose.BackHandler
+import androidx.paging.compose.collectAsLazyPagingItems
 
 class MainActivity : ComponentActivity() {
     private lateinit var ttsManager: TtsManager
@@ -47,7 +48,6 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
-        PythonManager.warmUp(this)
         handleIntent(intent)
         
         ttsManager = TtsManager(
@@ -63,6 +63,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             YTSummaryTheme {
                 val viewModel: SummaryViewModel = viewModel()
+                val scope = rememberCoroutineScope()
                 
                 // Xin quyền Notification (Android 13+)
                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
@@ -91,17 +92,12 @@ class MainActivity : ComponentActivity() {
                     }
                     onDispose { onTtsDoneCallback = null }
                 }
-                val screenState by viewModel.screenState.collectAsState()
-                val videoTitle by viewModel.videoTitle.collectAsState()
-                val thumbnailUrl by viewModel.thumbnailUrl.collectAsState()
-                val isTtsPlaying by viewModel.isTtsPlaying.collectAsState()
-                val updateInfo by viewModel.updateInfo.collectAsState()
+                val uiState by viewModel.uiState.collectAsState()
 
                 // Auto-Read Observer: đọc toàn bộ text từ đầu khi summary hoàn tất
-                val autoRead by viewModel.autoReadPending.collectAsState()
-                LaunchedEffect(autoRead) {
-                    if (autoRead) {
-                        val currentState = viewModel.screenState.value
+                LaunchedEffect(uiState.autoReadPending) {
+                    if (uiState.autoReadPending) {
+                        val currentState = uiState.screenState
                         if (currentState is ScreenState.Summary) {
                             val result = currentState.result
                             if (result is AiResult.Success) {
@@ -114,13 +110,12 @@ class MainActivity : ComponentActivity() {
                 }
 
                 val sharedUrl by incomingUrl.collectAsState()
-                val historyList by viewModel.getAllHistory().collectAsState(initial = emptyList())
-                val historyCount = historyList.size
+                val historyCount by viewModel.getHistoryCount().collectAsState(initial = 0)
 
                 // === FIX: Chặn swipe back gesture cho tất cả màn hình con ===
-                BackHandler(enabled = screenState !is ScreenState.Main) {
+                BackHandler(enabled = uiState.screenState !is ScreenState.Main) {
                     // Nếu đang ở Summary và đang đọc TTS thì tắt trước
-                    if (screenState is ScreenState.Summary) {
+                    if (uiState.screenState is ScreenState.Summary) {
                         ttsManager.stop()
                         viewModel.setTtsPlaying(false)
                         viewModel.resetTtsPausedIndex()
@@ -136,16 +131,18 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
-                when (val state = screenState) {
+                when (val state = uiState.screenState) {
                     is ScreenState.Main -> MainScreen(
                         summaryCount = historyCount,
-                        updateInfo = updateInfo,
+                        updateInfo = uiState.updateInfo,
                         onSettingsClick = { viewModel.navigateTo(ScreenState.Settings) },
                         onSummaryRequest = { viewModel.summarize(it) },
                         onHistoryClick = { viewModel.navigateTo(ScreenState.History) }
                     )
                     is ScreenState.History -> HistoryScreen(
-                        repository = SummarizationRepository.getInstance(this),
+                        historyItems = viewModel.historyPagingData.collectAsLazyPagingItems(),
+                        onDelete = { videoId -> scope.launch { viewModel.deleteHistoryItem(videoId) } },
+                        onClearAll = { scope.launch { viewModel.clearAllHistory() } },
                         onBack = { viewModel.navigateTo(ScreenState.Main) },
                         onItemClick = { item ->
                             viewModel.loadFromHistory(item.title, item.thumbnailUrl, item.summaryText)
@@ -163,10 +160,10 @@ class MainActivity : ComponentActivity() {
                         val result = state.result
                         when (result) {
                             is AiResult.Success -> SummaryScreen(
-                                videoTitle = videoTitle,
-                                thumbnailUrl = thumbnailUrl,
+                                videoTitle = uiState.videoTitle,
+                                thumbnailUrl = uiState.thumbnailUrl,
                                 summaryText = result.text,
-                                isPlaying = isTtsPlaying,
+                                isPlaying = uiState.isTtsPlaying,
                                 onBack = { 
                                     ttsManager.stop()
                                     viewModel.setTtsPlaying(false)
@@ -174,7 +171,7 @@ class MainActivity : ComponentActivity() {
                                     viewModel.navigateTo(ScreenState.Main) 
                                 },
                                 onTTSClick = {
-                                    if (isTtsPlaying) {
+                                    if (uiState.isTtsPlaying) {
                                         // Pause: lưu vị trí đọc hiện tại để resume đúng chỗ
                                         val pausedAt = ttsManager.pause()
                                         viewModel.updateTtsPausedIndex(pausedAt)
@@ -215,8 +212,11 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun extractVideoId(url: String): String? {
-        val pattern = "^(?:https?:\\/\\/)?(?:www\\.|m\\.)?(?:youtube\\.com\\/(?:(?:v|e(?:mbed)?)\\/|.*[?&]v=)|youtu\\.be\\/)([a-zA-Z0-9_-]{11})"
-        return Regex(pattern).find(url)?.groupValues?.get(1)
+        return YOUTUBE_ID_REGEX.find(url)?.groupValues?.get(1)
+    }
+
+    companion object {
+        private val YOUTUBE_ID_REGEX = Regex("^(?:https?:\\/\\/)?(?:www\\.|m\\.)?(?:youtube\\.com\\/(?:(?:v|e(?:mbed)?)\\/|.*[?&]v=)|youtu\\.be\\/)([a-zA-Z0-9_-]{11})")
     }
 
     override fun onNewIntent(intent: Intent) {

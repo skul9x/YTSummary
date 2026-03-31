@@ -1,55 +1,54 @@
 {
-  "updated_at": "2026-03-25T20:10:00Z",
+  "updated_at": "2026-03-31T09:47:00+07:00",
   "working_on": {
-    "feature": "Custom Model Management",
-    "current_plan_path": "plans/260325-1956-custom-model-management/",
-    "current_phase": "Phase 03",
-    "task": "Completed Settings UI and bug fixing",
-    "status": "DONE",
+    "feature": "Bug Fix - AI Summary Formatting",
+    "task": "Fix missing spaces in streaming text",
+    "status": "completed",
     "files": [
-      "ModelManager.kt",
-      "GeminiApiClient.kt",
-      "SummarizationRepository.kt",
-      "SettingsScreen.kt"
-    ]
+      "app/src/main/java/com/skul9x/ytsummary/api/gemini/GeminiResponseHelper.kt",
+      "app/src/test/java/com/skul9x/ytsummary/api/gemini/GeminiResponseHelperTest.kt"
+    ],
+    "blockers": [],
+    "notes": "Lỗi do trim() mẩu dữ liệu nhỏ (chunk) làm mất khoảng trắng tại điểm nối."
   },
   "pending_tasks": [
-    { "task": "Phase 04: Full Verification & Automated Regression Tests", "priority": "high" },
-    { "task": "Future: Migrate off Chaquopy to drop 2.5s overhead", "priority": "medium" }
+    {
+      "task": "Dọn dẹp log debug (nếu còn)",
+      "priority": "low"
+    }
   ],
   "recent_changes": [
     {
-      "timestamp": "2026-03-25T20:10:00Z",
-      "type": "feature",
-      "description": "Implemented dynamic Gemini model management with user-defined priority, fallback rotation, and connectivity testing UI.",
+      "timestamp": "2026-03-31T09:43:00+07:00",
+      "type": "fix",
+      "description": "Sửa lỗi tóm tắt bị dính chữ (ví dụ 'thi đấuvì danh dự') bằng cách giữ nguyên whitespace trong extractText",
       "files": [
-        "ModelManager.kt",
-        "GeminiApiClient.kt",
-        "SummarizationRepository.kt",
-        "SettingsScreen.kt"
+        "app/src/main/java/com/skul9x/ytsummary/api/gemini/GeminiResponseHelper.kt",
+        "app/src/test/java/com/skul9x/ytsummary/api/gemini/GeminiResponseHelperTest.kt"
       ]
     },
     {
-      "timestamp": "2026-03-25T19:25:00Z",
-      "type": "ux_refinement",
-      "description": "Moved youtube-transcript-api update banner from Settings to MainScreen for better visibility. Integrated check into SummaryViewModel init.",
+      "timestamp": "2026-03-31T09:22:00+07:00",
+      "type": "feature",
+      "description": "Hoàn thành Phase 03 (Python Optimization) & Phase 04 (Network Resilience)",
       "files": [
-        "SummaryViewModel.kt",
-        "MainActivity.kt",
-        "SettingsScreen.kt"
+        "app/src/main/java/com/skul9x/ytsummary/data/TranscriptCache.kt",
+        "app/src/main/java/com/skul9x/ytsummary/network/RetryInterceptor.kt",
+        "app/src/main/java/com/skul9x/ytsummary/manager/PythonManager.kt"
       ]
     }
   ],
   "errors_encountered": [
     {
-      "error": "Kotlin String Templates escaped as literals during write_to_file",
-      "solution": "Manually fixed escapes in SettingsScreen.kt to ensure variable interpolation works.",
-      "resolved": true,
-      "file": "SettingsScreen.kt"
+      "error": "Khoảng trắng bị mất khi streaming kết quả từ Gemini",
+      "solution": "Bỏ .trim() ở hàm extractText chung và dùng isNullOrEmpty thay vì isNullOrBlank",
+      "resolved": true
     }
   ],
   "decisions_made": [
-    { "decision": "Use JSON-serialized SharedPreferences for Model List", "reason": "Simplest way to persist ordered lists without complex schema overhead." },
-    { "decision": "Add Reset Button", "reason": "Ensure users can always return to a 'stable' state if they mess up model names." }
+    {
+      "decision": "Bảo toàn nguyên trạng text chunks từ Gemini API (không trim chunks)",
+      "reason": "Dấu cách giữa các từ thường nằm ở đầu hoặc cuối mẩu tin SSE data, nếu trim thì khi ghép lại sẽ bị dính chữ."
+    }
   ]
 }

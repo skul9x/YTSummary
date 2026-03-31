@@ -6,7 +6,13 @@ import androidx.room.PrimaryKey
 /**
  * Entity lưu trữ bản tóm tắt video.
  */
-@Entity(tableName = "summaries")
+@Entity(
+    tableName = "summaries",
+    indices = [
+        androidx.room.Index(value = ["videoId"], unique = true),
+        androidx.room.Index(value = ["timestamp"], orders = [androidx.room.Index.Order.DESC])
+    ]
+)
 data class SummaryEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val videoId: String,

@@ -1,6 +1,7 @@
 package com.skul9x.ytsummary.repository
 
 import android.content.Context
+import android.util.Log
 import com.skul9x.ytsummary.api.GeminiApiClient
 import com.skul9x.ytsummary.di.NetworkModule
 import com.skul9x.ytsummary.model.AiResult
@@ -28,6 +29,7 @@ class SummarizationRepository private constructor(context: Context) {
 
     private val db = com.skul9x.ytsummary.data.AppDatabase.getDatabase(context)
     private val summaryDao = db.summaryDao()
+    private val transcriptCache = com.skul9x.ytsummary.data.TranscriptCache(context)
     private val pythonManager = com.skul9x.ytsummary.manager.PythonManager.getInstance(context)
     private val geminiApi = GeminiApiClient(
         apiKeyManager = com.skul9x.ytsummary.manager.ApiKeyManager.getInstance(context),
@@ -58,23 +60,31 @@ class SummarizationRepository private constructor(context: Context) {
             return@flow
         }
 
-        emit(AiResult.Loading("📺 Đang lọc phụ đề qua Python..."))
+        // 1. Lấy Transcript (Check cache trước khi gọi Python - Phase 03)
+        var transcript = transcriptCache.get(videoId)
         
-        // 1. Lấy Transcript locally via Python (Safe Threading due to flowOn)
-        val transcriptResult = pythonManager.fetchTranscript(videoId)
-        
-        // Guard: Kiểm tra coroutine vẫn active sau khi blocking call Python trả về
-        currentCoroutineContext().ensureActive()
-        
-        if (transcriptResult.isFailure) {
-            emit(AiResult.Error("Lỗi lấy phụ đề (Local): ${transcriptResult.exceptionOrNull()?.message}"))
-            return@flow
-        }
+        if (transcript == null) {
+            emit(AiResult.Loading("📺 Đang lọc phụ đề qua Python..."))
+            val transcriptResult = pythonManager.fetchTranscript(videoId)
+            
+            // Guard: Kiểm tra coroutine vẫn active sau khi blocking call Python trả về
+            currentCoroutineContext().ensureActive()
+            
+            if (transcriptResult.isFailure) {
+                emit(AiResult.Error("Lỗi lấy phụ đề (Local): ${transcriptResult.exceptionOrNull()?.message}"))
+                return@flow
+            }
 
-        val transcript = transcriptResult.getOrNull()
-        if (transcript.isNullOrBlank()) {
-            emit(AiResult.Error("Không lấy được nội dung phụ đề"))
-            return@flow
+            transcript = transcriptResult.getOrNull()
+            if (transcript.isNullOrBlank()) {
+                emit(AiResult.Error("Không lấy được nội dung phụ đề"))
+                return@flow
+            }
+            
+            // Lưu vào cache để lần sau dùng luôn
+            transcriptCache.save(videoId, transcript)
+        } else {
+            Log.d("SummarizationRepository", "Using cached transcript for $videoId")
         }
 
         // 2. Tóm tắt bằng Gemini
@@ -101,14 +111,19 @@ class SummarizationRepository private constructor(context: Context) {
     }
 
     /**
-     * Lấy danh sách lịch sử tóm tắt.
+     * Lấy danh sách lịch sử tóm tắt (hỗ trợ Paging 3).
      */
-    fun getAllHistory(): Flow<List<com.skul9x.ytsummary.data.SummaryEntity>> = summaryDao.getAllSummaries()
+    fun getAllHistory(): androidx.paging.PagingSource<Int, com.skul9x.ytsummary.data.SummaryEntity> = summaryDao.getAllSummaries()
 
     /**
      * Xóa 1 mục lịch sử.
      */
     suspend fun deleteHistoryItem(videoId: String) = summaryDao.deleteByVideoId(videoId)
+
+    /**
+     * Lấy tổng số bản tóm tắt hiện có.
+     */
+    fun getHistoryCount(): Flow<Int> = summaryDao.getSummaryCount()
 
     /**
      * Xóa toàn bộ lịch sử.

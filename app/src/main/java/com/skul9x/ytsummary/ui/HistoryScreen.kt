@@ -23,22 +23,28 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import coil.request.CachePolicy
+import androidx.compose.ui.platform.LocalContext
 import com.skul9x.ytsummary.data.SummaryEntity
 import com.skul9x.ytsummary.repository.SummarizationRepository
 import com.skul9x.ytsummary.ui.components.GlassCard
 import com.skul9x.ytsummary.ui.theme.*
 import kotlinx.coroutines.launch
+import androidx.paging.compose.LazyPagingItems
+import androidx.paging.compose.collectAsLazyPagingItems
 import java.text.SimpleDateFormat
 import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HistoryScreen(
-    repository: SummarizationRepository,
+    historyItems: LazyPagingItems<SummaryEntity>,
+    onDelete: (String) -> Unit,
+    onClearAll: () -> Unit,
     onBack: () -> Unit,
     onItemClick: (SummaryEntity) -> Unit
 ) {
-    val historyItems by repository.getAllHistory().collectAsState(initial = emptyList())
     val scope = rememberCoroutineScope()
     val dateFormatter = remember { SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()) }
 
@@ -75,9 +81,9 @@ fun HistoryScreen(
                     )
                 }
 
-                if (historyItems.isNotEmpty()) {
+                if (historyItems.itemCount > 0) {
                     IconButton(
-                        onClick = { scope.launch { repository.clearAllHistory() } },
+                        onClick = onClearAll,
                         modifier = Modifier.background(Color.Red.copy(alpha = 0.1f), CircleShape)
                     ) {
                         Icon(Icons.Default.Delete, contentDescription = "Clear All", tint = Color.Red)
@@ -85,7 +91,7 @@ fun HistoryScreen(
                 }
             }
 
-            if (historyItems.isEmpty()) {
+            if (historyItems.itemCount == 0 && historyItems.loadState.append.endOfPaginationReached) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text("No history yet.", color = TextSecondary)
                 }
@@ -95,13 +101,19 @@ fun HistoryScreen(
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                     contentPadding = PaddingValues(bottom = 24.dp)
                 ) {
-                    items(historyItems, key = { it.id }) { item ->
-                        HistoryItem(
-                            item = item,
-                            dateStr = dateFormatter.format(Date(item.timestamp)),
-                            onClick = { onItemClick(item) },
-                            onDelete = { scope.launch { repository.deleteHistoryItem(item.videoId) } }
-                        )
+                    items(
+                        count = historyItems.itemCount,
+                        key = { index -> historyItems.peek(index)?.id ?: index }
+                    ) { index ->
+                        val summary = historyItems[index]
+                        summary?.let {
+                            HistoryItem(
+                                item = it,
+                                dateStr = dateFormatter.format(Date(it.timestamp)),
+                                onClick = { onItemClick(it) },
+                                onDelete = { onDelete(it.videoId) }
+                            )
+                        }
                     }
                 }
             }
@@ -127,7 +139,12 @@ fun HistoryItem(
         ) {
             // Thumbnail
             AsyncImage(
-                model = item.thumbnailUrl,
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(item.thumbnailUrl)
+                    .crossfade(true)
+                    .diskCachePolicy(CachePolicy.ENABLED)
+                    .memoryCachePolicy(CachePolicy.ENABLED)
+                    .build(),
                 contentDescription = null,
                 modifier = Modifier
                     .size(100.dp, 70.dp)

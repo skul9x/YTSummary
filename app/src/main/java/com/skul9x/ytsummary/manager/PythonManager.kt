@@ -27,6 +27,16 @@ class PythonManager private constructor(context: Context) {
     private val python = Python.getInstance()
     private val ytHelper = python.getModule("yt_transcript_helper")
 
+    // PRE-CACHED PyObjects for common keys (Phase 03 Optimization)
+    private val pyKeys = mapOf(
+        "status" to PyObject.fromJava("status"),
+        "transcript" to PyObject.fromJava("transcript"),
+        "message" to PyObject.fromJava("message"),
+        "title" to PyObject.fromJava("title"),
+        "thumbnail_url" to PyObject.fromJava("thumbnail_url"),
+        "author_name" to PyObject.fromJava("author_name")
+    )
+
     /**
      * Fetch transcript locally via Python.
      */
@@ -36,16 +46,16 @@ class PythonManager private constructor(context: Context) {
             
             // MUST use asMap() to read Python dict keys! .get() uses getattr which won't work for dicts.
             val resultMap = result.asMap()
-            val status = resultMap[PyObject.fromJava("status")]?.toString()
+            val status = resultMap[pyKeys["status"]]?.toString()
             
             Log.d(TAG, "fetchTranscript status=$status")
             
             if (status == "success") {
-                val transcript = resultMap[PyObject.fromJava("transcript")]?.toString() ?: ""
+                val transcript = resultMap[pyKeys["transcript"]]?.toString() ?: ""
                 Log.d(TAG, "Transcript fetched OK, length=${transcript.length}")
                 Result.success(transcript)
             } else {
-                val message = resultMap[PyObject.fromJava("message")]?.toString() ?: "Lỗi không xác định từ Python"
+                val message = resultMap[pyKeys["message"]]?.toString() ?: "Lỗi không xác định từ Python"
                 Log.w(TAG, "Python error: $message")
                 Result.failure(Exception(message))
             }
@@ -66,10 +76,10 @@ class PythonManager private constructor(context: Context) {
             
             VideoMetadata(
                 videoId = videoId,
-                title = m[PyObject.fromJava("title")]?.toString() ?: "Unknown",
-                thumbnailUrl = m[PyObject.fromJava("thumbnail_url")]?.toString() ?: "",
-                authorName = m[PyObject.fromJava("author_name")]?.toString() ?: "",
-                status = m[PyObject.fromJava("status")]?.toString() ?: "fallback"
+                title = m[pyKeys["title"]]?.toString() ?: "Unknown",
+                thumbnailUrl = m[pyKeys["thumbnail_url"]]?.toString() ?: "",
+                authorName = m[pyKeys["author_name"]]?.toString() ?: "",
+                status = m[pyKeys["status"]]?.toString() ?: "fallback"
             )
         } catch (e: Exception) {
             Log.e(TAG, "fetchMetadata error: ${e.message}", e)
