@@ -1,7 +1,7 @@
 package com.skul9x.benchmark
 
 import androidx.benchmark.macro.StartupMode
-import androidx.benchmark.macro.StartupType
+
 import androidx.benchmark.macro.junit4.MacrobenchmarkRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import org.junit.Rule
