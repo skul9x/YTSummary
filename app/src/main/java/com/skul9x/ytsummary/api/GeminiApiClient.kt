@@ -25,7 +25,7 @@ class GeminiApiClient(
     private val apiKeyManager: ApiKeyManager,
     private val quotaManager: ModelQuotaManager,
     private val modelManager: ModelManager,
-    private val client: OkHttpClient = NetworkModule.okHttpClient,
+    private val client: OkHttpClient = NetworkModule.geminiOkHttpClient,
     private val baseUrl: String = BASE_URL
 ) {
 
@@ -53,49 +53,51 @@ class GeminiApiClient(
                 var hasStarted = false
                 
                 try {
-                    val request = Request.Builder()
-                        .url("$baseUrl/$model:streamGenerateContent?alt=sse")
-                        .header("x-goog-api-key", apiKey)
-                        .post(requestBodyJson.toRequestBody("application/json".toMediaType()))
-                        .build()
+                    com.skul9x.ytsummary.util.retryWithBackoff(
+                        maxRetries = 2, // 2 extra retries per model/key combination
+                        tag = TAG,
+                        shouldRetry = { it is IOException } // Retry only on network errors
+                    ) {
+                        val request = Request.Builder()
+                            .url("$baseUrl/$model:streamGenerateContent?alt=sse")
+                            .header("x-goog-api-key", apiKey)
+                            .post(requestBodyJson.toRequestBody("application/json".toMediaType()))
+                            .build()
 
-                    val response = client.newCall(request).execute()
-                    
-                    if (!response.isSuccessful) {
-                        response.use { resp ->
-                            when (resp.code) {
-                                429 -> {
-                                    quotaManager.markExhausted(model, apiKey)
-                                    throw QuotaExceededException()
+                        client.newCall(request).execute().use { response ->
+                            if (!response.isSuccessful) {
+                                when (response.code) {
+                                    429 -> {
+                                        quotaManager.markExhausted(model, apiKey)
+                                        throw QuotaExceededException()
+                                    }
+                                    503 -> {
+                                        quotaManager.markCooldown(model, apiKey)
+                                        throw ServerBusyException()
+                                    }
+                                    else -> throw Exception("HTTP ${response.code}")
                                 }
-                                503 -> {
-                                    quotaManager.markCooldown(model, apiKey)
-                                    throw ServerBusyException()
-                                }
-                                else -> throw Exception("HTTP ${resp.code}")
                             }
-                        }
-                    }
 
-                    response.use { resp ->
-                        resp.body?.source()?.let { source ->
-                            while (!source.exhausted()) {
-                                val line = source.readUtf8Line() ?: break
-                                if (line.startsWith("data: ")) {
-                                    val data = line.substring(6)
-                                    val textChunk = GeminiResponseHelper.extractText(data)
-                                    if (textChunk.isNotEmpty()) {
-                                        accumulatedText.append(textChunk)
-                                        emit(AiResult.Success(accumulatedText.toString(), model))
-                                        hasStarted = true
+                            response.body?.source()?.let { source ->
+                                while (!source.exhausted()) {
+                                    val line = source.readUtf8Line() ?: break
+                                    if (line.startsWith("data: ")) {
+                                        val data = line.substring(6)
+                                        val textChunk = GeminiResponseHelper.extractText(data)
+                                        if (textChunk.isNotEmpty()) {
+                                            accumulatedText.append(textChunk)
+                                            emit(AiResult.Success(accumulatedText.toString(), model))
+                                            hasStarted = true
+                                        }
                                     }
                                 }
                             }
                         }
                     }
-                    
+
                     if (hasStarted) return@flow
-                    
+
                 } catch (e: QuotaExceededException) {
                     continue
                 } catch (e: ServerBusyException) {

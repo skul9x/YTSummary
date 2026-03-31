@@ -2,7 +2,6 @@ package com.skul9x.ytsummary.di
 
 import android.content.Context
 import com.skul9x.ytsummary.BuildConfig
-import com.skul9x.ytsummary.network.RetryInterceptor
 import okhttp3.Cache
 import okhttp3.ConnectionPool
 import okhttp3.OkHttpClient
@@ -14,41 +13,47 @@ import java.util.concurrent.TimeUnit
  */
 object NetworkModule {
 
-    private const val TIMEOUT_SECONDS = 60L
+    private const val CONNECT_TIMEOUT = 15L
+    private const val DEFAULT_READ_TIMEOUT = 15L
+    private const val GEMINI_READ_TIMEOUT = 90L // Stream long timeout
+
     private var context: Context? = null
+    fun initialize(ctx: Context) { context = ctx.applicationContext }
 
-    /**
-     * Khởi tạo context cho NetworkModule để bật các tính năng như Cache. (Phase 04)
-     */
-    fun initialize(ctx: Context) {
-        context = ctx.applicationContext
-    }
-
-    val okHttpClient: OkHttpClient by lazy {
+    // Client chung chia sẻ tài nguyên (ConnectionPool, Cache, Interceptors)
+    private val baseOkHttpClient: OkHttpClient by lazy {
         val builder = OkHttpClient.Builder()
-            .addInterceptor(RetryInterceptor()) // Phase 04: Thử lại đường truyền chập chờn
             .addInterceptor(HttpLoggingInterceptor().apply {
-                level = if (BuildConfig.DEBUG) {
-                    HttpLoggingInterceptor.Level.BODY
-                } else {
-                    HttpLoggingInterceptor.Level.NONE
-                }
+                level = if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BODY else HttpLoggingInterceptor.Level.NONE
             })
-            .connectTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
-            .readTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
-            .writeTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
-            .connectionPool(ConnectionPool(10, 5, TimeUnit.MINUTES)) // Phase 04: Pool tối ưu
+            .connectionPool(ConnectionPool(10, 5, TimeUnit.MINUTES))
+            .connectTimeout(CONNECT_TIMEOUT, TimeUnit.SECONDS)
+            .writeTimeout(DEFAULT_READ_TIMEOUT, TimeUnit.SECONDS)
 
-        // Bật cache nếu có context
         context?.let {
             try {
                 val cacheSize = 10 * 1024 * 1024L // 10 MiB
                 builder.cache(Cache(it.cacheDir, cacheSize))
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
+            } catch (e: Exception) { e.printStackTrace() }
         }
-
         builder.build()
+    }
+
+    /**
+     * OkHttpClient mặc định với timeout ngắn (15s) cho Metadata và Transcript.
+     */
+    val okHttpClient: OkHttpClient by lazy {
+        baseOkHttpClient.newBuilder()
+            .readTimeout(DEFAULT_READ_TIMEOUT, TimeUnit.SECONDS)
+            .build()
+    }
+
+    /**
+     * OkHttpClient riêng với timeout dài (90s) cho Gemini Stream.
+     */
+    val geminiOkHttpClient: OkHttpClient by lazy {
+        baseOkHttpClient.newBuilder()
+            .readTimeout(GEMINI_READ_TIMEOUT, TimeUnit.SECONDS)
+            .build()
     }
 }

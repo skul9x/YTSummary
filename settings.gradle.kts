@@ -21,3 +21,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "YTSummary"
 include(":app")
+include(":benchmark")

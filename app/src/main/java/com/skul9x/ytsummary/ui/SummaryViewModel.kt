@@ -26,13 +26,7 @@ sealed class ScreenState {
     data class Summary(val result: AiResult) : ScreenState()
 }
 
-data class UiState(
-    val screenState: ScreenState = ScreenState.Main,
-    val videoTitle: String = "Summarizing...",
-    val thumbnailUrl: String = "",
-    val isTtsPlaying: Boolean = false,
-    val autoReadPending: Boolean = false
-)
+
 
 class SummaryViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -55,26 +49,7 @@ class SummaryViewModel(application: Application) : AndroidViewModel(application)
     private val _isTtsPlaying = MutableStateFlow(false)
     val isTtsPlaying: StateFlow<Boolean> = _isTtsPlaying.asStateFlow()
 
-    // Combined UI State for optimized recomposition
-    val uiState: StateFlow<UiState> = combine(
-        _screenState,
-        _videoTitle,
-        _thumbnailUrl,
-        _isTtsPlaying,
-        _autoReadPending
-    ) { flows ->
-        UiState(
-            screenState = flows[0] as ScreenState,
-            videoTitle = flows[1] as String,
-            thumbnailUrl = flows[2] as String,
-            isTtsPlaying = flows[3] as Boolean,
-            autoReadPending = flows[4] as Boolean
-        )
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = UiState()
-    )
+
 
     private var ttsPausedIndex = 0
 

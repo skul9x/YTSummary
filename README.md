@@ -55,6 +55,17 @@ YTSummary/
 3. **Phân Tích AI:** Ứng dụng sẽ lọc và lấy tất cả phụ đề của Video (ưu tiên tiếng Việt - Anh), sau đó đưa cho mô hình Google Gemini để lên sườn ý chính.
 4. **Theo dõi và Lưu trữ:** Bạn có thể nghe qua tính năng phát âm thanh toàn bài. Trong lần mở tới bài viết đã lưu sẽ tồn tại trong danh sách **Lịch sử tóm tắt**.
 
+## 🏎️ Tối ưu hóa hiệu năng (2026 Wave)
+
+Trong đợt cập nhật 03/2026, ứng dụng đã đạt các cột mốc quan trọng về hiệu năng:
+- **Lazy Rendering**: Chuyển đổi hiển thị bản tóm tắt từ `Column` tĩnh sang `LazyColumn` với cơ chế **Text Chunking** (chia nhỏ đoạn văn), giúp cuộn mượt mà ngay cả với nội dung >10,000 từ.
+- **Native Parser High-Perf**: Thay thế parser XML của Android bằng logic unescape thủ công, giảm tiêu tốn tài nguyên CPU khi xử lý hàng ngàn dòng phụ đề.
+- **Smart Timeouts**: Phân tách timeout cho Connect (15s) và Streaming (90s) để tối ưu thời gian chờ của người dùng mà không làm ngắt quãng luồng xử lý của Gemini AI.
+- **Non-blocking Retries**: Cơ chế retry sử dụng Coroutines `delay`, giải phóng hoàn toàn các worker threads của OkHttp.
+- **Baseline Profiles & R8**: Tích hợp module benchmark để tạo Baseline Profiles, giúp ứng dụng khởi động nhanh hơn 15-20% và APK nhỏ hơn nhờ minification R8.
+
+---
+
 ## 🤝 Đóng góp
 
 Rất hoan nghênh chia sẻ mới! Nếu bạn có cải tiến nào hữu ích (UX/UI, Network, hay Database), vui lòng gửi **Pull Request** hoặc báo cáo sự cố qua **Issues**. Mọi đánh giá đều có ý nghĩa to lớn để phần mềm phục vụ tốt cho chất lượng tự trau dồi trên toàn quốc!

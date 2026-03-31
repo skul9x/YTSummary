@@ -89,12 +89,16 @@ class MainActivity : ComponentActivity() {
                     }
                     onDispose { onTtsDoneCallback = null }
                 }
-                val uiState by viewModel.uiState.collectAsState()
+                val screenState by viewModel.screenState.collectAsState()
+                val videoTitle by viewModel.videoTitle.collectAsState()
+                val thumbnailUrl by viewModel.thumbnailUrl.collectAsState()
+                val isTtsPlaying by viewModel.isTtsPlaying.collectAsState()
+                val autoReadPending by viewModel.autoReadPending.collectAsState()
 
                 // Auto-Read Observer: đọc toàn bộ text từ đầu khi summary hoàn tất
-                LaunchedEffect(uiState.autoReadPending) {
-                    if (uiState.autoReadPending) {
-                        val currentState = uiState.screenState
+                LaunchedEffect(autoReadPending) {
+                    if (autoReadPending) {
+                        val currentState = screenState
                         if (currentState is ScreenState.Summary) {
                             val result = currentState.result
                             if (result is AiResult.Success) {
@@ -110,9 +114,9 @@ class MainActivity : ComponentActivity() {
                 val historyCount by viewModel.getHistoryCount().collectAsState(initial = 0)
 
                 // === FIX: Chặn swipe back gesture cho tất cả màn hình con ===
-                BackHandler(enabled = uiState.screenState !is ScreenState.Main) {
+                BackHandler(enabled = screenState !is ScreenState.Main) {
                     // Nếu đang ở Summary và đang đọc TTS thì tắt trước
-                    if (uiState.screenState is ScreenState.Summary) {
+                    if (screenState is ScreenState.Summary) {
                         ttsManager.stop()
                         viewModel.setTtsPlaying(false)
                         viewModel.resetTtsPausedIndex()
@@ -128,7 +132,7 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
-                when (val state = uiState.screenState) {
+                when (val state = screenState) {
                     is ScreenState.Main -> MainScreen(
                         summaryCount = historyCount,
                         onSettingsClick = { viewModel.navigateTo(ScreenState.Settings) },
@@ -156,10 +160,10 @@ class MainActivity : ComponentActivity() {
                         val result = state.result
                         when (result) {
                             is AiResult.Success -> SummaryScreen(
-                                videoTitle = uiState.videoTitle,
-                                thumbnailUrl = uiState.thumbnailUrl,
+                                videoTitle = videoTitle,
+                                thumbnailUrl = thumbnailUrl,
                                 summaryText = result.text,
-                                isPlaying = uiState.isTtsPlaying,
+                                isPlaying = isTtsPlaying,
                                 onBack = { 
                                     ttsManager.stop()
                                     viewModel.setTtsPlaying(false)
@@ -167,7 +171,7 @@ class MainActivity : ComponentActivity() {
                                     viewModel.navigateTo(ScreenState.Main) 
                                 },
                                 onTTSClick = {
-                                    if (uiState.isTtsPlaying) {
+                                    if (isTtsPlaying) {
                                         // Pause: lưu vị trí đọc hiện tại để resume đúng chỗ
                                         val pausedAt = ttsManager.pause()
                                         viewModel.updateTtsPausedIndex(pausedAt)

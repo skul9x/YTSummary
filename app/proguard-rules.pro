@@ -55,3 +55,19 @@
 -dontwarn com.google.crypto.tink.**
 -dontwarn com.google.api.client.**
 -dontwarn org.joda.time.**
+
+# Advanced R8/Optimization rules
+-repackageclasses ''
+-allowaccessmodification
+-overloadaggressively
+
+# Optimization level
+-optimizationpasses 5
+
+# Assume no side effects for Log methods in release
+-assumenosideeffects class android.util.Log {
+    public static *** d(...);
+    public static *** v(...);
+    public static *** i(...);
+    public static *** w(...);
+}

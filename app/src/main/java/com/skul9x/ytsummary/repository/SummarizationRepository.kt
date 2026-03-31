@@ -55,10 +55,16 @@ class SummarizationRepository private constructor(context: Context) {
      */
     fun getVideoMetadata(videoId: String): Flow<VideoMetadata?> = flow {
         try {
-            val metadata = metadataService.fetchMetadata(videoId)
+            val metadata = com.skul9x.ytsummary.util.retryWithBackoff(
+                maxRetries = 3,
+                tag = TAG,
+                shouldRetry = { it is java.io.IOException || (it is com.skul9x.ytsummary.transcript.exception.TranscriptException.HttpError && it.statusCode >= 500) }
+            ) {
+                metadataService.fetchMetadata(videoId)
+            }
             emit(metadata)
         } catch (e: Exception) {
-            Log.e(TAG, "Metadata error for $videoId: ${e.message}")
+            Log.e(TAG, "Metadata error for $videoId after retries: ${e.message}")
             emit(null)
         }
     }.flowOn(kotlinx.coroutines.Dispatchers.IO)
@@ -79,7 +85,14 @@ class SummarizationRepository private constructor(context: Context) {
         
         if (transcript == null) {
             emit(AiResult.Loading("📺 Đang lấy phụ đề..."))
-            val transcriptResult = transcriptService.fetchTranscript(videoId)
+            
+            val transcriptResult = com.skul9x.ytsummary.util.retryWithBackoff(
+                maxRetries = 3,
+                tag = TAG,
+                shouldRetry = { it is java.io.IOException || (it is com.skul9x.ytsummary.transcript.exception.TranscriptException.HttpError && it.statusCode >= 500) }
+            ) {
+                transcriptService.fetchTranscript(videoId)
+            }
             
             // Guard: Kiểm tra coroutine vẫn active
             currentCoroutineContext().ensureActive()

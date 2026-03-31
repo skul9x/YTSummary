@@ -1,6 +1,5 @@
 package com.skul9x.ytsummary.transcript
 
-import android.text.Html
 import com.skul9x.ytsummary.transcript.model.TranscriptSnippet
 import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParserFactory
@@ -22,8 +21,7 @@ import java.io.StringReader
 class TranscriptParser {
 
     companion object {
-        /** Regex để strip tất cả HTML tags (giống Python: re.compile(r"<[^>]*>")) */
-        private val HTML_TAG_REGEX = Regex("<[^>]*>")
+        private const val TAG = "TranscriptParser"
     }
 
     /**
@@ -59,7 +57,7 @@ class TranscriptParser {
                     if (currentStart != null) {
                         val rawText = parser.text
                         if (!rawText.isNullOrBlank()) {
-                            val cleanedText = cleanText(rawText)
+                            val cleanedText = com.skul9x.ytsummary.util.SummaryUtils.cleanTranscriptText(rawText)
                             if (cleanedText.isNotEmpty()) {
                                 snippets.add(
                                     TranscriptSnippet(
@@ -84,19 +82,5 @@ class TranscriptParser {
         }
 
         return snippets
-    }
-
-    /**
-     * Clean text content:
-     * 1. Unescape HTML entities (&amp; → &, &lt; → <, &#39; → ')
-     * 2. Strip HTML tags (<i>text</i> → text)
-     */
-    private fun cleanText(rawText: String): String {
-        // Step 1: Unescape HTML entities using Android's Html utility
-        @Suppress("DEPRECATION")
-        val unescaped = Html.fromHtml(rawText).toString()
-
-        // Step 2: Strip any remaining HTML tags
-        return HTML_TAG_REGEX.replace(unescaped, "").trim()
     }
 }

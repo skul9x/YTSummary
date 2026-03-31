@@ -1,16 +1,36 @@
 # Changelog - YouTube AI Summarizer (YTSummary)
 
-## [2026-03-31] - UI & State Optimization (Phase 05 - Final) 🚀🎨
+## [2026-03-31] - Performance & Architecture Hardening (v5.0.0) 🏎️⚡
+🚀 **Đợt tối ưu hóa hiệu năng "Wave 1-3" đã hoàn tất.**
+
 ### Added
-- **Unified UI State**: Created `UiState` data class in `SummaryViewModel` to group 6 individual StateFlows into a single reactive stream using `combine`.
+- **Macrobenchmark Module**: Khởi tạo module `:benchmark` mới (Native macrobenchmark) để đo lường Cold Start và Performance metrics.
+- **Micro-Optimization Utility**: `SummaryUtils.kt` chứa cơ chế **Text Chunking** (chia nhỏ text theo đoạn văn) giúp hiển thị mượt mà trên LazyColumn.
+- **Native Parser High-Perf**: `TranscriptParser` hiện sử dụng unescape thủ công (`cleanTranscriptText`), loại bỏ phụ thuộc vào thư viện Android `Html` vốn chậm.
+- **R8 Resource Shrinking**: Bật `isShrinkResources = true` và `isMinifyEnabled = true` để nén tài nguyên APK.
+
+### Changed
+- **Async & Non-blocking Retries**: Gỡ bỏ hoàn toàn `RetryInterceptor` (blocking) để chuyển sang `retryWithBackoff` (Async/Coroutines) đồng bộ tại tầng Repository.
+- **Network Timeout Separation**: Tách biệt 15s cho Connect và 90s cho Gemini Streaming trong `NetworkModule`.
+- **Documentation Sync**: Cập nhật `README.md` và `system_overview.md`, xóa bỏ hoàn toàn các vết tích cũ của Python/Chaquopy.
+
+### Removed
+- **RetryInterceptor**: Đã xóa bỏ class và unit test tương ứng do chuyển sang cơ chế Coroutines-first.
+- **Legacy Html Mocks**: Gỡ bỏ mocks Android `Html` trong các unit tests do đã chuyển sang native parser.
+
+---
+
+## [2026-03-31] - UI & State Optimization (Wave 1: Critical Fixes) 🚀🎨
+### Added
+- **Non-Blocking Retry Structure**: Core networking components (Gemini API & Transcript Native) now use `RetryUtils.kt` (Coroutines) to execute exponential backoff retries without blocking threads.
 - **Smart Image Caching**: Integrated `coil.request.ImageRequest` with `CachePolicy.ENABLED` for `AsyncImage` across `SummaryScreen` and `HistoryScreen`, ensuring instant thumbnail loads from memory/disk.
 
 ### Changed
-- **Single Collection Pattern**: Refactored `MainActivity` to use a single `uiState` collection instead of multiple `collectAsState` calls, drastically reducing unnecessary recompositions and improving UI smoothness (vibe coding).
+- **Fine-Grained State Collection**: Removed the massive `UiState` combine logic. Refactored `MainActivity` to collect individual flows directly. This eliminates widespread recompositions across inactive tabs when minor attributes (like `isTtsPlaying`) update.
 - **Gradle Verification**: Verified codebase stability through a successful full build (`assembleDebug`) and all unit tests passing.
 
 ### Fixed
-- **StateFlow Combine Logic**: Fixed a compilation error when combining more than 5 flows by switching to the array-based `combine` overload in `SummaryViewModel`.
+- **Network Worker Thread Blocking**: Completely removed `Thread.sleep` loops from the old `RetryInterceptor`, freeing up the OkHttpClient thread pool during unreliable network states.
 - **GeminiResponseHelperTest**: Updated failing unit test to match the recent removal of `thinkingConfig` (legacy AI feature), restoring 100% test pass rate.
 - **AI Summary Formatting**: Corrected a bug where spaces were missing between streaming chunks (e.g., "thi đấuvì danh dự") by removing premature `.trim()` and enhancing `isNullOrEmpty` checks during extraction.
 

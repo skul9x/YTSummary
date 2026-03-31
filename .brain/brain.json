@@ -4,7 +4,8 @@
   "tech_stack": { 
       "frontend": {"framework": "Jetpack Compose", "language": "Kotlin", "architecture": "MVVM"}, 
       "backend": {"type": "Serverless API calls", "apis": ["YouTube InnerTube API (Transcript/Caption)", "YouTube oEmbed API", "Google Gemini API"]}, 
-      "database": {"type": "Room Database", "entities": ["SummaryEntity"]} 
+      "database": {"type": "Room Database", "entities": ["SummaryEntity"]},
+      "profiling": {"tools": ["Macrobenchmark", "Baseline Profiles", "R8 Minifier"]}
   },
   "database_schema": { 
       "summary": "App lưu: thông tin video YouTube đã tóm tắt",
@@ -30,18 +31,35 @@
       "Tìm phụ đề thủ công ưu tiên (Manual) trước tự động (Generated)",
       "Ưu tiên ngôn ngữ Việt (vi), sau đó tới Anh (en)",
       "Nếu video đã được lưu vào Room, load từ cache thay vì parse và gọi Gemini lại",
-      "Bỏ hoàn toàn Python/Chaquopy runtime khỏi ứng dụng để giảm size APK"
+      "Bỏ hoàn toàn Python/Chaquopy runtime khỏi ứng dụng để giảm size APK (Architecture rẽ nhánh sang Standalone Native)",
+      "Sử dụng Exponential Backoff Retry (Network Resilience) bằng Coroutine `delay` cho tầng Repository thay vì chặn luồng OkHttp",
+      "Tách biệt Timeout: 15s cho Connect/Metadata, 90s cho Gemini Streaming"
   ],
   "features": [
       "Nhận Share link từ app YouTube",
-      "Lấy bản ghi phụ đề bằng Kotlin Native",
-      "Tóm tắt phụ đề bằng Gemini",
+      "Lấy bản ghi phụ đề bằng Kotlin Native (XML Parsing siêu tốc)",
+      "Tóm tắt phụ đề bằng Gemini (SSE Streaming)",
       "Lưu và quản lý lịch sử tóm tắt (Room + Paging 3)",
-      "Auto-read với Text-To-Speech (TTS)"
+      "Auto-read với Text-To-Speech (TTS)",
+      "Tính năng Lazy Rendering và Text Chunking nội dung dài",
+      "Khởi động siêu tốc nhờ Baseline Profiles & R8 Optimization"
   ],
   "knowledge_items": { 
-      "patterns": ["Clean Architecture (Services + Repository)"], 
-      "gotchas": ["Test Kotlin environment gặp khó do Android SDK libs (đã fix partial info bằng mockk Html và Log)"], 
-      "conventions": ["Dùng StateFlow trong ViewModel cho UI"] 
+      "patterns": [
+        "Clean Architecture (Services + Repository)", 
+        "Coroutine-based Exponential Backoff (non-blocking retry)",
+        "Fine-grained State Collection (không gộp UiState lớn để tránh recompositions)",
+        "Text Chunking cho Jetpack Compose LazyColumn (giảm OutOfMemory & Jank)"
+      ], 
+      "gotchas": [
+        "Android Html.fromHtml cực kỳ nặng và tốn CPU khi dùng trong vòng lặp XML Parser. Cần tự replace/clean chuỗi cho nhẹ.",
+        "Macrobenchmark setup với AGP 8.9.0 yêu cầu dùng `isDebuggable = true` thay vì `debuggable = true`.",
+        "Xóa bỏ hoàn toàn RetryInterceptor OkHttp nếu bị Timeout exception chặn main network connection pool."
+      ], 
+      "conventions": [
+        "Sử dụng StateFlow trong ViewModel cho UI, chia nhỏ state",
+        "Sử dụng AsyncImage với Coil CachePolicy.ENABLED cho các danh sách dài",
+        "Sử dụng Unescape thủ công (native string functions) thay vì RegExp khi không cần thiết"
+      ] 
   }
 }

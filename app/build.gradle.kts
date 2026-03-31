@@ -28,7 +28,8 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -109,4 +110,7 @@ dependencies {
     // Paging
     implementation(libs.paging.runtime)
     implementation(libs.paging.compose)
+
+    // Baseline Profiles
+    implementation(libs.androidx.profileinstaller)
 }

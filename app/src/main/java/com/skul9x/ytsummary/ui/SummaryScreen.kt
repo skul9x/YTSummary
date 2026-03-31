@@ -11,9 +11,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.PlayArrow
@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.sp
 import com.skul9x.ytsummary.ui.components.GlassCard
 import com.skul9x.ytsummary.ui.components.NeonGlassCard
 import com.skul9x.ytsummary.ui.theme.*
+import com.skul9x.ytsummary.util.SummaryUtils
 
 @Composable
 fun SummaryScreen(
@@ -81,56 +82,71 @@ fun SummaryScreen(
                     .weight(1f),
                 glowColor = YouTubeRed
             ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .verticalScroll(rememberScrollState())
+                val summaryChunks = remember(summaryText) {
+                    SummaryUtils.chunkText(summaryText)
+                }
+
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(16.dp)
                 ) {
                     if (thumbnailUrl.isNotEmpty()) {
-                        AsyncImage(
-                            model = ImageRequest.Builder(LocalContext.current)
-                                .data(thumbnailUrl)
-                                .crossfade(true)
-                                .diskCachePolicy(CachePolicy.ENABLED)
-                                .memoryCachePolicy(CachePolicy.ENABLED)
-                                .build(),
-                            contentDescription = "Thumbnail",
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(180.dp)
-                                .padding(bottom = 16.dp)
-                                .background(Color.Black.copy(alpha = 0.5f), MaterialTheme.shapes.medium),
-                            contentScale = androidx.compose.ui.layout.ContentScale.Crop
+                        item {
+                            AsyncImage(
+                                model = ImageRequest.Builder(LocalContext.current)
+                                    .data(thumbnailUrl)
+                                    .crossfade(true)
+                                    .diskCachePolicy(CachePolicy.ENABLED)
+                                    .memoryCachePolicy(CachePolicy.ENABLED)
+                                    .build(),
+                                contentDescription = "Thumbnail",
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(180.dp)
+                                    .padding(bottom = 16.dp)
+                                    .background(Color.Black.copy(alpha = 0.5f), MaterialTheme.shapes.medium),
+                                contentScale = androidx.compose.ui.layout.ContentScale.Crop
+                            )
+                        }
+                    }
+
+                    item {
+                        Text(
+                            text = videoTitle,
+                            style = MaterialTheme.typography.titleLarge.copy(fontSize = 20.sp),
+                            color = YouTubeRed,
+                            modifier = Modifier.padding(bottom = 16.dp)
                         )
                     }
 
-                    Text(
-                        text = videoTitle,
-                        style = MaterialTheme.typography.titleLarge.copy(fontSize = 20.sp),
-                        color = YouTubeRed,
-                        modifier = Modifier.padding(bottom = 16.dp)
-                    )
-                    
-                    Text(
-                        text = summaryText,
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = TextPrimary
-                    )
-                    
-                    val context = androidx.compose.ui.platform.LocalContext.current
-                    Button(
-                        onClick = {
-                            val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
-                            val clipData = android.content.ClipData.newPlainText("Summary", summaryText)
-                            clipboard.setPrimaryClip(clipData)
-                            android.widget.Toast.makeText(context, "Đã copy vào bộ nhớ tạm", android.widget.Toast.LENGTH_SHORT).show()
-                        },
-                        colors = ButtonDefaults.buttonColors(containerColor = GlassWhite.copy(alpha = 0.1f)),
-                        modifier = Modifier
-                            .align(Alignment.End)
-                            .padding(top = 16.dp)
-                    ) {
-                        Text("📋 Sao chép", color = TextPrimary)
+                    items(summaryChunks) { chunk ->
+                        Text(
+                            text = chunk,
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = TextPrimary,
+                            modifier = Modifier.padding(bottom = 12.dp)
+                        )
+                    }
+
+                    item {
+                        val context = LocalContext.current
+                        Box(
+                            modifier = Modifier.fillMaxWidth(),
+                            contentAlignment = Alignment.CenterEnd
+                        ) {
+                            Button(
+                                onClick = {
+                                    val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                                    val clipData = android.content.ClipData.newPlainText("Summary", summaryText)
+                                    clipboard.setPrimaryClip(clipData)
+                                    android.widget.Toast.makeText(context, "Đã copy vào bộ nhớ tạm", android.widget.Toast.LENGTH_SHORT).show()
+                                },
+                                colors = ButtonDefaults.buttonColors(containerColor = GlassWhite.copy(alpha = 0.1f)),
+                                modifier = Modifier.padding(top = 16.dp)
+                            ) {
+                                Text("📋 Sao chép", color = TextPrimary)
+                            }
+                        }
                     }
                 }
             }
