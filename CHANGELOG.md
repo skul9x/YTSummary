@@ -1,5 +1,18 @@
 # Changelog - YouTube AI Summarizer (YTSummary)
 
+## [1.1.0] - 2026-03-31
+### Added
+- **Interruption-Resilient TTS**: Tự động dừng và reset trạng thái khi bị mất Audio Focus (xử lý khi có cuộc gọi hoặc app khác dùng âm thanh).
+- **Smart Text Chunking cho TTS**: Đột phá giới hạn 4000 ký tự của Android TTS bằng cơ chế chia nhỏ văn bản tự động (Chunks).
+- **Accurate TTS Progress Tracking**: Theo dõi chính xác tiến trình đọc dựa trên metadata trong Utterance ID, hỗ trợ tốt cho việc Pause/Resume bản tóm tắt siêu dài (>10,000 chữ).
+- **Robust Error Handling**: Hệ thống tự động phục hồi và giải phóng tài nguyên khi engine TTS gặp lỗi, không gây treo giao diện.
+- **Detailed Debug Logging**: Hệ thống Logcat chuyên sâu cho lộ trình phát âm (Utterance START/DONE/ERROR).
+
+### Fixed
+- Lỗi kẹt trạng thái "Đang đọc" (Reading) khi TTS engine gặp sự cố.
+- Lỗi ngắt quãng hoặc dừng đột ngột khi bản tóm tắt quá dài.
+- Lỗi không cập nhật UI khi có thông tin/ứng dụng khác chen ngang âm thanh.
+
 ## [2026-03-31] - Performance & Architecture Hardening (v5.0.0) 🏎️⚡
 🚀 **Đợt tối ưu hóa hiệu năng "Wave 1-3" đã hoàn tất.**
 

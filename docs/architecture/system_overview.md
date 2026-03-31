@@ -61,3 +61,4 @@ Dự án đã được chuyển đổi hoàn toàn sang kiến trúc **Native St
 | **Separated Timeout** | Network | 15s Connect / 90s Stream | Tránh kẹt socket nhưng không làm hỏng stream |
 | **Native Parser** | Processing | Manual String Unescape | Giảm tải CPU khi xử lý hàng ngàn dòng XML |
 | **Async Retries** | Network | Non-blocking Exponential Backoff | UI không bị "đóng băng" khi mất mạng tạm thời |
+| **Resilient TTS** | Audio/Logic | Recursive Chunking + Focus Lock | Khắc phục giới hạn 4k ký tự; Tự động xử lý gián đoạn (cuộc gọi/media) |

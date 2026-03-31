@@ -63,6 +63,7 @@ Trong đợt cập nhật 03/2026, ứng dụng đã đạt các cột mốc qua
 - **Smart Timeouts**: Phân tách timeout cho Connect (15s) và Streaming (90s) để tối ưu thời gian chờ của người dùng mà không làm ngắt quãng luồng xử lý của Gemini AI.
 - **Non-blocking Retries**: Cơ chế retry sử dụng Coroutines `delay`, giải phóng hoàn toàn các worker threads của OkHttp.
 - **Baseline Profiles & R8**: Tích hợp module benchmark để tạo Baseline Profiles, giúp ứng dụng khởi động nhanh hơn 15-20% và APK nhỏ hơn nhờ minification R8.
+- **Smart TTS Resilience**: Cơ chế **Text Chunking Recursive** và **Boundary Guard** giúp xử lý triệt để lỗi mất chữ/trùng chữ khi Pause/Resume ở ranh giới các đoạn văn dài.
 
 ---
 

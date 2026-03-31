@@ -28,11 +28,33 @@ class TtsManager(
     private var isInitialized = false
     private val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
     private var focusRequest: AudioFocusRequest? = null
+    private val audioFocusChangeListener = AudioManager.OnAudioFocusChangeListener { focusChange ->
+        when (focusChange) {
+            AudioManager.AUDIOFOCUS_LOSS,
+            AudioManager.AUDIOFOCUS_LOSS_TRANSIENT,
+            AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK -> {
+                Log.d("TtsManager", "Audio focus LOST (code: $focusChange). Stopping TTS.")
+                stop()
+                onTtsDone()
+            }
+            AudioManager.AUDIOFOCUS_GAIN -> {
+                Log.d("TtsManager", "Audio focus GAINED.")
+            }
+        }
+    }
 
-    var currentIndex = 0
-        private set
-    private var totalSpokenLength = 0
-    private var currentChunkLength = 0
+    private data class TtsProgress(
+        var totalSpokenLength: Int = 0,
+        var currentIndex: Int = 0,
+        var activeUtteranceId: String? = null
+    )
+    private val progress = TtsProgress()
+    
+    // id -> absolute offset (where this chunk starts in the cleaned text)
+    private val chunkOffsetMap = mutableMapOf<String, Int>()
+
+    val currentIndex: Int get() = progress.currentIndex
+    
     private val pendingUtterances = AtomicInteger(0)
 
     init {
@@ -51,27 +73,54 @@ class TtsManager(
             }
             
             tts?.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
-                override fun onStart(utteranceId: String?) {}
+                override fun onStart(utteranceId: String?) {
+                    val now = System.currentTimeMillis() % 100000 // Last 5 digits of ms
+                    Log.d("TtsManager", "[$now] Utterance START: $utteranceId, pending=${pendingUtterances.get()}")
+                    progress.activeUtteranceId = utteranceId
+                }
 
                 override fun onDone(utteranceId: String?) {
-                    // Cộng dồn độ dài chunk vừa đọc xong vào tổng
-                    totalSpokenLength += currentChunkLength
-                    currentIndex = 0
-                    currentChunkLength = 0
-                    // Giảm counter và chỉ gọi callback khi tất cả chunk đã đọc xong
+                    val now = System.currentTimeMillis() % 100000
+                    Log.d("TtsManager", "[$now] Utterance DONE: $utteranceId, pending=${pendingUtterances.get()}")
+                    
+                    // Robust tracking: Use pre-stored offset + length
+                    utteranceId?.let { id ->
+                        chunkOffsetMap.remove(id)?.let { offset ->
+                            // Extract length from ID: "CHUNK|length|id"
+                            val parts = id.split("|")
+                            if (parts.size >= 2) {
+                                val length = parts[1].toIntOrNull() ?: 0
+                                progress.totalSpokenLength = offset + length
+                                Log.d("TtsManager", "Updated totalSpokenLength to ${progress.totalSpokenLength} using map.")
+                            }
+                        }
+                    }
+                    
+                    progress.currentIndex = 0
                     if (pendingUtterances.decrementAndGet() <= 0) {
-                        pendingUtterances.set(0) // Safety: không cho âm
+                        pendingUtterances.set(0)
                         abandonAudioFocus()
                         onTtsDone()
                     }
                 }
 
                 @Deprecated("Deprecated in Java", ReplaceWith("Unit"))
-                override fun onError(utteranceId: String?) {}
+                override fun onError(utteranceId: String?) {
+                    val now = System.currentTimeMillis() % 100000
+                    Log.e("TtsManager", "[$now] TTS Error for utterance: $utteranceId")
+                    utteranceId?.let { chunkOffsetMap.remove(it) }
+                    if (pendingUtterances.decrementAndGet() <= 0) {
+                        pendingUtterances.set(0)
+                        abandonAudioFocus()
+                        onTtsDone()
+                    }
+                }
 
                 override fun onRangeStart(utteranceId: String?, start: Int, end: Int, frame: Int) {
                     super.onRangeStart(utteranceId, start, end, frame)
-                    currentIndex = start
+                    val now = System.currentTimeMillis() % 100000
+                    Log.v("TtsManager", "[$now] Utterance RANGE: $utteranceId, start=$start")
+                    progress.currentIndex = start
                 }
             })
             
@@ -95,11 +144,12 @@ class TtsManager(
                         .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
                         .build()
                 )
+                .setOnAudioFocusChangeListener(audioFocusChangeListener) // Added Listener
                 .build()
             focusRequest?.let { audioManager.requestAudioFocus(it) }
         } else {
             @Suppress("DEPRECATION")
-            audioManager.requestAudioFocus(null, AudioManager.STREAM_MUSIC,
+            audioManager.requestAudioFocus(audioFocusChangeListener, AudioManager.STREAM_MUSIC,
                 AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
         }
     }
@@ -117,6 +167,7 @@ class TtsManager(
     }
 
     companion object {
+        private const val MAX_CHUNK_SIZE = 3500 // Safe margin for Android TTS limit
         private val REGEX_MARKDOWN_SYMBOLS = Regex("[#*`~>_-]")
         private val REGEX_LINKS = Regex("\\[(.*?)\\]\\(.*?\\)")
         private val REGEX_NUMBERED_LISTS = Regex("\\d+\\.\\s+")
@@ -144,15 +195,56 @@ class TtsManager(
         
         requestAudioFocus()
         val cleanedText = cleanMarkdown(text)
-        if (cleanedText.isEmpty() || fromIndex >= cleanedText.length) return
+        if (cleanedText.isEmpty() || fromIndex >= cleanedText.length) {
+            onTtsDone()
+            return
+        }
         
-        // Reset tracking khi bắt đầu speak mới
-        totalSpokenLength = fromIndex
+        // Reset tracking
+        progress.totalSpokenLength = fromIndex
+        progress.currentIndex = 0
+        pendingUtterances.set(0)
+        
         val textToSpeak = if (fromIndex > 0) cleanedText.substring(fromIndex) else cleanedText
-        currentChunkLength = textToSpeak.length
-        pendingUtterances.set(1)
-        // Use QUEUE_FLUSH to interrupt any ongoing speech
-        tts?.speak(textToSpeak, TextToSpeech.QUEUE_FLUSH, null, "SummaryTTS_ID")
+        speakInChunks(textToSpeak, true)
+    }
+
+    private fun speakInChunks(fullText: String, isFirstChunk: Boolean, cumulativeOffset: Int = 0) {
+        if (fullText.isEmpty()) return
+
+        var endIndex = minOf(MAX_CHUNK_SIZE, fullText.length)
+        
+        // Try to cut at punctuation or newline for natural speech
+        if (endIndex < fullText.length) {
+            val chunk = fullText.substring(0, endIndex)
+            val lastPeriod = chunk.lastIndexOf('.')
+            val lastComma = chunk.lastIndexOf(',')
+            val lastNewline = chunk.lastIndexOf('\n')
+            val bestCut = maxOf(lastPeriod, lastComma, lastNewline)
+            
+            if (bestCut > MAX_CHUNK_SIZE * 0.7) { // Only cut if we found a point in the last 30% of the chunk
+                endIndex = bestCut + 1
+            }
+        }
+
+        val chunkText = fullText.substring(0, endIndex)
+        val remainingText = fullText.substring(endIndex)
+
+        pendingUtterances.incrementAndGet()
+        val queueMode = if (isFirstChunk) TextToSpeech.QUEUE_FLUSH else TextToSpeech.QUEUE_ADD
+        
+        // id format: CHUNK|length|timestamp
+        val utteranceId = "CHUNK|${chunkText.length}|${System.currentTimeMillis()}"
+        
+        // Store absolute offset in map: initial totalSpokenLength + what we've added in this recursion
+        chunkOffsetMap[utteranceId] = progress.totalSpokenLength + cumulativeOffset
+        
+        Log.d("TtsManager", "Enqueueing chunk: length=${chunkText.length}, offset=${chunkOffsetMap[utteranceId]}, queueMode=$queueMode")
+        tts?.speak(chunkText, queueMode, null, utteranceId)
+
+        if (remainingText.isNotEmpty()) {
+            speakInChunks(remainingText, false, cumulativeOffset + chunkText.length)
+        }
     }
 
     /**
@@ -164,9 +256,16 @@ class TtsManager(
         requestAudioFocus()
         val cleaned = cleanMarkdown(textChunk)
         if (cleaned.isBlank()) return
-        currentChunkLength = cleaned.length
+        
         pendingUtterances.incrementAndGet()
-        tts?.speak(cleaned, TextToSpeech.QUEUE_ADD, null, UUID.randomUUID().toString())
+        val utteranceId = "STREAM|${cleaned.length}|${UUID.randomUUID()}"
+        
+        // For streaming, we record current totalSpokenLength + whatever was enqueued but not finished yet?
+        // Actually, streaming is harder because it's additive. 
+        // For simplicity, we just use current progress.totalSpokenLength as base.
+        chunkOffsetMap[utteranceId] = progress.totalSpokenLength
+        
+        tts?.speak(cleaned, TextToSpeech.QUEUE_ADD, null, utteranceId)
     }
 
     /**
@@ -174,22 +273,40 @@ class TtsManager(
      * Vị trí = tổng các chunk đã đọc xong + vị trí hiện tại trong chunk đang đọc.
      */
     fun pause(): Int {
-        val absolutePosition = totalSpokenLength + currentIndex
-        if (isInitialized) {
-            tts?.stop()
-            pendingUtterances.set(0)
-            abandonAudioFocus()
+        if (!isInitialized) return 0
+        
+        val isSpeaking = tts?.isSpeaking ?: false
+        val posOffset = progress.totalSpokenLength
+        val posIndex = progress.currentIndex
+        
+        // Boundary Guard: Nếu engine báo không nói nhưng còn task đợi, 
+        // nghĩa là ta đang ở ranh giới giữa 2 chunk. 
+        // Index lúc này nên là posOffset (đầu của chunk kế tiếp).
+        val absolutePosition = if (!isSpeaking && pendingUtterances.get() > 0) {
+            posOffset
+        } else {
+            posOffset + posIndex
         }
+        
+        Log.d("TtsManager", "PAUSE command: abs=$absolutePosition (offset=$posOffset, index=$posIndex, isSpeaking=$isSpeaking, pending=${pendingUtterances.get()})")
+        
+        tts?.stop()
+        pendingUtterances.set(0)
+        chunkOffsetMap.clear()
+        abandonAudioFocus()
+        
         return absolutePosition
     }
 
     fun stop() {
         if (isInitialized) {
+            Log.d("TtsManager", "STOP command: clearing all state.")
             tts?.stop()
-            pendingUtterances.set(0) // Clear counter khi user chủ động dừng
-            totalSpokenLength = 0
-            currentIndex = 0
-            currentChunkLength = 0
+            pendingUtterances.set(0)
+            chunkOffsetMap.clear()
+            progress.totalSpokenLength = 0
+            progress.currentIndex = 0
+            progress.activeUtteranceId = null
             abandonAudioFocus()
         }
     }
