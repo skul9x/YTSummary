@@ -22,14 +22,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.skul9x.ytsummary.manager.PythonManager
 import com.skul9x.ytsummary.manager.TtsManager
 import com.skul9x.ytsummary.model.AiResult
 import com.skul9x.ytsummary.repository.SummarizationRepository
 import com.skul9x.ytsummary.ui.components.GlassCard
 import com.skul9x.ytsummary.ui.components.NeonGlassCard
-import com.skul9x.ytsummary.ui.components.PythonUpdateBanner
-import com.skul9x.ytsummary.manager.PythonUpdateChecker
 import com.skul9x.ytsummary.ui.theme.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.async
@@ -134,7 +131,6 @@ class MainActivity : ComponentActivity() {
                 when (val state = uiState.screenState) {
                     is ScreenState.Main -> MainScreen(
                         summaryCount = historyCount,
-                        updateInfo = uiState.updateInfo,
                         onSettingsClick = { viewModel.navigateTo(ScreenState.Settings) },
                         onSummaryRequest = { viewModel.summarize(it) },
                         onHistoryClick = { viewModel.navigateTo(ScreenState.History) }
@@ -248,7 +244,6 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MainScreen(
     summaryCount: Int,
-    updateInfo: PythonUpdateChecker.UpdateInfo?,
     onSettingsClick: () -> Unit,
     onHistoryClick: () -> Unit,
     onSummaryRequest: (String) -> Unit
@@ -313,10 +308,6 @@ fun MainScreen(
             }
             
             Spacer(modifier = Modifier.height(24.dp))
-            
-            PythonUpdateBanner(updateInfo = updateInfo)
-            
-            Spacer(modifier = Modifier.height(16.dp))
             
             // Hero
             Text(text = "Summarize fast.", style = MaterialTheme.typography.displayLarge.copy(lineHeight = 40.sp), color = TextPrimary)

@@ -3,7 +3,6 @@ package com.skul9x.ytsummary.ui
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.skul9x.ytsummary.manager.PythonUpdateChecker
 import com.skul9x.ytsummary.model.AiResult
 import com.skul9x.ytsummary.repository.SummarizationRepository
 import kotlinx.coroutines.Job
@@ -32,17 +31,12 @@ data class UiState(
     val videoTitle: String = "Summarizing...",
     val thumbnailUrl: String = "",
     val isTtsPlaying: Boolean = false,
-    val autoReadPending: Boolean = false,
-    val updateInfo: PythonUpdateChecker.UpdateInfo? = null
+    val autoReadPending: Boolean = false
 )
 
 class SummaryViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository = SummarizationRepository.getInstance(application)
-
-    // --- API & Updates State ---
-    private val _updateInfo = MutableStateFlow<PythonUpdateChecker.UpdateInfo?>(null)
-    val updateInfo: StateFlow<PythonUpdateChecker.UpdateInfo?> = _updateInfo.asStateFlow()
 
     // --- UI State ---
     private val _screenState = MutableStateFlow<ScreenState>(ScreenState.Main)
@@ -67,16 +61,14 @@ class SummaryViewModel(application: Application) : AndroidViewModel(application)
         _videoTitle,
         _thumbnailUrl,
         _isTtsPlaying,
-        _autoReadPending,
-        _updateInfo
+        _autoReadPending
     ) { flows ->
         UiState(
             screenState = flows[0] as ScreenState,
             videoTitle = flows[1] as String,
             thumbnailUrl = flows[2] as String,
             isTtsPlaying = flows[3] as Boolean,
-            autoReadPending = flows[4] as Boolean,
-            updateInfo = flows[5] as PythonUpdateChecker.UpdateInfo?
+            autoReadPending = flows[4] as Boolean
         )
     }.stateIn(
         scope = viewModelScope,
@@ -89,19 +81,7 @@ class SummaryViewModel(application: Application) : AndroidViewModel(application)
     private var summaryJob: Job? = null
 
     init {
-        viewModelScope.launch {
-            val info = PythonUpdateChecker.checkForUpdate(application)
-            _updateInfo.value = info
-            info?.let {
-                com.skul9x.ytsummary.manager.NotificationHelper.showUpdateNotification(
-                    application,
-                    it.currentVersion,
-                    it.latestVersion
-                )
-            }
-        }
-        
-        // Giai đoạn 01: Pre-warm Database ở background để tránh lag khi query lần đầu
+        // Pre-warm Database ở background để tránh lag khi query lần đầu
         viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
             com.skul9x.ytsummary.data.AppDatabase.getDatabase(application)
         }
@@ -118,7 +98,7 @@ class SummaryViewModel(application: Application) : AndroidViewModel(application)
         summaryJob?.cancel()
         resetTtsPausedIndex()
         setTtsPlaying(false)
-        _screenState.value = ScreenState.Loading("📺 Đang lọc phụ đề...")
+        _screenState.value = ScreenState.Loading("📺 Đang lấy phụ đề...")
 
         summaryJob = viewModelScope.launch {
             // 1. Metadata song song

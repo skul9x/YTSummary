@@ -1,89 +1,47 @@
 {
-  "meta": {
-    "schema_version": "1.1.0",
-    "awf_version": "3.3.0"
+  "meta": { "schema_version": "1.1.0", "awf_version": "4.0.2" },
+  "project": { "name": "YTSummary", "type": "Android App", "status": "active" },
+  "tech_stack": { 
+      "frontend": {"framework": "Jetpack Compose", "language": "Kotlin", "architecture": "MVVM"}, 
+      "backend": {"type": "Serverless API calls", "apis": ["YouTube InnerTube API (Transcript/Caption)", "YouTube oEmbed API", "Google Gemini API"]}, 
+      "database": {"type": "Room Database", "entities": ["SummaryEntity"]} 
   },
-  "project": {
-    "name": "YTSummary",
-    "type": "Android App",
-    "status": "Performance Optimized (v4.4.0)"
-  },
-  "tech_stack": {
-    "frontend": {
-      "framework": "Jetpack Compose",
-      "language": "Kotlin"
-    },
-    "backend": {
-      "bridge": "Chaquopy",
-      "language": "Python"
-    },
-    "database": {
-      "framework": "Room SQLite"
-    },
-    "network": {
-      "frameworks": [
-        "OkHttp (with Cache & Retry)",
-        "Retrofit",
-        "Gemini API"
-      ],
-      "features": [
-        "Exponential Backoff",
-        "Connection Pooling",
-        "JSON-over-SSE Streaming"
-      ]
-    }
-  },
-  "database_schema": {
-    "summary": "App lưu: lịch sử tóm tắt video YouTube",
-    "tables": [
-      {
-        "name": "summaries",
-        "columns": [
-          "id",
-          "videoId",
-          "title",
-          "thumbnailUrl",
-          "summaryText",
-          "timestamp"
-        ]
-      }
-    ],
-    "relationships_explained": "Các video được lưu độc lập kèm theo thời gian lưu để hiện vào màn hình History."
+  "database_schema": { 
+      "summary": "App lưu: thông tin video YouTube đã tóm tắt",
+      "tables": ["history_summaries"], 
+      "relationships_explained": "Lưu ID, title, thumbnailUrl và text tóm tắt của các video đã tóm tắt thành công" 
   },
   "api_endpoints": [
-    {
-      "path": "Gemini API",
-      "explained": "Gửi transcript lên LLM Gemini để lấy bản tóm tắt markdown"
-    }
+      {
+        "path": "InnerTube API (/youtubei/v1/player)",
+        "explained": "Lấy raw captions từ YouTube không cần API key cá nhân, dùng params của Android client mặc định"
+      },
+      {
+        "path": "oEmbed API (/oembed)",
+        "explained": "Lấy title và thumbnail của YouTube video"
+      },
+      {
+        "path": "Gemini API",
+        "explained": "Tóm tắt transcript thành nội dung text cuối cùng"
+      }
   ],
   "business_rules": [
-    "Sử dụng Python (qua Chaquopy) để tải transcript trực tiếp từ YouTube",
-    "Cache lại transcript để không cần tải lại nếu summary lại cùng video",
-    "Lưu lại lịch sử để xem lại hoặc phát âm thanh Text-To-Speech"
+      "Xử lý link chia sẻ từ YouTube -> Trích ID",
+      "Tìm phụ đề thủ công ưu tiên (Manual) trước tự động (Generated)",
+      "Ưu tiên ngôn ngữ Việt (vi), sau đó tới Anh (en)",
+      "Nếu video đã được lưu vào Room, load từ cache thay vì parse và gọi Gemini lại",
+      "Bỏ hoàn toàn Python/Chaquopy runtime khỏi ứng dụng để giảm size APK"
   ],
   "features": [
-    "Summarize YouTube Video via link",
-    "History (Lịch sử video đã tóm tắt)",
-    "TTS (Đọc to văn bản tóm tắt)"
+      "Nhận Share link từ app YouTube",
+      "Lấy bản ghi phụ đề bằng Kotlin Native",
+      "Tóm tắt phụ đề bằng Gemini",
+      "Lưu và quản lý lịch sử tóm tắt (Room + Paging 3)",
+      "Auto-read với Text-To-Speech (TTS)"
   ],
-  "knowledge_items": {
-    "patterns": [
-      "Repository pattern",
-      "MVVM",
-      "Flow/StateFlow for reactive UI",
-      "Single UI State Pattern (UiState combine)",
-      "Coil optimized image caching",
-      "Paging 3 with Room PagingSource for memory efficiency"
-    ],
-    "gotchas": [
-      "Tránh gọi Python startup trên Main Thread vì gây giật app 2-5s (cold start)",
-      "Quá nhiều collectAsState riêng lẻ làm màn hình Compose bị render lại (recompose) liên tục",
-      "Truy vấn Database lớn không dùng Pagination và thiếu Index sẽ làm app đứng hình",
-      "Retry mạng quá nhiều trên lỗi 429 sẽ block model rotation (phải trả về ngay ở tầng Interceptor)",
-      "Streaming dữ liệu từ AI: Luôn để nguyên khoảng trắng trong mỗi mẩu tin (chunk); tránh dùng .trim() khi ghép mẩu tin vì sẽ làm mất dấu cách giữa các phần tử."
-    ],
-    "conventions": [
-      "Dùng Coroutines cho tác vụ bất đồng bộ (Dispatchers.IO/Default)"
-    ]
+  "knowledge_items": { 
+      "patterns": ["Clean Architecture (Services + Repository)"], 
+      "gotchas": ["Test Kotlin environment gặp khó do Android SDK libs (đã fix partial info bằng mockk Html và Log)"], 
+      "conventions": ["Dùng StateFlow trong ViewModel cho UI"] 
   }
 }

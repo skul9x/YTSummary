@@ -4,7 +4,6 @@ plugins {
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
-    alias(libs.plugins.chaquopy)
 }
 
 android {
@@ -49,16 +48,6 @@ android {
     }
 }
 
-chaquopy {
-    defaultConfig {
-        version = "3.11"
-        pip {
-            install("youtube-transcript-api")
-            install("requests")
-            install("defusedxml")
-        }
-    }
-}
 
 dependencies {
     // Core
