@@ -113,11 +113,13 @@ fun SummaryScreen(
                 // and summaryText chunking only for final results/history.
                 val summaryChunks = remember(summaryText, streamingChunks.size) {
                     if (streamingChunks.isNotEmpty()) {
-                        // During streaming, we use the raw chunks provided by ViewModel
-                        streamingChunks
+                        // During streaming, join chunks to avoid random line breaks 
+                        // and re-chunk semantically by paragraphs (\n\n)
+                        val joined = streamingChunks.joinToString("")
+                        com.skul9x.ytsummary.util.SummaryUtils.chunkText(joined)
                     } else {
                         // After streaming or for history, we use semantic paragraph chunking
-                        SummaryUtils.chunkText(summaryText)
+                        com.skul9x.ytsummary.util.SummaryUtils.chunkText(summaryText)
                     }
                 }
 

@@ -124,15 +124,14 @@ class SummaryViewModel(application: Application) : AndroidViewModel(application)
                         _screenState.value = ScreenState.Summary(result)
                     }
                     is AiResult.Success -> {
-                        // Final state: transition to Full Success
-                        // We can clear chunks and use the final string or just keep chunks.
-                        // To maintain UI state consistency, we'll keep chunks 
-                        // and let the final UI state be handles by ScreenState.Summary(Success)
+                        // Final state: summary complete, clear chunks and transition
                         isStreaming.set(false)
+                        streamingChunks.clear()
                         _screenState.value = ScreenState.Summary(result)
                     }
                     else -> {
                         isStreaming.set(false)
+                        streamingChunks.clear()
                         _screenState.value = ScreenState.Summary(result)
                     }
                 }

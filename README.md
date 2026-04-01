@@ -6,26 +6,27 @@
 
 ## ✨ Tính năng nổi bật
 
-- **Tóm tắt video tức thì:** Hỗ trợ streaming kết quả từ Gemini API, giúp bạn xem nội dung tóm tắt ngay khi nó đang được tạo ra.
-- **Hỗ trợ giọng nói (TTS):** Tích hợp trình trợ lý giọng nói giúp bạn nghe bản tóm tắt mà không cần nhìn vào màn hình.
-- **Điều khiển âm lượng nhanh:** Nút chuyển đổi âm lượng thông minh (80% - 85% - 90%) ngay trên giao diện tóm tắt.
-- **Lưu lịch sử:** Tự động lưu lại các bản tóm tắt đã xem cùng với ảnh thumbnail và tiêu đề video để xem lại offline.
-- **Giao diện hiện đại:** Thiết kế theo phong cách Neon Glassmorphism cực kỳ bắt mắt và mượt mà.
-- **Chia sẻ tóm tắt:** Dễ dàng sao chép nội dung tóm tắt để gửi cho bạn bè.
+- **Tóm tắt video tức thì (Streaming):** Hỗ trợ nhận kết quả từng phần từ Gemini API, giúp bạn xem nội dung tóm tắt ngay lập tức mà không cần chờ đợi.
+- **Hỗ trợ giọng nói (TTS):** Tích hợp trình trợ lý giọng nói (Text-to-Speech) giúp bạn nghe bản tóm tắt, hỗ trợ đọc theo từng đoạn văn bản.
+- **Điều khiển âm lượng thông minh:** Nút chuyển đổi âm lượng nhanh (80% - 85% - 90%) ngay trên giao diện AI Analysis.
+- **Quản lý lịch sử (Offline):** Tự động lưu lại các bản tóm tắt đã xem cùng với ảnh thumbnail và tiêu đề video. Sử dụng Paging 3 để hiển thị danh sách mượt mà.
+- **Giao diện hiện đại (Vibe Coding):** Thiết kế theo phong cách Neon Glassmorphism, mang lại trải nghiệm người dùng cao cấp và chuyên nghiệp.
+- **Tối ưu hiệu năng:** Áp dụng Baseline Profiles để giảm độ trễ khi khởi động ứng dụng và tăng tính mượt mà cho UI.
 
 ---
 
 ## 🛠️ Công nghệ sử dụng
 
-Dự án được xây dựng dựa trên các công nghệ tiên tiến nhất của hệ sinh thái Android:
+Dự án được xây dựng dựa trên các công nghệ tiên tiến nhất:
 
-- **Ngôn ngữ:** [Kotlin](https://kotlinlang.org/)
-- **UI Framework:** [Jetpack Compose](https://developer.android.com/jetpack/compose) (Khai báo giao diện hiện đại)
-- **AI Engine:** [Google Gemini API](https://ai.google.dev/)
-- **Cơ sở dữ liệu:** [Room Persistence Library](https://developer.android.com/training/data-storage/room) (Quản lý lịch sử offline)
-- **Mạng:** [OkHttp](https://square.github.io/okhttp/) & [Kotlin Coroutines](https://kotlinlang.org/docs/coroutines-overview.html)
+- **Ngôn ngữ:** [Kotlin](https://kotlinlang.org/) (2.0+)
+- **UI Framework:** [Jetpack Compose](https://developer.android.com/jetpack/compose)
+- **AI Engine:** [Google Gemini API](https://ai.google.dev/) (mô hình Gemini 1.5 Flash & Pro)
+- **Cơ sở dữ liệu:** [Room Persistence Library](https://developer.android.com/training/data-storage/room) & [SQLCipher](https://www.zetetic.net/sqlcipher/) (Bảo mật dữ liệu)
+- **Mạng:** [OkHttp](https://square.github.io/okhttp/) (Hỗ trợ SSE streaming)
 - **Hình ảnh:** [Coil](https://coil-kt.github.io/coil/compose/)
-- **Kiến trúc:** Clean Architecture & MVVM (ViewModel, Repository, Data Sources)
+- **Kiến trúc:** MVVM (Model-View-ViewModel) kết hợp Repository Pattern
+- **Performance:** [Baseline Profiles](https://developer.android.com/topic/performance/baselineprofiles/overview)
 
 ---
 
@@ -37,10 +38,10 @@ Dự án được xây dựng dựa trên các công nghệ tiên tiến nhất 
    ```
 2. **Cấu hình API Key:**
    - Đăng ký API Key tại [Google AI Studio](https://aistudio.google.com/).
-   - Mở dự án trong Android Studio.
-   - (Thông thường sẽ cần file secret hoặc biến môi trường cho API Key).
+   - Nhập API Key vào mục **Settings** trong ứng dụng.
 3. **Build & Chạy:**
-   - Nhấn nút **Run** (màu xanh) trong Android Studio để cài đặt lên thiết bị hoặc máy ảo.
+   - Mở dự án bằng Android Studio.
+   - Nhấn nút **Run** để cài đặt lên thiết bị (Yêu cầu API 26+).
 
 ---
 
@@ -48,22 +49,14 @@ Dự án được xây dựng dựa trên các công nghệ tiên tiến nhất 
 
 ```text
 app/src/main/java/com/skul9x/ytsummary/
-├── api/             # Giao tiếp với Gemini API
-├── data/            # Cấu trúc Room Database & Dao
-├── di/              # Cấu hình Dependeny Injection (nếu có)
-├── manager/         # Quản lý TTS, Notifications, v.v.
-├── repository/      # Tầng trung gian quản lý dữ liệu
-├── ui/              # Giao diện người dùng (Compose Screens, ViewModel)
-└── util/            # Các hàm hỗ trợ (SummaryUtils, etc.)
+├── api/             # Giao tiếp với Gemini AI (Streaming/Rotation)
+├── data/            # Room Database, Entities, Daos
+├── manager/         # TtsManager, ApiKeyManager, ModelManager
+├── model/           # Data classes cho AI Result/UI state
+├── repository/      # SummarizationRepository xử lý logic chính
+├── ui/              # Compose Screens & ViewModels
+└── util/            # Helper classes (SummaryUtils, RetryUtils)
 ```
-
----
-
-## 📖 Cách sử dụng
-
-1. **Từ app YouTube:** Nhấn nút **Chia sẻ** (Share) -> Chọn **YT Summary AI**.
-2. **Dán Link trực tiếp:** Copy link YouTube, mở ứng dụng và nhấn nút **Paste & Tóm tắt nhanh**.
-3. **Màn hình AI Analysis:** Đọc tóm tắt, nghe giọng nói hoặc điều chỉnh âm lượng nhanh ở góc trên bên phải.
 
 ---
 
@@ -71,4 +64,4 @@ app/src/main/java/com/skul9x/ytsummary/
 
 Copyright 2026 Nguyễn Duy Trường
 
-*Phát triển bởi đội ngũ đam mê công nghệ tại Skul9x.*
+*Phát triển bởi Nguyễn Duy Trường - Skul9x.*
