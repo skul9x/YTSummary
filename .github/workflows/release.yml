@@ -1,9 +1,9 @@
-name: Create Release v1.0.4
+name: Create Release
 
 on:
   push:
     tags:
-      - 'v1.0.4'
+      - 'v*'
 
 permissions:
   contents: write
@@ -36,13 +36,11 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v1.0.4
-          name: Release v1.0.4 - Tts Robustness Update
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
           body: |
-            ## Bản cập nhật v1.0.4
-            - Sửa lỗi Pause/Resume TTS (Text-to-Speech) bị lệch vị trí.
-            - Tối ưu hóa việc tracking tiến trình đọc theo từng chunk.
-            - Cải thiện độ ổn định khi xử lý ranh giới các đoạn văn dài.
-            - Nâng cấp hiệu năng xử lý state trong TtsManager.
+            ## Bản cập nhật ${{ github.ref_name }}
+            - Xem chi tiết thay đổi trong CHANGELOG.md.
+            - Tính năng mới và các bản vá lỗi được cập nhật liên tục.
           files: YTSummary.apk
           token: ${{ secrets.GITHUB_TOKEN }}

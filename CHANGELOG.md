@@ -1,5 +1,11 @@
 # Changelog - YouTube AI Summarizer (YTSummary)
 
+## [1.0.5] - 2026-04-01
+### Added
+- **Tính năng Quick Volume Toggle:** Chỉnh âm lượng media nhanh trực tiếp trên màn hình tóm tắt với các mức 80% - 85% - 90%.
+- Giao diện nút âm lượng phong cách Neon Glassmorphism.
+- Thiết lập trạng thái mặc định cho âm lượng khi bắt đầu phiên làm việc mới.
+
 ## [1.1.0] - 2026-03-31
 ### Added
 - **Interruption-Resilient TTS**: Tự động dừng và reset trạng thái khi bị mất Audio Focus (xử lý khi có cuộc gọi hoặc app khác dùng âm thanh).
