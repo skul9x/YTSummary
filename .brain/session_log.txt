@@ -1,0 +1,85 @@
+[08:58] START Phase 01: Backend Development
+[08:58] DONE task 1: Create backend/ directory
+[08:59] DONE task 2: Create requirements.txt and install dependencies
+[09:02] DONE task 3: Implement main.py with clean_transcript logic
+[09:03] DONE task 4: Create and run test_api.py (Logic verified)
+[09:20] START phase-02-android-core
+[09:25] DONE task: Initialize Android project structure and Gradle files (copied from RSS-Reader)
+[09:35] DONE task: Define TranscriptResponse model
+[09:38] DONE task: Create YouTubeApiClient Retrofit interface
+[09:42] DONE task: Implement NetworkModule singleton
+[09:50] DONE task: Verify infrastructure with MockWebServer unit tests (BUILD SUCCESSFUL)
+[09:52] END phase-02-android-core ✅
+[10:12] SESSION END: Completed Security Overhaul & Hardening.
+- Fixed 🔴 Insecure logging & CORS.
+- Fixed 🟡 API Key URL leakage & Rate limiting.
+- Implemented 🟢 SQLCipher encryption for Room.
+- Verified core backend transcript logic with real YouTube URLs.
+- Updated project documentation & audit reports.
+Status: READY FOR PHASE 05 (DEPLOYMENT).
+[10:15] START Performance Optimization phase.
+[10:15] AUDIT: Identified 2 Critical performance gaps (Caching & Invalid Models).
+[10:15] DONE task: Added cachetools to backend/requirements.txt
+[10:15] UPDATED: docs/reports/audit_20260324.md with Performance findings.
+[12:30] DONE task: Connect Android App to Railway Production URL via Constants.kt
+[12:35] SESSION END: Project fully pointing to production. READY FOR APK BUILD.
+[13:00] DONE task: Fix Production Stability (502) on Railway
+[13:02] DONE task: Successful Production Test with 2 real YouTube videos
+[13:03] SAVED: Brain state updated (v3.3.1)
+[13:05] SESSION END: Production Fully Stable & Tested.
+[16:31] START phase-01-settings
+[16:32] DONE Phase 01: Settings API Key multi-paste feature
+[16:32] START phase-02-home
+[16:33] DONE Phase 02: Quick Clipboard Paste button on Home Screen
+[16:33] START phase-03-analysis
+[16:34] DONE Phase 03: Added 'Đang tóm tắt...' loading and Copy button
+[16:34] START phase-04-navigation
+[16:35] DONE Phase 04: Added BackHandler to intercept swipe gesture
+[16:35] DONE Phase 05: Tested and Compiled Successfully
+[18:38] DONE task: Fixed W2 (ModelQuotaManager SHA-256 cache) and W3 (Removed legacy Retrofit/Backend code)
+[19:15] AUDIT: Fact-checked bugs.txt and secu_bugs.txt against current branch. Consolidated 7 unfixed valid tickets.
+[19:17] GENERATED: bugs_reports.md containing High (2), Medium (2), and Low (3) priority actionable tasks.
+[19:20] VERIFIED: models/gemini-3-flash-preview exists and is valid. Updated bugs_reports.md.
+[19:21] SAVED: Validated issues into session.json.
+[19:21] SESSION END: Audit & Fact-check complete.
+[19:26] DONE task: Fixed 2 HIGH priority security bugs (Safety Filters & Prompt Fencing) and 2 MEDIUM priority bugs (Regex hoisting & Removed forced volume).
+[19:39] PLAN: Analyzed new performance architecture report (per_audit.txt) focused on Streaming LLM Responses and eliminating Chaquopy.
+[19:39] PLAN: Generated roadmap for Dynamic Loading Indicators (fix_loading_indicator.md) using AiResult.Loading.
+[19:39] SAVED: Brain state updated with new UX and Architecture roadmap.
+[19:48] START Feature: Share Intent Integration
+[19:49] PLAN: Drafted todo_1.md with 5 steps for Android OS direct share.
+[19:50] DONE task: Modified AndroidManifest.xml -> Added android.intent.action.SEND for text/plain data via Share menu. Applied singleTop.
+[19:51] DONE task: Overrided onCreate and onNewIntent in MainActivity to extract YouTube URLs directly via Intent intercept.
+[19:52] DONE task: Hooked up Auto-trigger Summarization and Auto-TTS. (Auto-run and read).
+[19:52] VERIFIED: Successfully compiled via assembleDebug. Corrected hanging brackets in MainActivity compose functions.
+[19:53] SAVED: Brain state updated with Share Intent implementation.
+[20:00] START Feature: Adaptive Launcher Icon
+[20:02] DONE task: Created Vector drawables (foreground & background) for Adaptive Icon.
+[20:03] DONE task: Connected @mipmap/ic_launcher and @mipmap/ic_launcher_round in AndroidManifest.xml. Removed deprecated package attribute.
+[20:03] VERIFIED: Successfully compiled via assembleDebug without warnings.
+[20:06] AUDIT: Fact-checked per_audit.txt against current Kotlin branch. Generated per_audit_factcheck.md.
+[20:08] SAVED: Brain state updated with System Analysis findings.
+[20:09] PLAN: Extracted 7 actionable verified tasks into todo_2.md (SSE, Caching, TTS Chunking).
+[20:10] SAVED: Session updated. Ready for Handover.
+[20:15] DONE Task: SSE Streaming, SQLite Cache and TTS Chunking. Verified Build.
+[20:16] SAVED: Brain state updated (v4.0.0)
+[21:40] START: Performance Audit Fixes (Audit v4.1.0)
+[21:45] DONE Task: Replaced String concatenation with StringBuilder in GeminiApiClient.
+[21:47] DONE Task: Added timeout=10 to oEmbed URL open in Python script.
+[21:50] DONE Task: Linked MainScreen summary count to real database flow.
+[21:52] DONE Task: Integrated AudioFocus ducking in TtsManager and removed hardcoded volume logic.
+[21:55] DONE Task: Implemented background warm-up for Python runtime.
+[21:58] VERIFIED: Build successfully with ./gradlew assembleDebug.
+[22:00] SAVED: Brain state updated (v4.1.0)
+[01:47] START phase-02-code
+[01:47] DONE task: Update GeminiResponseHelper to use root thinkingConfig
+[01:47] DONE task: Set prioritized model list with gemini-2.5-flash in GeminiApiClient
+[01:47] END phase-02-code ✅
+[01:50] START phase-03-test
+[01:50] DONE task: Created and passed GeminiResponseHelperTest
+[01:50] END phase-03-test ✅
+[01:50] ALL PHASES COMPLETE! v4.3.0 Ready.
+[02:22] DONE Task: Fixed Gemini 2.5 Flash AllQuotaExhausted bug (caused by HTTP 400 with thinkingConfig). Removed thinkingConfig from GeminiResponseHelper.
+2026-03-25 19:23:41 - Task: Di chuyển banner cập nhật youtube-transcript-api sang HomeScreen. Trạng thái: HOÀN THÀNH. File sửa: [SummaryViewModel.kt, MainActivity.kt, SettingsScreen.kt]. Mục tiêu: Tăng tính chủ động thông báo cho dev (Early Warning).
+2026-03-25 19:30:00 - Task: Implement Python update system notification. Status: DONE. Fixed 4 phases of implementation_plan.
+[09:30] ALL PHASES COMPLETE! Performance Optimization (v4.4.0) implemented and verified. UI Recomposition optimized, Coil Caching enabled, Unit Tests fixed.

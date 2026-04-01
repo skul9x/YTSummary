@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Dropshadow tạo độ sâu nảy khối cho thành phần trắng -->
+    <path
+        android:strokeColor="#4A000000"
+        android:strokeWidth="4"
+        android:strokeLineJoin="round"
+        android:pathData="M 23,38 v 36 L 47,56 Z" />
+    <path
+        android:strokeColor="#4A000000"
+        android:strokeWidth="5"
+        android:strokeLineCap="round"
+        android:pathData="M 55,46 h 22 M 55,56 h 22 M 55,66 h 16" />
+    <path
+        android:fillColor="#4A000000"
+        android:pathData="M 80,33 q 0,7 -7,7 q 7,0 7,7 q 0,-7 7,-7 q -7,0 -7,-7 z" />
+
+    <!-- Nút Play Trắng Bo Tròn Mềm Mại ở nửa bên Trái -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="4"
+        android:strokeLineJoin="round"
+        android:pathData="M 23,36 v 36 L 47,54 Z" />
+
+    <!-- 3 Nét Gạch Đầu Dòng Trắng ở nửa bên Phải -->
+    <!-- Hiệu ứng chuyển động từ Play sang Summary -->
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="5"
+        android:strokeLineCap="round"
+        android:pathData="M 55,44 h 22" />
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="5"
+        android:strokeLineCap="round"
+        android:pathData="M 55,54 h 22" />
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="5"
+        android:strokeLineCap="round"
+        android:pathData="M 55,64 h 16" />
+
+    <!-- Ký hiệu AI Vàng Rực chốt hạ góc cao biên mạn phải -->
+    <path
+        android:fillColor="#FFEB3B"
+        android:pathData="M 80,31 q 0,7 -7,7 q 7,0 7,7 q 0,-7 7,-7 q -7,0 -7,-7 z" />
+
+    <!-- Hạt data tinh túy lấp lánh (AI Particles) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M 90,44 m-1.5,0 a1.5,1.5 0 1,0 3,0 a1.5,1.5 0 1,0 -3,0" />
+
+</vector>

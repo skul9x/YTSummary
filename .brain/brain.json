@@ -1,0 +1,69 @@
+{
+  "meta": { "schema_version": "1.1.0", "awf_version": "4.0.2" },
+  "project": { "name": "YTSummary", "type": "Android App", "status": "active" },
+  "tech_stack": { 
+      "frontend": {"framework": "Jetpack Compose", "language": "Kotlin", "architecture": "MVVM"}, 
+      "backend": {"type": "Serverless API calls", "apis": ["YouTube InnerTube API (Transcript/Caption)", "YouTube oEmbed API", "Google Gemini API"]}, 
+      "database": {"type": "Room Database", "entities": ["SummaryEntity"]},
+      "profiling": {"tools": ["Macrobenchmark", "Baseline Profiles", "R8 Minifier"]}
+  },
+  "database_schema": { 
+      "summary": "App lưu: thông tin video YouTube đã tóm tắt",
+      "tables": ["history_summaries"], 
+      "relationships_explained": "Lưu ID, title, thumbnailUrl và text tóm tắt của các video đã tóm tắt thành công" 
+  },
+  "api_endpoints": [
+      {
+        "path": "InnerTube API (/youtubei/v1/player)",
+        "explained": "Lấy raw captions từ YouTube không cần API key cá nhân, dùng params của Android client mặc định"
+      },
+      {
+        "path": "oEmbed API (/oembed)",
+        "explained": "Lấy title và thumbnail của YouTube video"
+      },
+      {
+        "path": "Gemini API",
+        "explained": "Tóm tắt transcript thành nội dung text cuối cùng"
+      }
+  ],
+  "business_rules": [
+      "Xử lý link chia sẻ từ YouTube -> Trích ID",
+      "Tìm phụ đề thủ công ưu tiên (Manual) trước tự động (Generated)",
+      "Ưu tiên ngôn ngữ Việt (vi), sau đó tới Anh (en)",
+      "Nếu video đã được lưu vào Room, load từ cache thay vì parse và gọi Gemini lại",
+      "Bỏ hoàn toàn Python/Chaquopy runtime khỏi ứng dụng để giảm size APK (Architecture rẽ nhánh sang Standalone Native)",
+      "Sử dụng Exponential Backoff Retry (Network Resilience) bằng Coroutine `delay` cho tầng Repository thay vì chặn luồng OkHttp",
+      "Tách biệt Timeout: 15s cho Connect/Metadata, 90s cho Gemini Streaming",
+      "Tự động chia nhỏ (Chunking) văn bản cho TTS khi nội dung > 3500 ký tự tránh lỗi ngắt quãng engine",
+      "Xử lý Audio Focus Loss để chủ động dừng/reset trạng thái TTS khi có app khác (nhạc, điện thoại) chen ngang"
+  ],
+  "features": [
+      "Nhận Share link từ app YouTube",
+      "Lấy bản ghi phụ đề bằng Kotlin Native (XML Parsing siêu tốc)",
+      "Tóm tắt phụ đề bằng Gemini (SSE Streaming)",
+      "Lưu và quản lý lịch sử tóm tắt (Room + Paging 3)",
+      "Smart TTS (Interruption-resilient + Async Chunking)",
+      "Tính năng Lazy Rendering và Text Chunking nội dung dài (Jetpack Compose)",
+      "Khởi động siêu tốc nhờ Baseline Profiles & R8 Optimization"
+  ],
+  "knowledge_items": { 
+      "patterns": [
+        "Clean Architecture (Services + Repository)", 
+        "Coroutine-based Exponential Backoff (non-blocking retry)",
+        "Fine-grained State Collection (không gộp UiState lớn để tránh recompositions)",
+        "Text Chunking cho Jetpack Compose LazyColumn (giảm OutOfMemory & Jank)",
+        "Recursive Text-To-Speech Chunking (vượt giới hạn character limit của Android engine)"
+      ], 
+      "gotchas": [
+        "Android Html.fromHtml cực kỳ nặng và tốn CPU khi dùng trong vòng lặp XML Parser. Cần tự replace/clean chuỗi cho nhẹ.",
+        "Macrobenchmark setup với AGP 8.9.0 yêu cầu dùng `isDebuggable = true` thay vì `debuggable = true`.",
+        "Xóa bỏ hoàn toàn RetryInterceptor OkHttp nếu bị Timeout exception chặn main network connection pool.",
+        "Hầu hết TTS engines trên Android giới hạn ~4000 ký tự mỗi input, cần chia nhỏ để không bị mất chữ cuối."
+      ], 
+      "conventions": [
+        "Sử dụng StateFlow trong ViewModel cho UI, chia nhỏ state",
+        "Sử dụng AsyncImage với Coil CachePolicy.ENABLED cho các danh sách dài",
+        "Sử dụng Unescape thủ công (native string functions) thay vì RegExp khi không cần thiết"
+      ] 
+  }
+}
