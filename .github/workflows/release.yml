@@ -30,8 +30,7 @@ jobs:
         run: ./gradlew assembleRelease --stacktrace
 
       - name: Rename APK
-        run: |
-          mv app/build/outputs/apk/release/app-release-unsigned.apk YTSummary.apk || mv app/build/outputs/apk/release/app-release.apk YTSummary.apk
+        run: mv app/build/outputs/apk/release/app-release.apk YTSummary.apk
 
       - name: Create Release
         uses: softprops/action-gh-release@v2

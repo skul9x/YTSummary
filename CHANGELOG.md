@@ -1,5 +1,9 @@
 # Changelog - YouTube AI Summarizer (YTSummary)
 
+## [1.0.6] - 2026-04-01
+### Fixed
+- **Lỗi cài đặt bản Release:** Đã cấu hình tự động ký bản Release bằng Debug Key để người dùng có thể cài đặt trực tiếp mà không bị báo lỗi "gói không hợp lệ".
+
 ## [1.0.5] - 2026-04-01
 ### Added
 - **Tính năng Quick Volume Toggle:** Chỉnh âm lượng media nhanh trực tiếp trên màn hình tóm tắt với các mức 80% - 85% - 90%.
