@@ -30,12 +30,7 @@ jobs:
         run: chmod +x gradlew
 
       - name: Build with Gradle
-        env:
-          KEYSTORE_FILE: release.jks
-          STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-        run: ./gradlew assembleRelease --stacktrace
+        run: ./gradlew assembleRelease --stacktrace -PKEYSTORE_FILE="release.jks" -PSTORE_PASSWORD="${{ secrets.STORE_PASSWORD }}" -PKEY_ALIAS="${{ secrets.KEY_ALIAS }}" -PKEY_PASSWORD="${{ secrets.KEY_PASSWORD }}"
 
       - name: Rename and Prepare APK
         run: |
