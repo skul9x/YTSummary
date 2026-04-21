@@ -29,11 +29,10 @@ android {
 
     signingConfigs {
         create("release") {
-            val keyFile = project.findProperty("KEYSTORE_FILE") as String? ?: System.getenv("KEYSTORE_FILE") ?: "skul9x.jks"
-            storeFile = file(keyFile)
-            storePassword = project.findProperty("STORE_PASSWORD") as String? ?: System.getenv("STORE_PASSWORD")
-            keyAlias = project.findProperty("KEY_ALIAS") as String? ?: System.getenv("KEY_ALIAS")
-            keyPassword = project.findProperty("KEY_PASSWORD") as String? ?: System.getenv("KEY_PASSWORD")
+            storeFile = rootProject.file("skul9x.jks")
+            storePassword = System.getenv("STORE_PASSWORD") ?: ""
+            keyAlias = System.getenv("KEY_ALIAS") ?: ""
+            keyPassword = System.getenv("KEY_PASSWORD") ?: ""
         }
     }
 
