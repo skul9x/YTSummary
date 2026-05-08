@@ -56,10 +56,10 @@
 -dontwarn com.google.api.client.**
 -dontwarn org.joda.time.**
 
-# Advanced R8/Optimization rules
--repackageclasses ''
--allowaccessmodification
--overloadaggressively
+# Advanced R8/Optimization rules (DISABLED to prevent crashes)
+# -repackageclasses ''
+# -allowaccessmodification
+# -overloadaggressively
 
 # Optimization level
 -optimizationpasses 5
