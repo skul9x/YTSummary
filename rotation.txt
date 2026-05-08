@@ -1,3 +1,88 @@
+Chào bạn, sau khi đọc kỹ toàn bộ logic xoay tua API (Key & Model Rotation) trong file `GeminiApiClient.kt` và sự phối hợp với `ModelQuotaManager.kt`, mình phát hiện ra **3 lỗi logic vô cùng nghiêm trọng** liên quan trực tiếp đến việc check và quản lý Quota (đặc biệt là lỗi 429) và cơ chế Streaming.
+
+Dưới đây là báo cáo chi tiết các lỗi và code fix cụ thể.
+
+---
+
+### 🚨 1. Lỗi Nghiêm Trọng Nhất: Đánh đồng "Rate Limit (RPM)" với "Daily Quota (RPD)" (Mã 429)
+
+**Phân tích lỗi:**
+Trong `GeminiApiClient.kt`, khi API trả về mã `429`, đoạn code hiện tại lập tức gọi:
+
+```kotlin
+429 -> {
+    quotaManager.markExhausted(model, apiKey)
+    throw QuotaExceededException()
+}
+
+```
+
+Bên `ModelQuotaManager.kt`, hàm `markExhausted` sẽ **ban (khóa) combo (Model + Key) này trong vòng 30 GIỜ** (`30 * 60 * 60 * 1000L`).
+
+**Logic flaw của Gemini API:** Gemini trả về HTTP 429 cho **cả 2 trường hợp**:
+
+1. **Hết dung lượng ngày (Quota Exceeded):** Thực sự cần khóa dài hạn.
+2. **Quá giới hạn request/phút (Rate Limit - RPM):** Bản Free của Gemini giới hạn 15 request/phút. Nếu user bấm tóm tắt liên tục, API sẽ trả 429.
+
+Việc bạn gộp chung và khóa hẳn Key đó 30 giờ chỉ vì user lỡ gọi quá 15 req/phút là **sai lầm chí mạng**. Nó sẽ làm ứng dụng của bạn "chết" toàn bộ Key rất nhanh chỉ sau vài cú click, dù thực tế Key đó chỉ cần nghỉ 1 phút là dùng lại được.
+
+### 🚨 2. Lỗi Duplicate Text (Rác UI) khi reconnect giữa chừng (`hasStarted == true`)
+
+**Phân tích lỗi:**
+Hãy nhìn vào luồng stream:
+
+```kotlin
+if (textChunk.isNotEmpty()) {
+    accumulatedText.append(textChunk)
+    emit(AiResult.DeltaSuccess(textChunk, model))
+    hasStarted = true
+}
+
+```
+
+Nếu đang stream được một nửa (UI đã hiện chữ), nhưng mạng rớt -> quăng `IOException`.
+Bởi vì hàm được bọc trong `retryWithBackoff(shouldRetry = { it is IOException })`, nó sẽ **thử gọi lại API từ đầu**. Khi API phản hồi lại, nó tiếp tục gọi `accumulatedText.append()` và `emit(DeltaSuccess)`.
+Bên `SummaryViewModel.kt` (`streamingChunks.add(result.chunk)`), UI sẽ mù quáng nối tiếp đoạn text mới vào đoạn text cũ, dẫn đến kết quả: *"Xin chào đây là bản tóm Xin chào đây là bản tóm tắt..."* (Văn bản bị nhân đôi/nhân ba).
+
+Tương tự, nếu hết retry, nó catch exception ở block ngoài cùng:
+
+```kotlin
+catch (e: Exception) {
+    continue // Chuyển sang Key tiếp theo!
+}
+
+```
+
+Nó sẽ dùng Key tiếp theo, tóm tắt lại từ đầu, và tiếp tục nhét đống text mới vào UI đã có sẵn text cũ.
+
+### 🚨 3. Lỗi Lặp Vô Nghĩa khi Model bị lỗi Client (Mã 400, 404)
+
+**Phân tích lỗi:**
+Nếu mã lỗi là `400` (Bad Request - do Prompt quá dài vượt context window của model) hoặc `404` (Model bị Google khai tử), đoạn code hiện tại ném ra `Exception("HTTP 400")`.
+Ở catch block:
+
+```kotlin
+catch (e: Exception) {
+    continue // Chuyển sang apiKey tiếp theo trong cùng 1 Model
+}
+
+```
+
+Nếu Model đã không chứa nổi prompt (400), thì việc bạn đổi sang Key thứ 2, Key thứ 3 cho **cùng Model đó** là vô nghĩa, chắc chắn sẽ tiếp tục lỗi 400, làm lãng phí API call. Lúc này phải `break` khỏi vòng lặp Key để nhảy sang **Model tiếp theo** (ví dụ nhảy từ model flash lên model pro có context rộng hơn).
+
+---
+
+### 🛠 CÁCH FIX CHI TIẾT (Viết lại `GeminiApiClient.kt`)
+
+Bạn cần thay thế toàn bộ file `GeminiApiClient.kt` bằng đoạn code chuẩn xác dưới đây. Các thay đổi chính:
+
+1. Đọc `errorBody` của HTTP 429 để phân biệt RPM (khóa 5 phút) và Quota (khóa 30 tiếng).
+2. Xử lý triệt để trạng thái `hasStarted` để tránh rác UI (Nếu rớt mạng giữa chừng, báo lỗi và dừng, không tự ý chuyển key hay retry ẩn làm hỏng UI).
+3. Bắt lỗi 400, 404 để `break` nhảy thẳng sang Model khác.
+
+**Code thay thế cho `GeminiApiClient.kt`:**
+
+```kotlin
 package com.skul9x.ytsummary.api
 
 import android.util.Log
@@ -17,9 +102,6 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.IOException
 
-/**
- * Gemini API client with Model-First key rotation strategy.
- */
 class GeminiApiClient(
     private val apiKeyManager: ApiKeyManager,
     private val quotaManager: ModelQuotaManager,
@@ -28,9 +110,6 @@ class GeminiApiClient(
     private val baseUrl: String = BASE_URL
 ) {
 
-    /**
-     * Tóm tắt transcript với cơ chế xoay tua Key và Streaming (SSE).
-     */
     fun summarize(transcript: String): Flow<AiResult> = flow {
         val keys = apiKeyManager.getApiKeys()
         if (keys.isEmpty()) {
@@ -150,3 +229,4 @@ class GeminiApiClient(
     }
 }
 
+```

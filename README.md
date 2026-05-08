@@ -1,67 +1,71 @@
-# 📺 YT Summary AI
+# YTSummary - YouTube AI Summarizer 🚀
 
-**YT Summary AI** là một ứng dụng Android hiện đại được thiết kế để giúp người dùng tiết kiệm thời gian bằng cách tóm tắt các video YouTube dài thành các đoạn nội dung ngắn gọn và ý nghĩa thông qua sức mạnh của trí tuệ nhân tạo (Gemini AI).
-
----
+**YTSummary** là ứng dụng Android mạnh mẽ giúp bạn tóm tắt nội dung video YouTube một cách nhanh chóng và thông minh bằng trí tuệ nhân tạo (Gemini AI). Tiết kiệm hàng giờ xem video dài bằng cách đọc bản tóm tắt súc tích ngay trên điện thoại của bạn.
 
 ## ✨ Tính năng nổi bật
 
-- **Tóm tắt video tức thì (Streaming):** Hỗ trợ nhận kết quả từng phần từ Gemini API, giúp bạn xem nội dung tóm tắt ngay lập tức mà không cần chờ đợi.
-- **Hỗ trợ giọng nói (TTS):** Tích hợp trình trợ lý giọng nói (Text-to-Speech) giúp bạn nghe bản tóm tắt, hỗ trợ đọc theo từng đoạn văn bản.
-- **Điều khiển âm lượng thông minh:** Nút chuyển đổi âm lượng nhanh (80% - 85% - 90%) ngay trên giao diện AI Analysis.
-- **Quản lý lịch sử (Offline):** Tự động lưu lại các bản tóm tắt đã xem cùng với ảnh thumbnail và tiêu đề video. Sử dụng Paging 3 để hiển thị danh sách mượt mà.
-- **Giao diện hiện đại (Vibe Coding):** Thiết kế theo phong cách Neon Glassmorphism, mang lại trải nghiệm người dùng cao cấp và chuyên nghiệp.
-- **Tối ưu hiệu năng:** Áp dụng Baseline Profiles để giảm độ trễ khi khởi động ứng dụng và tăng tính mượt mà cho UI.
-
----
+- 📥 **Nhận Share Link**: Tóm tắt ngay lập tức bằng cách chia sẻ link từ ứng dụng YouTube.
+- 🏎️ **Native Transcript Parser**: Lấy phụ đề video siêu tốc bằng Kotlin Native (không phụ thuộc backend).
+- 🤖 **Gemini AI Integration**: Sử dụng các model Gemini mới nhất (Flash, Pro) để tóm tắt nội dung chính xác.
+- 🔄 **Smart API Rotation**: Cơ chế xoay tua API Key và Model thông minh, tự động xử lý lỗi 429 (Rate Limit) và tối ưu hóa chi phí.
+- 🎙️ **Smart TTS (Text-to-Speech)**: Đọc bản tóm tắt bằng giọng nói, hỗ trợ chia nhỏ văn bản dài và tự động dừng khi có cuộc gọi.
+- 📱 **Giao diện Glassmorphism**: Thiết kế hiện đại, mượt mà với phong cách kính mờ (Kính mờ).
+- 💾 **Lịch sử tóm tắt**: Lưu trữ và quản lý các video đã tóm tắt (Room Database).
+- ⚡ **Hiệu năng tối ưu**: Khởi động cực nhanh nhờ Baseline Profiles và R8 Optimization.
 
 ## 🛠️ Công nghệ sử dụng
 
-Dự án được xây dựng dựa trên các công nghệ tiên tiến nhất:
-
-- **Ngôn ngữ:** [Kotlin](https://kotlinlang.org/) (2.0+)
-- **UI Framework:** [Jetpack Compose](https://developer.android.com/jetpack/compose)
-- **AI Engine:** [Google Gemini API](https://ai.google.dev/) (mô hình Gemini 1.5 Flash & Pro)
-- **Cơ sở dữ liệu:** [Room Persistence Library](https://developer.android.com/training/data-storage/room) & [SQLCipher](https://www.zetetic.net/sqlcipher/) (Bảo mật dữ liệu)
-- **Mạng:** [OkHttp](https://square.github.io/okhttp/) (Hỗ trợ SSE streaming)
-- **Hình ảnh:** [Coil](https://coil-kt.github.io/coil/compose/)
-- **Kiến trúc:** MVVM (Model-View-ViewModel) kết hợp Repository Pattern
-- **Performance:** [Baseline Profiles](https://developer.android.com/topic/performance/baselineprofiles/overview)
-
----
-
-## 🚀 Hướng dẫn cài đặt
-
-1. **Clone dự án:**
-   ```bash
-   git clone https://github.com/skul9x/YTSummary.git
-   ```
-2. **Cấu hình API Key:**
-   - Đăng ký API Key tại [Google AI Studio](https://aistudio.google.com/).
-   - Nhập API Key vào mục **Settings** trong ứng dụng.
-3. **Build & Chạy:**
-   - Mở dự án bằng Android Studio.
-   - Nhấn nút **Run** để cài đặt lên thiết bị (Yêu cầu API 26+).
-
----
+- **Ngôn ngữ**: Kotlin
+- **UI Framework**: Jetpack Compose (Modern Toolkit)
+- **Kiến trúc**: MVVM (Model-View-ViewModel) + Clean Architecture
+- **AI**: Google Gemini API (Vertex AI Client)
+- **Database**: Room Persistence Library
+- **Networking**: OkHttp3, Retrofit (cho các metadata API)
+- **Image Loading**: Coil (với cơ chế caching tối ưu)
+- **Concurrency**: Kotlin Coroutines & Flow
+- **Dependency Injection**: Manual DI (Module-based)
+- **Build System**: Gradle (Kotlin DSL)
 
 ## 📂 Cấu trúc thư mục chính
 
 ```text
 app/src/main/java/com/skul9x/ytsummary/
-├── api/             # Giao tiếp với Gemini AI (Streaming/Rotation)
-├── data/            # Room Database, Entities, Daos
-├── manager/         # TtsManager, ApiKeyManager, ModelManager
-├── model/           # Data classes cho AI Result/UI state
-├── repository/      # SummarizationRepository xử lý logic chính
-├── ui/              # Compose Screens & ViewModels
-└── util/            # Helper classes (SummaryUtils, RetryUtils)
+├── api/            # Client và Helper cho Gemini & YouTube API
+├── data/           # Room Database và Entities
+├── di/             # Khởi tạo và quản lý dependencies
+├── manager/        # Quản lý API Key, Quota, Model và TTS
+├── model/          # Data classes và Sealed classes cho UI State
+├── repository/     # Tầng trung gian xử lý logic dữ liệu
+├── ui/             # Các màn hình (Compose) và ViewModels
+└── util/           # Các tiện ích (Retry, Text Cleaning, Chunks)
 ```
 
----
+## 🚀 Hướng dẫn cài đặt
 
-## ⚖️ Bản quyền
+1. **Clone repository**:
+   ```bash
+   git clone https://github.com/skul9x/YTSummary.git
+   ```
+2. **Mở dự án**: Sử dụng Android Studio (phiên bản Ladybug trở lên được khuyến nghị).
+3. **Cấu hình API Key**:
+   - Truy cập [Google AI Studio](https://aistudio.google.com/) để lấy Gemini API Key.
+   - Mở ứng dụng, vào phần **Cài đặt** -> **Quản lý API Key** để thêm key của bạn.
+4. **Build & Run**: Nhấn nút "Run" trong Android Studio để cài đặt lên thiết bị hoặc giả lập.
+
+## 📝 Cách sử dụng
+
+1. Mở app YouTube và tìm video bạn muốn tóm tắt.
+2. Nhấn nút **Chia sẻ** (Share) -> Chọn **YTSummary**.
+3. Ứng dụng sẽ tự động trích xuất phụ đề và bắt đầu tóm tắt.
+4. Bạn có thể nghe bản tóm tắt bằng cách nhấn vào biểu tượng loa hoặc đọc văn bản trên màn hình.
+
+## ⚙️ CI/CD
+
+Dự án sử dụng **GitHub Actions** để tự động build file APK và tạo Release mỗi khi có thay đổi trên nhánh `main`. Bạn có thể tải bản build mới nhất trong phần [Releases](https://github.com/skul9x/YTSummary/releases).
+
+## 📄 Bản quyền
 
 Copyright 2026 Nguyễn Duy Trường
 
-*Phát triển bởi Nguyễn Duy Trường - Skul9x.*
+---
+*Phát triển bởi Nguyễn Duy Trường với tình yêu dành cho Open Source.*

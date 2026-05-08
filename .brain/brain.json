@@ -23,7 +23,7 @@
       },
       {
         "path": "Gemini API",
-        "explained": "Tóm tắt transcript thành nội dung text cuối cùng"
+        "explained": "Tóm tắt transcript thành nội dung text cuối cùng. Hỗ trợ Model-First Key Rotation, phân loại lỗi 429 (RPM vs RPD) và Stream Safety."
       }
   ],
   "business_rules": [
@@ -32,7 +32,9 @@
       "Ưu tiên ngôn ngữ Việt (vi), sau đó tới Anh (en)",
       "Nếu video đã được lưu vào Room, load từ cache thay vì parse và gọi Gemini lại",
       "Bỏ hoàn toàn Python/Chaquopy runtime khỏi ứng dụng để giảm size APK (Architecture rẽ nhánh sang Standalone Native)",
-      "Sử dụng Exponential Backoff Retry (Network Resilience) bằng Coroutine `delay` cho tầng Repository thay vì chặn luồng OkHttp",
+      "Sử dụng Exponential Backoff Retry (Network Resilience) bằng Coroutine `delay` cho tầng Repository, nhưng chỉ retry khi stream CHƯA bắt đầu để tránh rác UI",
+      "Tách biệt lỗi 429: RPM (khóa 5 phút) và RPD (khóa 30 tiếng) dựa trên response body",
+      "Khi Model gặp lỗi 400 (Context window) hoặc 404, lập tức nhảy sang Model tiếp theo thay vì thử các key khác cho model đó",
       "Tách biệt Timeout: 15s cho Connect/Metadata, 90s cho Gemini Streaming",
       "Tự động chia nhỏ (Chunking) văn bản cho TTS khi nội dung > 3500 ký tự tránh lỗi ngắt quãng engine",
       "Xử lý Audio Focus Loss để chủ động dừng/reset trạng thái TTS khi có app khác (nhạc, điện thoại) chen ngang"
@@ -48,8 +50,8 @@
   ],
   "knowledge_items": { 
       "patterns": [
-        "Clean Architecture (Services + Repository)", 
-        "Coroutine-based Exponential Backoff (non-blocking retry)",
+        "Model-First Key Rotation (thử hết keys cho 1 model trước khi nhảy model)", 
+        "Stream Safety State Management (hasStarted flag to prevent UI duplication)",
         "Fine-grained State Collection (không gộp UiState lớn để tránh recompositions)",
         "Text Chunking cho Jetpack Compose LazyColumn (giảm OutOfMemory & Jank)",
         "Recursive Text-To-Speech Chunking (vượt giới hạn character limit của Android engine)"
@@ -58,6 +60,8 @@
         "Android Html.fromHtml cực kỳ nặng và tốn CPU khi dùng trong vòng lặp XML Parser. Cần tự replace/clean chuỗi cho nhẹ.",
         "Macrobenchmark setup với AGP 8.9.0 yêu cầu dùng `isDebuggable = true` thay vì `debuggable = true`.",
         "Xóa bỏ hoàn toàn RetryInterceptor OkHttp nếu bị Timeout exception chặn main network connection pool.",
+        "Gemini 429 có 2 ý nghĩa: RPM (thử lại sau 1p) vs RPD (hết hạn ngày). Đánh đồng sẽ làm chết dàn key nhanh chóng.",
+        "Retry stream khi đã có text trả về UI (hasStarted = true) sẽ gây nhân đôi văn bản. Cần báo lỗi thay vì retry.",
         "Hầu hết TTS engines trên Android giới hạn ~4000 ký tự mỗi input, cần chia nhỏ để không bị mất chữ cuối."
       ], 
       "conventions": [

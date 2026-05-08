@@ -1,26 +1,27 @@
 {
-  "updated_at": "2026-03-31T15:45:00Z",
+  "updated_at": "2026-05-08T19:05:00Z",
   "working_on": {
-    "feature": "TTS Resilience & Reliability",
-    "task": "Fixing TTS bugs: chunking, audio focus, tracking",
+    "feature": "Gemini API Rotation & Error Handling",
+    "task": "Fixing 429 RPM/RPD handling, stream safety, and model rotation efficiency",
     "status": "completed",
-    "files": ["TtsManager.kt", "plan.md", "final_report.md"],
+    "files": ["GeminiApiClient.kt", "GeminiApiClientRefinedTest.kt", "phase-03-validation.md", "validation_report.md"],
     "blockers": [],
-    "notes": "Đã sửa lỗi engine Android TTS giới hạn 4k ký tự bằng recursive chunking và xử lý Audio Focus loss."
+    "notes": "Đã sửa 3 lỗi logic nghiêm trọng: 429 RPM vs RPD, Duplicate text khi stream reconnect, và lặp model khi lỗi context window."
   },
   "pending_tasks": [
     { "task": "Check Play Store release readiness", "priority": "high", "notes": "Cần keystore chính thức." }
   ],
   "recent_changes": [
-    { "timestamp": "2026-03-31T15:43:00Z", "type": "bugfix", "description": "Hoàn thành 3 Phase sửa lỗi TTS: Xử lý gián đoạn, chia nhỏ văn bản, track tiến trình chính xác.", "files": ["TtsManager.kt", "plans/260331-1537-fix-tts-bugs/*"] },
-    { "timestamp": "2026-03-31T13:00:00Z", "type": "deployment", "description": "Tạo bản build APK Release rút gọn còn 13MB (Bật R8 Minify & ShrinkResources).", "files": ["build.gradle.kts"] }
+    { "timestamp": "2026-05-08T19:00:00Z", "type": "bugfix", "description": "Nâng cấp cơ chế xoay tua Gemini API: Phân loại 429 thông minh, bảo vệ luồng stream, tối ưu hóa fallback model.", "files": ["GeminiApiClient.kt", "ModelQuotaManager.kt", "GeminiApiClientRefinedTest.kt"] },
+    { "timestamp": "2026-03-31T15:43:00Z", "type": "bugfix", "description": "Hoàn thành 3 Phase sửa lỗi TTS: Xử lý gián đoạn, chia nhỏ văn bản, track tiến trình chính xác.", "files": ["TtsManager.kt", "plans/260331-1537-fix-tts-bugs/*"] }
   ],
   "errors_encountered": [
-    { "error": "Android TTS engine silent failure for long text (>4000 chars)", "solution": "Implement recursive chunking strategy.", "resolved": true },
-    { "error": "Missing Audio focus listener", "solution": "Set OnAudioFocusChangeListener to stop TTS on focus loss.", "resolved": true }
+    { "error": "Gemini 429 RPD vs RPM ambiguity", "solution": "Parsed error body for 'per minute' or 'rate limit' keywords to distinguish.", "resolved": true },
+    { "error": "Duplicate text on UI during stream reconnection", "solution": "Added 'hasStarted' flag to block retries once streaming has emitted data.", "resolved": true },
+    { "error": "Inefficient key rotation for context window errors", "solution": "Added ModelUnavailableException to break key loop and move to next model on 400/404.", "resolved": true }
   ],
   "decisions_made": [
-    { "decision": "Recursive implementation of speakInChunks", "reason": "Better control over queue and state tracking than simple loop." },
-    { "decision": "Compound Utterance ID (CHUNK|length|id)", "reason": "Allows stateless progress tracking in the listener callbacks." }
+    { "decision": "Model-First Key Rotation", "reason": "Better availability for high-priority models before falling back." },
+    { "decision": "Stop rotation on mid-stream failure", "reason": "UI consistency is more important than automatic recovery if data is already visible." }
   ]
 }

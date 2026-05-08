@@ -1,5 +1,17 @@
 # Changelog - YouTube AI Summarizer (YTSummary)
 
+## [1.2.0] - 2026-05-08
+### Added
+- **Model-First API Key Rotation**: Đã nâng cấp hệ thống xoay tua API Key để ưu tiên thử tất cả API key cho một Model trước khi chuyển sang Model tiếp theo (Flash Lite -> Flash -> Pro).
+- **Phân loại lỗi 429 thông minh**: Phân biệt giữa Rate Limit (RPM - khóa 5 phút) và Daily Quota (RPD - khóa 30 tiếng) dựa trên nội dung phản hồi từ Gemini API.
+- **Stream Safety Mechanism**: Ngăn chặn lỗi trùng lặp văn bản trên UI khi kết nối bị gián đoạn giữa chừng. Hệ thống sẽ báo lỗi và dừng thay vì âm thầm xoay tua key làm hỏng luồng văn bản hiện tại.
+- **Efficient Model Rotation**: Tự động bỏ qua toàn bộ các key của một Model nếu gặp lỗi Client (400, 404) như quá giới hạn context, giúp tiết kiệm API call và tăng tốc độ xử lý.
+
+### Fixed
+- Lỗi khóa key 30 tiếng nhầm lẫn khi chỉ bị giới hạn tốc độ (RPM).
+- Lỗi văn bản bị nhân đôi/nhân ba trên UI khi mạng chập chờn trong lúc đang tóm tắt.
+- Lỗi lặp lại vô ích các API key khác nhau cho cùng một model đã bị lỗi context window.
+
 ## [1.0.6] - 2026-04-01
 ### Fixed
 - **Lỗi cài đặt bản Release:** Đã cấu hình tự động ký bản Release bằng Debug Key để người dùng có thể cài đặt trực tiếp mà không bị báo lỗi "gói không hợp lệ".
