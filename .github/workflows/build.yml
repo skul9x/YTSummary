@@ -41,9 +41,9 @@ jobs:
         run: |
           if [ -z "${{ secrets.KEYSTORE_BASE64 }}" ]; then
             echo "⚠️ secrets.KEYSTORE_BASE64 is empty. Creating a temporary self-signed keystore to guarantee build success..."
-            keytool -genkey -v -keystore skul9x.jks -alias temp_alias -keyalg RSA -keysize 2048 -validity 10000 -storepass temp_storepass -keypass temp_keypass -dname "CN=Nguyen Duy Truong, OU=YTSummary, O=Skul9x, L=Hanoi, S=Hanoi, C=VN"
-            echo "STORE_PASSWORD=temp_storepass" >> $GITHUB_ENV
-            echo "KEY_PASSWORD=temp_keypass" >> $GITHUB_ENV
+            keytool -genkey -v -keystore skul9x.jks -alias temp_alias -keyalg RSA -keysize 2048 -validity 10000 -storepass temp_password -keypass temp_password -dname "CN=Nguyen Duy Truong, OU=YTSummary, O=Skul9x, L=Hanoi, S=Hanoi, C=VN"
+            echo "STORE_PASSWORD=temp_password" >> $GITHUB_ENV
+            echo "KEY_PASSWORD=temp_password" >> $GITHUB_ENV
             echo "KEY_ALIAS=temp_alias" >> $GITHUB_ENV
           else
             echo "✅ Keystore secret found. Decoding production keystore..."

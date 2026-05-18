@@ -71,3 +71,9 @@
     public static *** i(...);
     public static *** w(...);
 }
+
+# SQLCipher / Zetetic Rules (JNI mappings)
+-keep class net.sqlcipher.** { *; }
+-keep class net.zetetic.** { *; }
+-dontwarn net.sqlcipher.**
+-dontwarn net.zetetic.**
