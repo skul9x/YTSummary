@@ -111,6 +111,8 @@ dependencies {
     testImplementation("io.mockk:mockk:1.13.10")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
     testImplementation("com.squareup.okhttp3:mockwebserver:4.12.0")
+    testImplementation("xmlpull:xmlpull:1.1.3.1")
+    testImplementation("net.sf.kxml:kxml2:2.3.0")
 
     // Coil
     implementation(libs.coil.compose)

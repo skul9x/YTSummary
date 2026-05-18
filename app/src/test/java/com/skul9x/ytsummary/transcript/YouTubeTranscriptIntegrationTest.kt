@@ -6,13 +6,14 @@ import io.mockk.mockkStatic
 import kotlinx.coroutines.runBlocking
 import okhttp3.OkHttpClient
 import org.junit.Assert.assertTrue
+import org.junit.Assume.assumeFalse
 import org.junit.Before
 import org.junit.Test
 import java.util.concurrent.TimeUnit
 
 /**
  * Integration Test to verify real transcript fetching.
- * Note: Might fail in restricted environments (CI/Cloud) with HTTP -1.
+ * Note: Skip in CI/Cloud environment to prevent build flakiness due to YouTube IP block/network restriction.
  */
 class YouTubeTranscriptIntegrationTest {
 
@@ -21,6 +22,10 @@ class YouTubeTranscriptIntegrationTest {
 
     @Before
     fun setup() {
+        // Skip integration test when running on CI server to avoid flakiness from YouTube IP blocking/rate-limits
+        val isCI = System.getenv("CI") == "true" || System.getenv("GITHUB_ACTIONS") == "true"
+        assumeFalse("Skipping integration test in CI environment due to YouTube network/IP restrictions.", isCI)
+
         // Mock Android Log
         mockkStatic(Log::class)
         every { Log.d(any<String>(), any<String>()) } returns 0
@@ -51,12 +56,6 @@ class YouTubeTranscriptIntegrationTest {
             val msg = exception?.message ?: ""
             println("❌ FAILURE!")
             println("⚠️ Reason: $msg")
-            
-            // In a cloud environment, we accept HTTP -1 as a proxy/network limitation
-            if (msg.contains("Lỗi HTTP -1")) {
-                println("ℹ️ Skipping assertion due to network restriction in this context.")
-                return@runBlocking
-            }
             
             assertTrue("Error fetching transcript: $msg", false)
         }
