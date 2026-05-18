@@ -15,9 +15,9 @@ class ModelManager private constructor(context: Context) {
         private const val KEY_MODELS = "gemini_models_priority"
 
         val DEFAULT_MODELS = listOf(
-            "models/gemini-3.1-flash-lite-preview",
-            "models/gemini-3-flash-preview",
+            "models/gemini-3.1-flash-lite",
             "models/gemini-2.5-flash-lite",
+            "models/gemini-3-flash-preview",
             "models/gemini-2.5-flash"
         )
 
@@ -50,7 +50,8 @@ class ModelManager private constructor(context: Context) {
      * Lưu danh sách model.
      */
     fun saveModels(models: List<String>) {
-        val json = Json.encodeToString(models)
+        val finalModels = if (models.isEmpty()) DEFAULT_MODELS else models
+        val json = Json.encodeToString(finalModels)
         prefs.edit().putString(KEY_MODELS, json).apply()
     }
 

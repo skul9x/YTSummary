@@ -7,10 +7,10 @@
 - 📥 **Nhận Share Link**: Tóm tắt ngay lập tức bằng cách chia sẻ link từ ứng dụng YouTube.
 - 🏎️ **Native Transcript Parser**: Lấy phụ đề video siêu tốc bằng Kotlin Native (không phụ thuộc backend).
 - 🤖 **Gemini AI Integration**: Sử dụng các model Gemini mới nhất (Flash, Pro) để tóm tắt nội dung chính xác.
-- 🔄 **Smart API Rotation**: Cơ chế xoay tua API Key và Model thông minh, tự động xử lý lỗi 429 (Rate Limit) và tối ưu hóa chi phí.
+- 🔄 **Smart API Rotation & Self-Healing**: Cơ chế xoay tua API Key và Model thông minh, tự động xử lý lỗi 429 (Rate Limit). Đặc biệt, hệ thống tích hợp cơ chế tự phục hồi (Self-Healing) ở tầng lưu trữ và giao diện UI, tự động phục hồi về cấu hình mặc định an toàn khi danh sách trống, đảm bảo ứng dụng không bao giờ bị crash lúc runtime.
 - 🎙️ **Smart TTS (Text-to-Speech)**: Đọc bản tóm tắt bằng giọng nói, hỗ trợ chia nhỏ văn bản dài và tự động dừng khi có cuộc gọi.
-- 📱 **Giao diện Glassmorphism**: Thiết kế hiện đại, mượt mà với phong cách kính mờ (Kính mờ).
-- 💾 **Lịch sử tóm tắt**: Lưu trữ và quản lý các video đã tóm tắt (Room Database).
+- 📱 **Giao diện Glassmorphism**: Thiết kế hiện đại, mượt mà với phong cách kính mờ cực kỳ cao cấp.
+- 💾 **Lịch sử tóm tắt**: Lưu trữ và quản lý các video đã tóm tắt thông qua Room Database.
 - ⚡ **Hiệu năng tối ưu**: Khởi động cực nhanh nhờ Baseline Profiles và R8 Optimization.
 
 ## 🛠️ Công nghệ sử dụng
@@ -61,7 +61,10 @@ app/src/main/java/com/skul9x/ytsummary/
 
 ## ⚙️ CI/CD
 
-Dự án sử dụng **GitHub Actions** để tự động build file APK và tạo Release mỗi khi có thay đổi trên nhánh `main`. Bạn có thể tải bản build mới nhất trong phần [Releases](https://github.com/skul9x/YTSummary/releases).
+Dự án sử dụng **GitHub Actions** để tự động chạy các Unit Test đảm bảo chất lượng code và build đóng gói file APK Release đã ký số an toàn:
+- File đầu ra APK có tên chính xác là `YTSummary-v1.0.8.apk`.
+- Tự động phát hành lên GitHub Release với phiên bản/tag `v1.0.8`.
+- Quy trình tự động chạy bất cứ khi nào có thay đổi được push lên nhánh `main` hoặc khi tạo tag.
 
 ## 📄 Bản quyền
 

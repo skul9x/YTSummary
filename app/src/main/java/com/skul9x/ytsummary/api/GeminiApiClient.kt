@@ -8,7 +8,9 @@ import com.skul9x.ytsummary.manager.ApiKeyManager
 import com.skul9x.ytsummary.manager.ModelManager
 import com.skul9x.ytsummary.manager.ModelQuotaManager
 import com.skul9x.ytsummary.model.AiResult
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
@@ -16,6 +18,8 @@ import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.IOException
+import java.net.UnknownHostException
+import java.net.ConnectException
 
 /**
  * Gemini API client with Model-First key rotation strategy.
@@ -25,7 +29,8 @@ class GeminiApiClient(
     private val quotaManager: ModelQuotaManager,
     private val modelManager: ModelManager,
     private val client: OkHttpClient = NetworkModule.geminiOkHttpClient,
-    private val baseUrl: String = BASE_URL
+    private val baseUrl: String = BASE_URL,
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 ) {
 
     /**
@@ -119,10 +124,19 @@ class GeminiApiClient(
                 } catch (e: QuotaExceededException) {
                     continue // Thử Key tiếp theo
                 } catch (e: ServerBusyException) {
+                    delay(300L)
                     continue // Thử Key tiếp theo
                 } catch (e: ModelUnavailableException) {
                     Log.e(TAG, "Skipping model $model due to client/model error: ${e.message}")
                     break // THOÁT VÒNG LẶP KEY, CHUYỂN NGAY SANG MODEL TIẾP THEO
+                } catch (e: UnknownHostException) {
+                    Log.e(TAG, "Mất mạng vật lý: ${e.message}")
+                    emit(AiResult.Error("Không có kết nối mạng. Vui lòng kiểm tra lại đường truyền."))
+                    return@flow
+                } catch (e: ConnectException) {
+                    Log.e(TAG, "Không thể kết nối đến server: ${e.message}")
+                    emit(AiResult.Error("Không có kết nối mạng. Vui lòng kiểm tra lại đường truyền."))
+                    return@flow
                 } catch (e: Exception) {
                     Log.e(TAG, "Error with $model: ${e.message}")
                     if (hasStarted) {
@@ -137,7 +151,7 @@ class GeminiApiClient(
         }
 
         emit(AiResult.AllQuotaExhausted)
-    }.flowOn(Dispatchers.IO)
+    }.flowOn(ioDispatcher)
 
     // Khai báo thêm Exception mới để điều hướng luồng
     private class QuotaExceededException : Exception()
